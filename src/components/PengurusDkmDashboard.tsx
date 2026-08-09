@@ -2491,6 +2491,18 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
 
                     <div>
                       <label className="text-blue-300 font-semibold block mb-1">
+                        Durasi Adzan (Menit):
+                      </label>
+                      <input
+                        type="number"
+                        value={adminSettings?.adzanDurationMinutes || 4}
+                        onChange={(e) => handleTextSettingChange('adzanDurationMinutes', Number(e.target.value))}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 font-mono text-amber-300 text-xs outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1">
                         Countdown Timer Iqamah (Menit):
                       </label>
                       <input
@@ -2498,6 +2510,55 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                         value={adminSettings?.iqamahCountdownMinutes || 10}
                         onChange={(e) => handleTextSettingChange('iqamahCountdownMinutes', Number(e.target.value))}
                         className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 font-mono text-amber-300 text-xs outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1">
+                        Durasi Shalat & Layar Gelap (Menit):
+                      </label>
+                      <input
+                        type="number"
+                        value={adminSettings?.sholatDurationMinutes || 15}
+                        onChange={(e) => handleTextSettingChange('sholatDurationMinutes', Number(e.target.value))}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 font-mono text-amber-300 text-xs outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t border-blue-800/50 mt-4">
+                    <h5 className="font-bold text-blue-200 text-xs uppercase tracking-wider">Pengaturan Teks Peringatan Waktu Shalat</h5>
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">
+                        Teks Berjalan Saat Adzan:
+                      </label>
+                      <input
+                        type="text"
+                        value={adminSettings?.adzanRunningText || 'SAAT INI WAKTU ADZAN. HARAP TENANG DAN LURUSKAN SHAF.'}
+                        onChange={(e) => handleTextSettingChange('adzanRunningText', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">
+                        Teks Berjalan Saat Jeda Iqamah:
+                      </label>
+                      <input
+                        type="text"
+                        value={adminSettings?.iqamahRunningText || 'WAKTU SHOLAT BERJAMAAH AKAN SEGERA DIMULAI. HARAP NONAKTIFKAN PONSEL ANDA.'}
+                        onChange={(e) => handleTextSettingChange('iqamahRunningText', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">
+                        Teks Saat Shalat Berlangsung (Layar Gelap):
+                      </label>
+                      <input
+                        type="text"
+                        value={adminSettings?.sholatRunningText || 'SHALAT BERJAMAAH SEDANG BERLANGSUNG'}
+                        onChange={(e) => handleTextSettingChange('sholatRunningText', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
                       />
                     </div>
                   </div>

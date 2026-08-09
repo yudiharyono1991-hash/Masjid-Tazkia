@@ -65,6 +65,55 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
   };
   const activePrayerIdx = getActivePrayerIndex();
 
+  const getActivePrayerPhase = () => {
+    const parseTime = (timeStr: string) => {
+      const [h, m] = timeStr.split(':').map(Number);
+      return h * 60 + m;
+    };
+    
+    const currentMinutes = time.getHours() * 60 + time.getMinutes();
+    const currentSeconds = currentMinutes * 60 + time.getSeconds();
+    
+    const adzanDur = adminSettings?.adzanDurationMinutes || 4;
+    const iqamahDur = adminSettings?.iqamahCountdownMinutes || 10;
+    const sholatDur = adminSettings?.sholatDurationMinutes || 15;
+
+    const prayers = [
+      { name: 'SUBUH', time: parseTime(selectedCity.fajr) },
+      { name: time.getDay() === 5 ? 'JUMAT' : 'DZUHUR', time: parseTime(selectedCity.dhuhr) },
+      { name: 'ASHAR', time: parseTime(selectedCity.asr) },
+      { name: 'MAGHRIB', time: parseTime(selectedCity.maghrib) },
+      { name: 'ISYA', time: parseTime(selectedCity.isha) }
+    ];
+
+    for (const prayer of prayers) {
+      let prayerMinutes = prayer.time;
+      let diffMinutes = currentMinutes - prayerMinutes;
+      let diffSeconds = currentSeconds - (prayerMinutes * 60);
+
+      // Simple handling for same day
+      if (diffMinutes >= 0) {
+        if (diffMinutes < adzanDur) {
+           return { phase: 'ADZAN', prayerName: prayer.name };
+        } else if (diffMinutes < adzanDur + iqamahDur) {
+           const targetSeconds = (prayerMinutes + adzanDur + iqamahDur) * 60;
+           return { phase: 'IQAMAH', prayerName: prayer.name, remainingSeconds: targetSeconds - currentSeconds };
+        } else if (diffMinutes < adzanDur + iqamahDur + sholatDur) {
+           return { phase: 'SHOLAT', prayerName: prayer.name };
+        }
+      }
+    }
+    
+    return { phase: 'NORMAL', prayerName: '', remainingSeconds: 0 };
+  };
+
+  const prayerPhase = getActivePrayerPhase();
+  const formatCountdown = (totalSeconds: number) => {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -98,6 +147,16 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
   const audioUrl = `${selectedQari}${String(selectedSurah).padStart(3, '0')}.mp3`;
 
   const nextFriday = petugasList.find(p => p.khatibJumat);
+
+  if (prayerPhase.phase === 'SHOLAT') {
+    return (
+      <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center cursor-none select-none">
+         <p className="text-[#111] text-xs font-bold uppercase tracking-widest">{adminSettings?.sholatRunningText || 'SHALAT BERJAMAAH SEDANG BERLANGSUNG'}</p>
+         {/* Hidden exit button so admin can still escape if stuck */}
+         <button onClick={onExit} className="absolute bottom-4 right-4 w-10 h-10 opacity-0 cursor-pointer" title="Keluar" />
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-[#070c1b] text-white flex flex-col justify-between p-2 sm:p-6 font-sans overflow-y-auto sm:overflow-hidden select-none">
@@ -200,64 +259,81 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
         </div>
       </div>
 
-      {/* Center Dynamic Rotating Banner Slides */}
+      {/* Center Dynamic Content */}
       <div className="my-auto py-8">
-        {currentSlideIndex === 0 && (
-          <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
-            <div className="flex items-center justify-center gap-2">
-              <span className="bg-amber-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
-                INFORMASI KHUTBAH JUMAT
-              </span>
-              {adminSettings?.jumatTimeInfo && (
-                <span className="bg-blue-800 text-amber-300 font-mono text-xs px-3 py-1 rounded-full border border-amber-500/30">
-                  {adminSettings.jumatTimeInfo}
+        {prayerPhase.phase === 'NORMAL' ? (
+          <>
+            {currentSlideIndex === 0 && (
+              <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
+                <div className="flex items-center justify-center gap-2">
+                  <span className="bg-amber-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
+                    INFORMASI KHUTBAH JUMAT
+                  </span>
+                  {adminSettings?.jumatTimeInfo && (
+                    <span className="bg-blue-800 text-amber-300 font-mono text-xs px-3 py-1 rounded-full border border-amber-500/30">
+                      {adminSettings.jumatTimeInfo}
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-lg sm:text-4xl font-serif font-bold text-amber-300 leading-snug">
+                  "{adminSettings?.jumatTopicTitle || nextFriday?.topikJumat || 'Optimalisasi ZISWAF untuk Kesejahteraan Umat'}"
+                </h2>
+                <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-6 text-sm sm:text-lg pt-2 text-blue-200 font-sans">
+                  <p>Khatib: <strong className="text-white font-serif">{adminSettings?.jumatKhatibName || nextFriday?.khatibJumat || 'Prof. Dr. KH. Nasaruddin Umar, MA'}</strong></p>
+                  <p>Imam: <strong className="text-white font-serif">{adminSettings?.jumatImamName || nextFriday?.imamJumat || 'Ustadz H. M. Zainuddin, Sq'}</strong></p>
+                  {adminSettings?.jumatMuadzinName && (
+                    <p>Muadzin: <strong className="text-white font-serif">{adminSettings.jumatMuadzinName}</strong></p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {currentSlideIndex === 1 && (
+              <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
+                <span className="bg-blue-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
+                  HADIS SHAHIH HARI INI
                 </span>
-              )}
-            </div>
-            <h2 className="text-lg sm:text-4xl font-serif font-bold text-amber-300 leading-snug">
-              "{adminSettings?.jumatTopicTitle || nextFriday?.topikJumat || 'Optimalisasi ZISWAF untuk Kesejahteraan Umat'}"
-            </h2>
-            <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-6 text-sm sm:text-lg pt-2 text-blue-200 font-sans">
-              <p>Khatib: <strong className="text-white font-serif">{adminSettings?.jumatKhatibName || nextFriday?.khatibJumat || 'Prof. Dr. KH. Nasaruddin Umar, MA'}</strong></p>
-              <p>Imam: <strong className="text-white font-serif">{adminSettings?.jumatImamName || nextFriday?.imamJumat || 'Ustadz H. M. Zainuddin, Sq'}</strong></p>
-              {adminSettings?.jumatMuadzinName && (
-                <p>Muadzin: <strong className="text-white font-serif">{adminSettings.jumatMuadzinName}</strong></p>
-              )}
-            </div>
-          </div>
-        )}
+                <p className="text-2xl sm:text-4xl font-serif text-amber-300 leading-relaxed font-arabic" dir="rtl">
+                  مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ
+                </p>
+                <p className="text-sm sm:text-xl text-blue-200 max-w-3xl mx-auto font-serif italic">
+                  "Sedekah itu tidak akan pernah mengurangi harta sedikit pun, melainkan Allah akan menambah kemuliaan."
+                </p>
+                <p className="text-xs text-amber-400 font-mono">(HR. Muslim no. 2588)</p>
+              </div>
+            )}
 
-        {currentSlideIndex === 1 && (
-          <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
-            <span className="bg-blue-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
-              HADIS SHAHIH HARI INI
-            </span>
-            <p className="text-2xl sm:text-4xl font-serif text-amber-300 leading-relaxed font-arabic" dir="rtl">
-              مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ
-            </p>
-            <p className="text-sm sm:text-xl text-blue-200 max-w-3xl mx-auto font-serif italic">
-              "Sedekah itu tidak akan pernah mengurangi harta sedikit pun, melainkan Allah akan menambah kemuliaan."
-            </p>
-            <p className="text-xs text-amber-400 font-mono">(HR. Muslim no. 2588)</p>
+            {currentSlideIndex === 2 && (
+              <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
+                <span className="bg-amber-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
+                  PROGRAM WAKAF UTAMA
+                </span>
+                <h2 className="text-xl sm:text-4xl font-serif font-bold text-white">
+                  Wakaf Tunai Sound System & Akustik Ruang Shalat Utama
+                </h2>
+                <p className="text-sm sm:text-base text-blue-300 max-w-2xl mx-auto">
+                  Dukung pengadaan tata suara jernih kristal untuk kekhusyu'an ibadah jamaah Masjid Tazkia.
+                </p>
+                <p className="text-sm sm:text-xl text-amber-400 font-mono font-bold">
+                  Terkumpul: Rp 8.25M / Target: Rp 15M
+                </p>
+              </div>
+            )}
+          </>
+        ) : prayerPhase.phase === 'ADZAN' ? (
+          <div className="bg-red-900/40 border-4 border-red-500/80 rounded-3xl p-8 sm:p-16 max-w-5xl mx-auto shadow-2xl text-center space-y-6 animate-pulse">
+            <h2 className="text-4xl sm:text-7xl font-bold text-white tracking-widest uppercase">WAKTU ADZAN</h2>
+            <p className="text-2xl sm:text-5xl font-mono font-bold text-red-200">{prayerPhase.prayerName}</p>
           </div>
-        )}
-
-        {currentSlideIndex === 2 && (
-          <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
-            <span className="bg-amber-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
-              PROGRAM WAKAF UTAMA
-            </span>
-            <h2 className="text-xl sm:text-4xl font-serif font-bold text-white">
-              Wakaf Tunai Sound System & Akustik Ruang Shalat Utama
-            </h2>
-            <p className="text-sm sm:text-base text-blue-300 max-w-2xl mx-auto">
-              Dukung pengadaan tata suara jernih kristal untuk kekhusyu'an ibadah jamaah Masjid Tazkia.
-            </p>
-            <p className="text-sm sm:text-xl text-amber-400 font-mono font-bold">
-              Terkumpul: Rp 8.25M / Target: Rp 15M
-            </p>
+        ) : prayerPhase.phase === 'IQAMAH' ? (
+          <div className="bg-[#0f1d3a]/80 border-4 border-amber-500/50 rounded-3xl p-8 sm:p-16 max-w-5xl mx-auto shadow-2xl text-center space-y-6">
+            <h2 className="text-2xl sm:text-4xl font-bold text-amber-400 tracking-widest uppercase">MENUJU IQAMAH</h2>
+            <div className="text-6xl sm:text-9xl font-mono font-extrabold text-white animate-pulse">
+              {formatCountdown(prayerPhase.remainingSeconds)}
+            </div>
+            <p className="text-xl sm:text-3xl font-mono font-bold text-blue-300">{prayerPhase.prayerName}</p>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Bottom Prayer Times Bar */}
@@ -293,10 +369,18 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
 
         {/* Running Text Announcement Footer */}
         <div className="bg-amber-500/20 border border-amber-500/30 rounded-xl px-4 py-2 overflow-hidden whitespace-nowrap">
-          <div className="inline-block animate-marquee text-xs font-medium text-amber-300 space-x-8">
-            <span>• Harap mematikan atau mengheningkan nada dering ponsel saat berada di ruang shalat utama.</span>
-            <span>• Kajian Subuh Berkah setiap hari Sabtu bersama KH. Ridwan Kamil, Lc.</span>
-            <span>• Salurkan ZISWAF Anda melalui Portal Digital Masjid Tazkia atau Sekertariat DKM.</span>
+          <div className="inline-block animate-marquee font-medium space-x-8">
+            {prayerPhase.phase === 'ADZAN' ? (
+              <span className="text-lg sm:text-2xl font-bold text-red-400 uppercase">{adminSettings?.adzanRunningText || 'SAAT INI WAKTU ADZAN. HARAP TENANG DAN LURUSKAN SHAF.'}</span>
+            ) : prayerPhase.phase === 'IQAMAH' ? (
+              <span className="text-lg sm:text-2xl font-bold text-amber-400 uppercase">{adminSettings?.iqamahRunningText || 'WAKTU SHOLAT BERJAMAAH AKAN SEGERA DIMULAI. HARAP NONAKTIFKAN PONSEL ANDA.'}</span>
+            ) : (
+              <div className="text-xs text-amber-300">
+                <span>• Harap mematikan atau mengheningkan nada dering ponsel saat berada di ruang shalat utama. </span>
+                <span>• Kajian Subuh Berkah setiap hari Sabtu bersama KH. Ridwan Kamil, Lc. </span>
+                <span>• Salurkan ZISWAF Anda melalui Portal Digital Masjid Tazkia atau Sekertariat DKM.</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -274,6 +274,11 @@ export interface AppAdminSettings {
   bankAccountBca: string;
   qrisMerchantName: string;
   iqamahCountdownMinutes: number;
+  adzanDurationMinutes?: number;
+  adzanRunningText?: string;
+  iqamahRunningText?: string;
+  sholatDurationMinutes?: number;
+  sholatRunningText?: string;
   masjidLogoUrl?: string;
   masjidHeroPhotoUrl?: string;
   masjidHeroCarouselUrls?: string[];
