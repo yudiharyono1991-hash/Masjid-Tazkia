@@ -6,6 +6,8 @@ Dokumen ini berisi daftar fitur, peningkatan, dan perbaikan (backlog) yang telah
 - [x] **Penyempurnaan Integrasi Supabase Database (Tahap 1):** Mekanisme sinkronisasi data master dan relasional via `app_sync_state` JSONB untuk *persistence* lintas perangkat, serta implementasi Supabase Storage untuk media dengan `DO BLOCK` idempotent policies.
 - [x] **Auth & Role Enforcement:** Memisahkan modul-modul (terutama Modul Keuangan Terpadu) dan memberi proteksi berdasarkan otoritas role secara ketat di DKM Dashboard.
 - [x] **System-Wide UI/UX & Dark Mode:** Restrukturisasi menu navigasi admin, penghapusan elemen E2E *debugging*, dan implementasi kompatibilitas mode gelap yang tidak menyilaukan.
+- [x] **Mobile-Friendly TV Display:** Menyelesaikan isu YouTube autoplay pada mobile device, strukturisasi UI, dan merapikan komponen Mobile Dashboard.
+- [x] **Manajemen Sinkronisasi Realtime:** Memastikan State Cloud menjadi prioritas agar pengeditan (hapus, ubah teks) sinkron permanen di setiap perangkat (PC/HP/Tablet) dengan anti-revert.
 - [ ] **Integrasi Notifikasi Donasi Jamaah:** Menambahkan pengingat target donasi bulanan (recurring donation) di Portal Jamaah.
 
 ## 📈 Prioritas Menengah (Next Release)
