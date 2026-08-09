@@ -28,8 +28,10 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
   const [selectedQari, setSelectedQari] = useState<string>(QARI_LIST[0].baseUrl);
   const [selectedSurah, setSelectedSurah] = useState<number>(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [volume, setVolume] = useState<number>(70);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [murottalVolume, setMurottalVolume] = useState<number>(70);
+  const [isMurottalMuted, setIsMurottalMuted] = useState<boolean>(false);
+  const [mediaVolume, setMediaVolume] = useState<number>(70);
+  const [isMediaMuted, setIsMediaMuted] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -45,20 +47,23 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
 
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume / 100;
+      audioRef.current.volume = isMurottalMuted ? 0 : murottalVolume / 100;
     }
+  }, [murottalVolume, isMurottalMuted]);
+
+  useEffect(() => {
     syncYouTubeVolume();
-  }, [volume, isMuted]);
+  }, [mediaVolume, isMediaMuted]);
 
   const syncYouTubeVolume = () => {
     const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe[src*="youtube.com/embed"]');
     iframes.forEach(iframe => {
       if (iframe.contentWindow) {
-        if (isMuted) {
+        if (isMediaMuted) {
           iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'mute', args: [] }), '*');
         } else {
           iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
-          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [volume] }), '*');
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [mediaVolume] }), '*');
         }
       }
     });
@@ -186,8 +191,9 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     const match = url.match(ytRegex);
     if (match && match[1]) {
       // Use enablejsapi=1 to allow postMessage volume control
-      // mute=1 initially if isMuted is true to avoid sudden sound, else mute=0
-      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&enablejsapi=1`;
+      // We use mute=0 initially, and syncYouTubeVolume will take over via postMessage.
+      // Do NOT put React state like isMediaMuted in this URL, or it will reload the iframe when volume changes!
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=0&controls=0&enablejsapi=1`;
     }
     return url;
   };
@@ -356,26 +362,60 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
               {/* Volume Control */}
               <div className="flex items-center gap-1 border-l border-blue-800 pl-2">
                 <button
-                  onClick={() => setIsMuted(!isMuted)}
+                  onClick={() => setIsMurottalMuted(!isMurottalMuted)}
                   className="text-blue-400 hover:text-amber-400 transition-colors shrink-0"
-                  title={isMuted ? 'Aktifkan Suara' : 'Matikan Suara'}
+                  title={isMurottalMuted ? 'Aktifkan Suara' : 'Matikan Suara'}
                 >
-                  {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  {isMurottalMuted || murottalVolume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                 </button>
                 <input
                   type="range"
                   min={0}
                   max={100}
-                  value={isMuted ? 0 : volume}
+                  value={isMurottalMuted ? 0 : murottalVolume}
                   onChange={(e) => {
                     const v = Number(e.target.value);
-                    setVolume(v);
-                    if (v > 0) setIsMuted(false);
+                    setMurottalVolume(v);
+                    if (v > 0) setIsMurottalMuted(false);
                   }}
                   className="w-14 sm:w-20 h-1.5 accent-amber-400 cursor-pointer"
-                  title={`Volume: ${isMuted ? 0 : volume}%`}
+                  title={`Volume: ${isMurottalMuted ? 0 : murottalVolume}%`}
                 />
-                <span className="text-[9px] text-blue-400 font-mono w-6 text-right shrink-0">{isMuted ? 0 : volume}%</span>
+                <span className="text-[9px] text-blue-400 font-mono w-6 text-right shrink-0">{isMurottalMuted ? 0 : murottalVolume}%</span>
+              </div>
+            </div>
+
+            {/* Media/YouTube Volume Panel */}
+            <div className="flex items-center justify-between gap-2 bg-blue-950/80 p-2 sm:p-2.5 rounded-xl border border-blue-800 w-full shadow-inner">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 shrink-0 rounded bg-red-500/20 text-red-400 flex items-center justify-center">
+                  <Play className="w-3 h-3" />
+                </div>
+                <span className="text-[9px] font-mono text-blue-400 uppercase tracking-widest hidden sm:inline">Volume Media (YouTube)</span>
+                <span className="text-[9px] font-mono text-blue-400 uppercase tracking-widest sm:hidden">Vol Video</span>
+              </div>
+              <div className="flex items-center gap-1 border-l border-blue-800 pl-2">
+                <button
+                  onClick={() => setIsMediaMuted(!isMediaMuted)}
+                  className="text-red-400 hover:text-red-300 transition-colors shrink-0"
+                  title={isMediaMuted ? 'Aktifkan Suara Video' : 'Matikan Suara Video'}
+                >
+                  {isMediaMuted || mediaVolume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={isMediaMuted ? 0 : mediaVolume}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    setMediaVolume(v);
+                    if (v > 0) setIsMediaMuted(false);
+                  }}
+                  className="w-14 sm:w-20 h-1.5 accent-red-400 cursor-pointer"
+                  title={`Volume Media: ${isMediaMuted ? 0 : mediaVolume}%`}
+                />
+                <span className="text-[9px] text-red-400 font-mono w-6 text-right shrink-0">{isMediaMuted ? 0 : mediaVolume}%</span>
               </div>
             </div>
             {/* Mobile Exit Button moved here */}
