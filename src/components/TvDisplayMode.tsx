@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { CITIES_DATA, CityPrayerTime, SURAHS_LIST } from '../lib/islamicUtils';
 import { Announcement, PetugasJadwal, AppAdminSettings } from '../types';
 import { Tv, X, Volume2, VolumeX, Play, Pause, Calendar, MapPin, Sparkles, Home } from 'lucide-react';
@@ -172,16 +172,32 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  // Auto rotate slides every 8 seconds
+  // Auto rotate slides every 8 seconds based on active configuration
+  const activeSlides = useMemo(() => {
+    const slides: number[] = [];
+    if (adminSettings?.tvEnableSlideJumat !== false) slides.push(0);
+    if (adminSettings?.tvEnableSlideHadis !== false) slides.push(1);
+    if (adminSettings?.tvEnableSlideWakaf !== false) slides.push(2);
+    if (adminSettings?.tvEnableVideoSlide && (adminSettings?.tvVideoSourceType === 'camera' || adminSettings?.tvVideoUrl)) slides.push(3);
+    return slides.length > 0 ? slides : [0]; // fallback to slide 0 if all disabled
+  }, [adminSettings]);
+
   useEffect(() => {
-    // If video is enabled, we have 4 slides. Otherwise 3.
-    const isVideoEnabled = adminSettings?.tvEnableVideoSlide && (adminSettings?.tvVideoSourceType === 'camera' || adminSettings?.tvVideoUrl);
-    const slideCount = isVideoEnabled ? 4 : 3;
+    // If current slide is disabled, jump to the first active slide
+    if (!activeSlides.includes(currentSlideIndex)) {
+      setCurrentSlideIndex(activeSlides[0]);
+    }
+
     const slideTimer = setInterval(() => {
-      setCurrentSlideIndex(prev => (prev + 1) % slideCount);
+      setCurrentSlideIndex(prev => {
+        const currentIndexInArray = activeSlides.indexOf(prev);
+        if (currentIndexInArray === -1) return activeSlides[0];
+        const nextIndexInArray = (currentIndexInArray + 1) % activeSlides.length;
+        return activeSlides[nextIndexInArray];
+      });
     }, 8000);
     return () => clearInterval(slideTimer);
-  }, [adminSettings?.tvEnableVideoSlide, adminSettings?.tvVideoUrl, adminSettings?.tvVideoSourceType]);
+  }, [activeSlides, currentSlideIndex]);
 
   // Handle Physical CCTV (Capture Card / Webcam)
   const videoRef = useRef<HTMLVideoElement>(null);

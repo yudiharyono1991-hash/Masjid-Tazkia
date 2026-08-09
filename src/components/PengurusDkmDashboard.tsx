@@ -2673,7 +2673,30 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                     <h5 className="font-bold text-blue-200 text-xs uppercase tracking-wider">Pengaturan Konten Tengah TV Display</h5>
                     
                     <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <h6 className="text-amber-400 font-semibold text-xs border-b border-blue-800/50 pb-2">Slide 2: Pesan / Hadis Harian</h6>
+                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                        <h6 className="text-amber-400 font-semibold text-xs">Slide 1: Informasi Khutbah Jumat</h6>
+                        <button
+                          onClick={() => handleToggleSetting('tvEnableSlideJumat')}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableSlideJumat !== false ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableSlideJumat !== false ? 'left-7' : 'left-1'}`} />
+                        </button>
+                      </div>
+                      <p className="text-xs text-blue-300">Menampilkan jadwal petugas Jumat dan Info Khatib. Diambil secara otomatis dari database petugas mingguan.</p>
+                    </div>
+
+                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                        <h6 className="text-amber-400 font-semibold text-xs">Slide 2: Pesan / Hadis Harian</h6>
+                        <button
+                          onClick={() => handleToggleSetting('tvEnableSlideHadis')}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableSlideHadis !== false ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableSlideHadis !== false ? 'left-7' : 'left-1'}`} />
+                        </button>
+                      </div>
+                      {adminSettings?.tvEnableSlideHadis !== false && (
+                        <div className="space-y-3 mt-3">
                       <div>
                         <label className="text-blue-300 font-semibold block mb-1 text-xs">Judul Label:</label>
                         <input
@@ -2710,10 +2733,22 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                           className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-amber-300 font-mono text-xs outline-none"
                         />
                       </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <h6 className="text-amber-400 font-semibold text-xs border-b border-blue-800/50 pb-2">Slide 3: Program / Donasi Spesial</h6>
+                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                        <h6 className="text-amber-400 font-semibold text-xs">Slide 3: Program / Donasi Spesial</h6>
+                        <button
+                          onClick={() => handleToggleSetting('tvEnableSlideWakaf')}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableSlideWakaf !== false ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableSlideWakaf !== false ? 'left-7' : 'left-1'}`} />
+                        </button>
+                      </div>
+                      {adminSettings?.tvEnableSlideWakaf !== false && (
+                        <div className="space-y-3 mt-3">
                       <div>
                         <label className="text-blue-300 font-semibold block mb-1 text-xs">Judul Label:</label>
                         <input
@@ -2749,6 +2784,8 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                           className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-amber-300 font-mono text-xs outline-none"
                         />
                       </div>
+                      </div>
+                      )}
                     </div>
 
                     <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">

@@ -286,6 +286,9 @@ export interface AppAdminSettings {
   enableIdulAdhaMode?: boolean;
   idulAdhaRunningText?: string;
   eidPrayerTime?: string;
+  tvEnableSlideJumat?: boolean;
+  tvEnableSlideHadis?: boolean;
+  tvEnableSlideWakaf?: boolean;
   iftarNotificationDurationMinutes?: number;
   iftarRunningText?: string;
   tvSlide1Title?: string;
