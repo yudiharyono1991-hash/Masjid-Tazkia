@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FinancialTransaction, PetugasJadwal, ERPJournalEntry } from '../types';
+import { useMasjidStore } from '../lib/store';
 import { formatRupiah, formatRupiahFull } from '../lib/islamicUtils';
 import {
   TrendingUp,
@@ -25,6 +26,8 @@ export const TransparencySection: React.FC<TransparencySectionProps> = ({
   petugasList,
   erpJournalEntries = []
 }) => {
+  const { state } = useMasjidStore();
+  const settings = state.adminSettings;
   const [filterType, setFilterType] = useState<'semua' | 'masuk' | 'keluar'>('semua');
   const [search, setSearch] = useState<string>('');
 
@@ -75,88 +78,100 @@ export const TransparencySection: React.FC<TransparencySectionProps> = ({
 
         {/* Financial Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-blue-950/80 border border-blue-800 rounded-2xl p-6 shadow-md relative overflow-hidden">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] text-blue-200/70 font-mono font-bold uppercase tracking-[0.2em]">Pemasukan ZISWAF</span>
-              <div className="p-2 rounded-lg bg-blue-500/20 text-blue-300">
-                <TrendingUp className="w-5 h-5" />
+          {settings.showTransZiswaf !== false && (
+            <div className="bg-blue-950/80 border border-blue-800 rounded-2xl p-6 shadow-md relative overflow-hidden">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-blue-200/70 font-mono font-bold uppercase tracking-[0.2em]">Pemasukan ZISWAF</span>
+                <div className="p-2 rounded-lg bg-blue-500/20 text-blue-300">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
               </div>
+              <p className="text-2xl sm:text-3xl font-bold font-mono text-blue-300 mt-3">
+                {formatRupiahFull(totalMasuk)}
+              </p>
+              <p className="text-[11px] text-blue-200/60 mt-1 font-mono">Zakat, Infaq, Shadaqah & Wakaf</p>
             </div>
-            <p className="text-2xl sm:text-3xl font-bold font-mono text-blue-300 mt-3">
-              {formatRupiahFull(totalMasuk)}
-            </p>
-            <p className="text-[11px] text-blue-200/60 mt-1 font-mono">Zakat, Infaq, Shadaqah & Wakaf</p>
-          </div>
+          )}
 
-          <div className="bg-blue-950/80 border border-blue-800 rounded-2xl p-6 shadow-md relative overflow-hidden">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] text-blue-200/70 font-mono font-bold uppercase tracking-[0.2em]">Pengeluaran & Penyaluran</span>
-              <div className="p-2 rounded-lg bg-rose-500/20 text-rose-300">
-                <TrendingDown className="w-5 h-5" />
+          {settings.showTransPengeluaran !== false && (
+            <div className="bg-blue-950/80 border border-blue-800 rounded-2xl p-6 shadow-md relative overflow-hidden">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-blue-200/70 font-mono font-bold uppercase tracking-[0.2em]">Pengeluaran & Penyaluran</span>
+                <div className="p-2 rounded-lg bg-rose-500/20 text-rose-300">
+                  <TrendingDown className="w-5 h-5" />
+                </div>
               </div>
+              <p className="text-2xl sm:text-3xl font-bold font-mono text-rose-300 mt-3">
+                {formatRupiahFull(totalKeluar)}
+              </p>
+              <p className="text-[11px] text-blue-200/60 mt-1 font-mono">Program Sosial & Operasional</p>
             </div>
-            <p className="text-2xl sm:text-3xl font-bold font-mono text-rose-300 mt-3">
-              {formatRupiahFull(totalKeluar)}
-            </p>
-            <p className="text-[11px] text-blue-200/60 mt-1 font-mono">Program Sosial & Operasional</p>
-          </div>
+          )}
 
-          <div className="bg-gradient-to-br from-[#1e3a8a] to-[#172554] text-white rounded-2xl p-6 shadow-lg relative overflow-hidden border-2 border-amber-400">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] text-amber-300 font-mono font-bold uppercase tracking-[0.2em]">Saldo Kas Bersih</span>
-              <div className="p-2 rounded-lg bg-amber-500/20 text-amber-300">
-                <FileText className="w-5 h-5" />
+          {settings.showTransSaldoBersih !== false && (
+            <div className="bg-gradient-to-br from-[#1e3a8a] to-[#172554] text-white rounded-2xl p-6 shadow-lg relative overflow-hidden border-2 border-amber-400">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-amber-300 font-mono font-bold uppercase tracking-[0.2em]">Saldo Kas Bersih</span>
+                <div className="p-2 rounded-lg bg-amber-500/20 text-amber-300">
+                  <FileText className="w-5 h-5" />
+                </div>
               </div>
+              <p className="text-2xl sm:text-3xl font-bold font-mono text-amber-300 mt-3">
+                {formatRupiahFull(saldoKas)}
+              </p>
+              <p className="text-[11px] text-blue-100 mt-1 font-mono flex items-center gap-1">
+                <CheckCircle className="w-3.5 h-3.5 text-amber-400" /> Terverifikasi Audit DKM
+              </p>
             </div>
-            <p className="text-2xl sm:text-3xl font-bold font-mono text-amber-300 mt-3">
-              {formatRupiahFull(saldoKas)}
-            </p>
-            <p className="text-[11px] text-blue-100 mt-1 font-mono flex items-center gap-1">
-              <CheckCircle className="w-3.5 h-3.5 text-amber-400" /> Terverifikasi Audit DKM
-            </p>
-          </div>
+          )}
         </div>
 
         {/* Keropak Infaq Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-blue-800/50">
-          <div className="bg-slate-900/60 border border-blue-900/60 rounded-2xl p-5 shadow-sm relative overflow-hidden">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] text-blue-200/60 font-mono font-bold uppercase tracking-[0.15em]">Pemasukan Keropak Masjid</span>
-              <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400">
-                <TrendingUp className="w-4 h-4" />
+          {settings.showTransKeropakIn !== false && (
+            <div className="bg-slate-900/60 border border-blue-900/60 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-blue-200/60 font-mono font-bold uppercase tracking-[0.15em]">Pemasukan Keropak Masjid</span>
+                <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400">
+                  <TrendingUp className="w-4 h-4" />
+                </div>
               </div>
+              <p className="text-xl sm:text-2xl font-bold font-mono text-blue-400 mt-2">
+                {formatRupiahFull(keropakMasuk)}
+              </p>
+              <p className="text-[10px] text-blue-300/50 mt-1 font-mono">Dari Kotak Amal Harian/Jumat</p>
             </div>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-blue-400 mt-2">
-              {formatRupiahFull(keropakMasuk)}
-            </p>
-            <p className="text-[10px] text-blue-300/50 mt-1 font-mono">Dari Kotak Amal Harian/Jumat</p>
-          </div>
+          )}
 
-          <div className="bg-slate-900/60 border border-blue-900/60 rounded-2xl p-5 shadow-sm relative overflow-hidden">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] text-blue-200/60 font-mono font-bold uppercase tracking-[0.15em]">Penyaluran Keropak</span>
-              <div className="p-1.5 rounded-md bg-rose-500/10 text-rose-400">
-                <TrendingDown className="w-4 h-4" />
+          {settings.showTransKeropakOut !== false && (
+            <div className="bg-slate-900/60 border border-blue-900/60 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-blue-200/60 font-mono font-bold uppercase tracking-[0.15em]">Penyaluran Keropak</span>
+                <div className="p-1.5 rounded-md bg-rose-500/10 text-rose-400">
+                  <TrendingDown className="w-4 h-4" />
+                </div>
               </div>
+              <p className="text-xl sm:text-2xl font-bold font-mono text-rose-400 mt-2">
+                {formatRupiahFull(keropakKeluar)}
+              </p>
+              <p className="text-[10px] text-blue-300/50 mt-1 font-mono">Untuk Operasional Masjid</p>
             </div>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-rose-400 mt-2">
-              {formatRupiahFull(keropakKeluar)}
-            </p>
-            <p className="text-[10px] text-blue-300/50 mt-1 font-mono">Untuk Operasional Masjid</p>
-          </div>
+          )}
 
-          <div className="bg-slate-800/80 border border-amber-900/30 rounded-2xl p-5 shadow-sm relative overflow-hidden">
-            <div className="flex justify-between items-center">
-              <span className="text-[10px] text-amber-400/80 font-mono font-bold uppercase tracking-[0.15em]">Saldo Keropak Tersedia</span>
-              <div className="p-1.5 rounded-md bg-amber-500/10 text-amber-500">
-                <Wallet className="w-4 h-4" />
+          {settings.showTransKeropakSaldo !== false && (
+            <div className="bg-slate-800/80 border border-amber-900/30 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-amber-400/80 font-mono font-bold uppercase tracking-[0.15em]">Saldo Keropak Tersedia</span>
+                <div className="p-1.5 rounded-md bg-amber-500/20 text-amber-400">
+                  <Wallet className="w-4 h-4" />
+                </div>
               </div>
+              <p className="text-xl sm:text-2xl font-bold font-mono text-amber-400 mt-2">
+                {formatRupiahFull(saldoKeropak)}
+              </p>
+              <p className="text-[10px] text-amber-200/50 mt-1 font-mono">Akumulasi Bersih Keropak</p>
             </div>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-amber-400 mt-2">
-              {formatRupiahFull(saldoKeropak)}
-            </p>
-            <p className="text-[10px] text-amber-200/50 mt-1 font-mono">Akumulasi Bersih Keropak</p>
-          </div>
+          )}
         </div>
 
         {/* Friday Khatib & Imam Highlight Banner */}

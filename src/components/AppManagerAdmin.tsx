@@ -45,6 +45,12 @@ export const AppManagerAdmin: React.FC = () => {
         showProgramCardsOnHome: state.adminSettings.showProgramCardsOnHome,
         showFridayInfoOnHome: state.adminSettings.showFridayInfoOnHome,
         showSocialMediaOnHome: state.adminSettings.showSocialMediaOnHome,
+        showTransZiswaf: state.adminSettings.showTransZiswaf,
+        showTransPengeluaran: state.adminSettings.showTransPengeluaran,
+        showTransSaldoBersih: state.adminSettings.showTransSaldoBersih,
+        showTransKeropakIn: state.adminSettings.showTransKeropakIn,
+        showTransKeropakOut: state.adminSettings.showTransKeropakOut,
+        showTransKeropakSaldo: state.adminSettings.showTransKeropakSaldo,
       });
       showToast('success', 'Pengaturan Beranda berhasil disimpan!');
     } catch (err) {
@@ -483,6 +489,31 @@ export const AppManagerAdmin: React.FC = () => {
                   { key: 'showProgramCardsOnHome', label: '💰 Kartu Program ZISWAF' },
                   { key: 'showFridayInfoOnHome', label: '📢 Info Jumat & Pengumuman' },
                   { key: 'showSocialMediaOnHome', label: '📱 Media Sosial & Dakwah Digital' },
+                ].map(item => (
+                  <label key={item.key} className="flex items-center gap-3 bg-blue-900/60 px-4 py-3 rounded-xl cursor-pointer hover:bg-blue-800/60 transition">
+                    <input
+                      type="checkbox"
+                      checked={(state.adminSettings as any)[item.key] !== false}
+                      onChange={(e) => updateAdminSettings({ [item.key]: e.target.checked } as any)}
+                      className="w-4 h-4 accent-amber-400 cursor-pointer"
+                    />
+                    <span className="text-white text-xs font-semibold">{item.label}</span>
+                  </label>
+                ))}
+              </div>
+
+              <h4 className="font-bold text-white text-sm flex items-center gap-2 mt-4 pt-4 border-t border-blue-800">
+                <span className="text-xl">📊</span> Tampilkan Kotak Info Laporan Transparansi
+              </h4>
+              <p className="text-[11px] text-blue-300">Pilih kotak mana saja yang ingin ditampilkan di Dashboard Transparansi ZISWAF.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {[
+                  { key: 'showTransZiswaf', label: 'Pemasukan ZISWAF' },
+                  { key: 'showTransPengeluaran', label: 'Pengeluaran & Penyaluran' },
+                  { key: 'showTransSaldoBersih', label: 'Saldo Kas Bersih (ZISWAF)' },
+                  { key: 'showTransKeropakIn', label: 'Pemasukan Keropak Masjid' },
+                  { key: 'showTransKeropakOut', label: 'Penyaluran Operasional Masjid' },
+                  { key: 'showTransKeropakSaldo', label: 'Saldo Keropak Tersedia' },
                 ].map(item => (
                   <label key={item.key} className="flex items-center gap-3 bg-blue-900/60 px-4 py-3 rounded-xl cursor-pointer hover:bg-blue-800/60 transition">
                     <input

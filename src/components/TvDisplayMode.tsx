@@ -170,7 +170,9 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|live\/)|youtu\.be\/)([^"&?\/\s]{11})/;
     const match = url.match(ytRegex);
     if (match && match[1]) {
-      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1`;
+      // Use controls=1 so the user can interact with the YouTube volume slider if needed, 
+      // and mute=0 so it's not muted by default unless the browser forces it.
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=0&controls=1`;
     }
     return url;
   };

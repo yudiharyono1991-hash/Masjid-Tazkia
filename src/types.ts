@@ -332,6 +332,14 @@ export interface AppAdminSettings {
   showFridayInfoOnHome?: boolean;
   showSocialMediaOnHome?: boolean;
 
+  // Laporan Transparansi Toggles
+  showTransZiswaf?: boolean;
+  showTransPengeluaran?: boolean;
+  showTransSaldoBersih?: boolean;
+  showTransKeropakIn?: boolean;
+  showTransKeropakOut?: boolean;
+  showTransKeropakSaldo?: boolean;
+
   // Friday Khutbah & Feature Info Settings
   jumatDate?: string;
   jumatKhatibName?: string;
