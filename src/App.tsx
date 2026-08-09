@@ -450,6 +450,7 @@ export default function App() {
         isOpen={loginModalOpen}
         onClose={() => setLoginModalOpen(false)}
         session={state.session}
+        onAddJamaahProfile={addJamaahProfile}
         onLogin={(email, name, role) => {
           login(email, name, role);
           if (hasDkmPortalAccess(role)) {

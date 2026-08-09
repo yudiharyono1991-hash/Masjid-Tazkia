@@ -279,6 +279,7 @@ export interface AppAdminSettings {
   iqamahRunningText?: string;
   sholatDurationMinutes?: number;
   sholatRunningText?: string;
+  hijriOffsetDays?: number;
   enableJumatMode?: boolean;
   jumatKhutbahDurationMinutes?: number;
   enableIdulFitriMode?: boolean;
@@ -302,6 +303,12 @@ export interface AppAdminSettings {
   tvVideoUrl?: string;
   tvVideoSourceType?: 'url' | 'camera';
   tvEnableVideoSlide?: boolean;
+  tvCustomSlide1Enabled?: boolean;
+  tvCustomSlide1Type?: 'image' | 'video';
+  tvCustomSlide1Url?: string;
+  tvCustomSlide2Enabled?: boolean;
+  tvCustomSlide2Type?: 'image' | 'video';
+  tvCustomSlide2Url?: string;
   masjidLogoUrl?: string;
   masjidHeroPhotoUrl?: string;
   masjidHeroCarouselUrls?: string[];
@@ -460,6 +467,9 @@ export interface JamaahProfile {
   role: string;
   dkmPosition?: string; // e.g. "Ketua DKM", "Wakil Ketua DKM", "Bendahara", "Sekretaris", "Jamaah"
   password?: string;
+  address?: string;
+  isVerified?: boolean;
+  photoUrl?: string;
   monthlyDonationTarget?: number;
   targetDate?: number; // Day of the month, e.g., 25
   adhanSettings?: {

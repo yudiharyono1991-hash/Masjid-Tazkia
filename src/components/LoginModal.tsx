@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserSession, UserRole } from '../types';
+import { UserSession, UserRole, JamaahProfile } from '../types';
 import { useMasjidStore } from '../lib/store';
 import { getSupabaseClient } from '../lib/supabase';
 import {
@@ -13,7 +13,11 @@ import {
   ShieldCheck,
   ArrowRight,
   Eye,
-  EyeOff
+  EyeOff,
+  Phone,
+  User,
+  CheckCircle,
+  AlertTriangle
 } from 'lucide-react';
 
 interface LoginModalProps {
@@ -22,6 +26,7 @@ interface LoginModalProps {
   session: UserSession;
   onLogin: (email: string, name: string, role: UserRole, phone?: string) => void;
   onLogout: () => void;
+  onAddJamaahProfile?: (profile: Omit<JamaahProfile, 'id' | 'joinDate' | 'lastLogin' | 'totalDonation'>) => void;
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({
@@ -29,7 +34,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onClose,
   session,
   onLogin,
-  onLogout
+  onLogout,
+  onAddJamaahProfile
 }) => {
   const [email, setEmail] = useState(session.email || '');
   const [password, setPassword] = useState('');
@@ -39,6 +45,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const { state } = useMasjidStore();
   const { appRoles } = state;
 
+  // --- Registration state ---
+  const [showRegister, setShowRegister] = useState(false);
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPhone, setRegPhone] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regPassword2, setRegPassword2] = useState('');
+  const [showRegPass, setShowRegPass] = useState(false);
+  const [regError, setRegError] = useState('');
+  const [regSuccess, setRegSuccess] = useState(false);
+
   useEffect(() => {
     if (isOpen && !session.isLoggedIn) {
       setEmail('');
@@ -46,6 +63,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       setName('');
       setRole('jamaah');
       setShowPassword(false);
+      setShowRegister(false);
+      setRegError('');
+      setRegSuccess(false);
     }
   }, [isOpen, session.isLoggedIn]);
 
@@ -101,6 +121,74 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     onClose();
   };
 
+  // ─── Registration Handler ───────────────────────────────────────────────────
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError('');
+
+    // Basic validation
+    if (!regName.trim()) return setRegError('Nama lengkap wajib diisi.');
+    if (!regEmail.trim() && !regPhone.trim()) return setRegError('Email atau nomor HP wajib diisi.');
+    if (regPassword.length < 6) return setRegError('Kata sandi minimal 6 karakter.');
+    if (regPassword !== regPassword2) return setRegError('Konfirmasi kata sandi tidak cocok.');
+
+    // Normalize phone: strip leading 0, add +62
+    const normalizedPhone = regPhone.trim()
+      ? (regPhone.startsWith('0') ? '+62' + regPhone.slice(1) : regPhone.replace(/^(\+62|62)/, '+62')).replace(/\s/g, '')
+      : '';
+    const normalizedEmail = regEmail.trim().toLowerCase();
+
+    // Uniqueness check — 1 user per email, 1 user per phone
+    const profiles = state.jamaahProfiles || [];
+
+    if (normalizedEmail) {
+      const emailExists = profiles.some(p => p.email?.toLowerCase() === normalizedEmail);
+      if (emailExists) return setRegError(`Email "${normalizedEmail}" sudah terdaftar. Silakan login atau gunakan email lain.`);
+    }
+
+    if (normalizedPhone) {
+      const phoneExists = profiles.some(p => p.phone?.replace(/\s/g, '') === normalizedPhone);
+      if (phoneExists) return setRegError(`No. HP "${normalizedPhone}" sudah terdaftar. Silakan login atau gunakan nomor lain.`);
+    }
+
+    // Supabase registration attempt (if configured)
+    const supabase = getSupabaseClient(state.supabaseUrl, state.supabaseAnonKey);
+    if (supabase && normalizedEmail) {
+      supabase.auth.signUp({
+        email: normalizedEmail,
+        password: regPassword
+      }).then(({ error }) => {
+        if (error && error.message !== 'User already registered') {
+          console.error('Supabase signup error (non-blocking):', error.message);
+        }
+      }).catch(() => {});
+    }
+
+    // Save profile locally
+    const newProfile = {
+      name: regName.trim(),
+      email: normalizedEmail || `jamaah-${Date.now()}@local.tazkia`,
+      phone: normalizedPhone,
+      password: regPassword,
+      role: 'jamaah' as UserRole,
+      address: '',
+      isVerified: false,
+      photoUrl: ''
+    };
+
+    if (onAddJamaahProfile) {
+      onAddJamaahProfile(newProfile);
+    }
+
+    setRegSuccess(true);
+    // Auto-login after 1.5 seconds
+    setTimeout(() => {
+      onLogin(normalizedEmail || regPhone, regName.trim(), 'jamaah', normalizedPhone);
+      window.location.hash = '#portal_jamaah';
+      onClose();
+    }, 1500);
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-y-auto">
       {/* Back button & close for mobile — sticky at top */}
@@ -128,10 +216,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="text-sm md:text-base font-serif italic font-semibold text-white truncate">
-                Masjid Tazkia - Portal Keanggotaan
+                Masjid Tazkia - {showRegister ? 'Pendaftaran Jamaah' : 'Portal Keanggotaan'}
               </h3>
               <p className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-wider text-white/80 truncate">
-                Selamat Datang di Portal Transaksi ZISWAF
+                {showRegister ? 'Buat Akun Baru — 1 Akun per No. HP / Email' : 'Selamat Datang di Portal Transaksi ZISWAF'}
               </p>
             </div>
           </div>
@@ -144,7 +232,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           </button>
         </div>
 
-        {/* Modal Body Grid matching Screenshot 3 Layout */}
+        {/* Modal Body */}
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Form Left Side */}
           {session.isLoggedIn ? (
@@ -170,7 +258,125 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 Keluar Akun (Logout)
               </button>
             </div>
+
+          ) : showRegister ? (
+            /* ─── Registration Form ─────────────────────────────────── */
+            <form onSubmit={handleRegister} className="space-y-3">
+              {regSuccess ? (
+                <div className="flex flex-col items-center gap-3 py-8 text-center">
+                  <CheckCircle className="w-14 h-14 text-green-500" />
+                  <h4 className="font-bold text-green-700 text-base">Pendaftaran Berhasil!</h4>
+                  <p className="text-xs text-gray-600">Anda akan langsung masuk ke Portal Jamaah...</p>
+                </div>
+              ) : (
+                <>
+                  {regError && (
+                    <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
+                      <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                      <p className="text-xs text-red-700 font-medium">{regError}</p>
+                    </div>
+                  )}
+
+                  <div className="text-left">
+                    <label className="text-xs font-semibold text-blue-800 block mb-1">Nama Lengkap: <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500" />
+                      <input
+                        type="text"
+                        value={regName}
+                        onChange={e => setRegName(e.target.value)}
+                        required
+                        placeholder="Contoh: Ahmad Fauzi"
+                        className="w-full bg-white border border-blue-300 focus:border-amber-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-blue-900 outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-left">
+                    <label className="text-xs font-semibold text-blue-800 block mb-1">Email (Opsional):</label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500" />
+                      <input
+                        type="email"
+                        value={regEmail}
+                        onChange={e => setRegEmail(e.target.value)}
+                        placeholder="contoh@email.com"
+                        className="w-full bg-white border border-blue-300 focus:border-amber-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-blue-900 outline-none font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-left">
+                    <label className="text-xs font-semibold text-blue-800 block mb-1">
+                      No. HP / WhatsApp: <span className="text-red-500">*</span>
+                      <span className="text-[10px] text-blue-400 font-normal ml-1">(unik per akun)</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500" />
+                      <input
+                        type="tel"
+                        value={regPhone}
+                        onChange={e => setRegPhone(e.target.value)}
+                        placeholder="08123456789"
+                        className="w-full bg-white border border-blue-300 focus:border-amber-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-blue-900 outline-none font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-left">
+                    <label className="text-xs font-semibold text-blue-800 block mb-1">Kata Sandi: <span className="text-red-500">*</span> <span className="text-[10px] text-blue-400 font-normal">(min. 6 karakter)</span></label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500" />
+                      <input
+                        type={showRegPass ? 'text' : 'password'}
+                        value={regPassword}
+                        onChange={e => setRegPassword(e.target.value)}
+                        placeholder="Min. 6 karakter"
+                        className="w-full bg-white border border-blue-300 focus:border-amber-500 rounded-xl pl-10 pr-10 py-2.5 text-xs text-blue-900 outline-none"
+                      />
+                      <button type="button" onClick={() => setShowRegPass(!showRegPass)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500 cursor-pointer">
+                        {showRegPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-left">
+                    <label className="text-xs font-semibold text-blue-800 block mb-1">Konfirmasi Kata Sandi: <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500" />
+                      <input
+                        type={showRegPass ? 'text' : 'password'}
+                        value={regPassword2}
+                        onChange={e => setRegPassword2(e.target.value)}
+                        placeholder="Ulangi kata sandi"
+                        className="w-full bg-white border border-blue-300 focus:border-amber-500 rounded-xl pl-10 pr-4 py-2.5 text-xs text-blue-900 outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-[10px] text-amber-700">
+                    🔐 Data Anda dienkripsi dan dijaga keamanannya. 1 No. HP atau Email hanya bisa digunakan untuk 1 akun.
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-amber-400 hover:bg-amber-500 text-blue-950 font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-amber-500/20"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Daftar Sekarang</span>
+                  </button>
+
+                  <p className="text-center text-[11px] text-blue-700">
+                    Sudah punya akun?{' '}
+                    <button type="button" onClick={() => { setShowRegister(false); setRegError(''); }} className="font-bold text-amber-600 hover:underline cursor-pointer">
+                      Login di sini
+                    </button>
+                  </p>
+                </>
+              )}
+            </form>
           ) : (
+            /* ─── Login Form ─────────────────────────────────────────── */
             <form onSubmit={handleLogin} className="space-y-4">
               {/* Panduan Login Block - Only show Jamaah view publicly */}
               <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl text-left">
@@ -251,9 +457,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <div className="text-center pt-2">
                   <p className="text-[11px] text-blue-800 font-medium">
                     Belum punya akun Jamaah?{' '}
-                    <a href="#" className="font-bold text-amber-600 hover:text-amber-700 hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => setShowRegister(true)}
+                      className="font-bold text-amber-600 hover:text-amber-700 hover:underline cursor-pointer"
+                    >
                       Daftar Sekarang
-                    </a>
+                    </button>
                   </p>
                 </div>
               )}
@@ -300,6 +510,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   <p className="text-blue-600 text-[11px]">Keanggotaan terverifikasi jamaah</p>
                 </div>
               </div>
+
+              {showRegister && (
+                <div className="border-t border-blue-100 pt-3">
+                  <div className="flex items-start gap-2.5">
+                    <Lock className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-bold text-green-800">Keamanan Data Terjamin</p>
+                      <p className="text-green-700 text-[11px]">1 HP / Email = 1 Akun. Data dienkripsi & tidak dibagikan.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

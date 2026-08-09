@@ -28,6 +28,8 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
   const [selectedQari, setSelectedQari] = useState<string>(QARI_LIST[0].baseUrl);
   const [selectedSurah, setSelectedSurah] = useState<number>(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [volume, setVolume] = useState<number>(70);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -40,6 +42,12 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
       audioRef.current?.pause();
     }
   }, [isPlaying, selectedQari, selectedSurah]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume / 100;
+    }
+  }, [volume, isMuted]);
 
   const getActivePrayerIndex = () => {
     const parseTime = (timeStr: string) => {
@@ -179,6 +187,8 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     if (adminSettings?.tvEnableSlideHadis !== false) slides.push(1);
     if (adminSettings?.tvEnableSlideWakaf !== false) slides.push(2);
     if (adminSettings?.tvEnableVideoSlide && (adminSettings?.tvVideoSourceType === 'camera' || adminSettings?.tvVideoUrl)) slides.push(3);
+    if (adminSettings?.tvCustomSlide1Enabled && adminSettings?.tvCustomSlide1Url) slides.push(4);
+    if (adminSettings?.tvCustomSlide2Enabled && adminSettings?.tvCustomSlide2Url) slides.push(5);
     return slides.length > 0 ? slides : [0]; // fallback to slide 0 if all disabled
   }, [adminSettings]);
 
@@ -232,8 +242,9 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
       month: 'long',
       year: 'numeric'
     });
-    // Adjust by -1 day for Indonesian local sighting (MABIMS)
-    const hijriDateObj = new Date(time.getTime() - 24 * 60 * 60 * 1000);
+    // Adjust based on user calibration settings (default to 0 if not set)
+    const offsetDays = adminSettings?.hijriOffsetDays || 0;
+    const hijriDateObj = new Date(time.getTime() + (offsetDays * 24 * 60 * 60 * 1000));
     hijriDateStr = hijriFormatter.format(hijriDateObj).replace(' AH', ' H').replace(' H', ' H');
   } catch (e) {
     hijriDateStr = '... H'; // Fallback
@@ -325,6 +336,30 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
                 style={{ display: 'none' }}
                 id="murottal-player"
               />
+              {/* Volume Control */}
+              <div className="flex items-center gap-1 border-l border-blue-800 pl-2">
+                <button
+                  onClick={() => setIsMuted(!isMuted)}
+                  className="text-blue-400 hover:text-amber-400 transition-colors shrink-0"
+                  title={isMuted ? 'Aktifkan Suara' : 'Matikan Suara'}
+                >
+                  {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={isMuted ? 0 : volume}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    setVolume(v);
+                    if (v > 0) setIsMuted(false);
+                  }}
+                  className="w-14 sm:w-20 h-1.5 accent-amber-400 cursor-pointer"
+                  title={`Volume: ${isMuted ? 0 : volume}%`}
+                />
+                <span className="text-[9px] text-blue-400 font-mono w-6 text-right shrink-0">{isMuted ? 0 : volume}%</span>
+              </div>
             </div>
             {/* Mobile Exit Button moved here */}
             <button
@@ -468,6 +503,40 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
                   <div className="w-2 h-2 bg-white rounded-full"></div>
                   {adminSettings?.tvVideoSourceType === 'camera' ? 'CCTV LANGSUNG' : 'LIVE'}
                 </div>
+              </div>
+            )}
+            
+            {currentSlideIndex === 4 && adminSettings?.tvCustomSlide1Enabled && adminSettings?.tvCustomSlide1Url && (
+              <div className="w-full max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-amber-500/20 bg-black animate-fade-in aspect-video relative">
+                {adminSettings?.tvCustomSlide1Type === 'image' ? (
+                  <img src={adminSettings.tvCustomSlide1Url} alt="Poster" className="w-full h-full object-contain" />
+                ) : (
+                  <iframe 
+                    src={getSmartVideoUrl(adminSettings.tvCustomSlide1Url)} 
+                    title="Video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full object-cover pointer-events-none"
+                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                  ></iframe>
+                )}
+              </div>
+            )}
+
+            {currentSlideIndex === 5 && adminSettings?.tvCustomSlide2Enabled && adminSettings?.tvCustomSlide2Url && (
+              <div className="w-full max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-amber-500/20 bg-black animate-fade-in aspect-video relative">
+                {adminSettings?.tvCustomSlide2Type === 'image' ? (
+                  <img src={adminSettings.tvCustomSlide2Url} alt="Poster" className="w-full h-full object-contain" />
+                ) : (
+                  <iframe 
+                    src={getSmartVideoUrl(adminSettings.tvCustomSlide2Url)} 
+                    title="Video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full object-cover pointer-events-none"
+                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                  ></iframe>
+                )}
               </div>
             )}
           </>

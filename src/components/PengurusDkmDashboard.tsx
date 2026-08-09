@@ -2667,6 +2667,19 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                       </div>
                     </div>
 
+                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Kalibrasi Tanggal Hijriah (Hari):</label>
+                        <p className="text-[10px] text-blue-400 mb-2">Gunakan angka minus (misal: -1) atau plus (misal: 1) jika tanggal Hijriah lokal berbeda dengan kalender global.</p>
+                        <input
+                          type="number"
+                          value={adminSettings?.hijriOffsetDays || 0}
+                          onChange={(e) => handleTextSettingChange('hijriOffsetDays', parseInt(e.target.value) || 0)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                        />
+                      </div>
+                    </div>
+
                   </div>
 
                   <div className="space-y-4 pt-4 border-t border-blue-800/50 mt-4">
@@ -2852,6 +2865,120 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                               </p>
                             </div>
                           )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                        <h6 className="text-amber-400 font-semibold text-xs">Slide 5: Media Kustom 1 (Poster / Video)</h6>
+                        <button
+                          onClick={() => handleToggleSetting('tvCustomSlide1Enabled')}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvCustomSlide1Enabled ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvCustomSlide1Enabled ? 'left-7' : 'left-1'}`} />
+                        </button>
+                      </div>
+                      {adminSettings?.tvCustomSlide1Enabled && (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-blue-300 font-semibold block mb-2 text-xs">Jenis Media:</label>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide1Type !== 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                                <input 
+                                  type="radio" 
+                                  name="customSlide1Type" 
+                                  checked={adminSettings?.tvCustomSlide1Type !== 'video'}
+                                  onChange={() => handleTextSettingChange('tvCustomSlide1Type', 'image')}
+                                  className="text-amber-500"
+                                />
+                                <div className="text-xs">
+                                  <div className="font-bold text-blue-200">Foto / Poster</div>
+                                  <div className="text-blue-400 text-[10px]">Link URL Gambar JPG/PNG</div>
+                                </div>
+                              </label>
+                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide1Type === 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                                <input 
+                                  type="radio" 
+                                  name="customSlide1Type" 
+                                  checked={adminSettings?.tvCustomSlide1Type === 'video'}
+                                  onChange={() => handleTextSettingChange('tvCustomSlide1Type', 'video')}
+                                  className="text-amber-500"
+                                />
+                                <div className="text-xs">
+                                  <div className="font-bold text-blue-200">Video Internet</div>
+                                  <div className="text-blue-400 text-[10px]">YouTube / HLS / MP4</div>
+                                </div>
+                              </label>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-blue-300 font-semibold block mb-1 text-xs">URL Media (Link Gambar atau Link Embed Video):</label>
+                            <input
+                              type="text"
+                              value={adminSettings?.tvCustomSlide1Url || ''}
+                              onChange={(e) => handleTextSettingChange('tvCustomSlide1Url', e.target.value)}
+                              placeholder="Masukkan link URL..."
+                              className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                        <h6 className="text-amber-400 font-semibold text-xs">Slide 6: Media Kustom 2 (Poster / Video)</h6>
+                        <button
+                          onClick={() => handleToggleSetting('tvCustomSlide2Enabled')}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvCustomSlide2Enabled ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvCustomSlide2Enabled ? 'left-7' : 'left-1'}`} />
+                        </button>
+                      </div>
+                      {adminSettings?.tvCustomSlide2Enabled && (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-blue-300 font-semibold block mb-2 text-xs">Jenis Media:</label>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide2Type !== 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                                <input 
+                                  type="radio" 
+                                  name="customSlide2Type" 
+                                  checked={adminSettings?.tvCustomSlide2Type !== 'video'}
+                                  onChange={() => handleTextSettingChange('tvCustomSlide2Type', 'image')}
+                                  className="text-amber-500"
+                                />
+                                <div className="text-xs">
+                                  <div className="font-bold text-blue-200">Foto / Poster</div>
+                                  <div className="text-blue-400 text-[10px]">Link URL Gambar JPG/PNG</div>
+                                </div>
+                              </label>
+                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide2Type === 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                                <input 
+                                  type="radio" 
+                                  name="customSlide2Type" 
+                                  checked={adminSettings?.tvCustomSlide2Type === 'video'}
+                                  onChange={() => handleTextSettingChange('tvCustomSlide2Type', 'video')}
+                                  className="text-amber-500"
+                                />
+                                <div className="text-xs">
+                                  <div className="font-bold text-blue-200">Video Internet</div>
+                                  <div className="text-blue-400 text-[10px]">YouTube / HLS / MP4</div>
+                                </div>
+                              </label>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-blue-300 font-semibold block mb-1 text-xs">URL Media (Link Gambar atau Link Embed Video):</label>
+                            <input
+                              type="text"
+                              value={adminSettings?.tvCustomSlide2Url || ''}
+                              onChange={(e) => handleTextSettingChange('tvCustomSlide2Url', e.target.value)}
+                              placeholder="Masukkan link URL..."
+                              className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                            />
+                          </div>
                         </div>
                       )}
                     </div>

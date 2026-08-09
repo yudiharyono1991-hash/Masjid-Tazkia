@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X, Calendar as CalendarIcon, Info } from 'lucide-react';
 import { JamaahCalendarNote } from '../types';
+import { useMasjidStore } from '../lib/store';
 
 interface JamaahCalendarProps {
   notes: JamaahCalendarNote[];
@@ -20,6 +21,7 @@ const DAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
 export const JamaahCalendar: React.FC<JamaahCalendarProps> = ({ notes, onAddNote, onRemoveNote, jamaahId }) => {
+  const { adminSettings } = useMasjidStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -59,7 +61,15 @@ export const JamaahCalendar: React.FC<JamaahCalendarProps> = ({ notes, onAddNote
   };
 
   const getHijriDate = (date: Date) => {
-    return new Intl.DateTimeFormat('id-u-ca-islamic', {day: 'numeric', month: 'short'}).format(date);
+    const offsetDays = adminSettings?.hijriOffsetDays || 0;
+    const offsetDate = new Date(date.getTime() + (offsetDays * 24 * 60 * 60 * 1000));
+    return new Intl.DateTimeFormat('id-u-ca-islamic', {day: 'numeric', month: 'short'}).format(offsetDate);
+  };
+
+  const getHijriMonthYear = (date: Date) => {
+    const offsetDays = adminSettings?.hijriOffsetDays || 0;
+    const offsetDate = new Date(date.getTime() + (offsetDays * 24 * 60 * 60 * 1000));
+    return new Intl.DateTimeFormat('id-u-ca-islamic', {month: 'long', year: 'numeric'}).format(offsetDate).replace(' AH', ' H').replace(' H', ' H');
   };
 
   const prevMonth = () => {
@@ -106,7 +116,10 @@ export const JamaahCalendar: React.FC<JamaahCalendarProps> = ({ notes, onAddNote
         </h3>
         <div className="flex items-center gap-4">
           <button onClick={prevMonth} className="p-1 hover:bg-white/10 rounded-full transition"><ChevronLeft className="w-5 h-5" /></button>
-          <span className="font-bold text-sm min-w-[100px] text-center">{MONTHS[month]} {year}</span>
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-sm min-w-[100px] text-center">{MONTHS[month]} {year}</span>
+            <span className="text-[10px] text-amber-300 font-serif">{getHijriMonthYear(currentDate)}</span>
+          </div>
           <button onClick={nextMonth} className="p-1 hover:bg-white/10 rounded-full transition"><ChevronRight className="w-5 h-5" /></button>
         </div>
       </div>
