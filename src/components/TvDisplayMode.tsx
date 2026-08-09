@@ -47,7 +47,22 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume / 100;
     }
+    syncYouTubeVolume();
   }, [volume, isMuted]);
+
+  const syncYouTubeVolume = () => {
+    const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe[src*="youtube.com/embed"]');
+    iframes.forEach(iframe => {
+      if (iframe.contentWindow) {
+        if (isMuted) {
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'mute', args: [] }), '*');
+        } else {
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setVolume', args: [volume] }), '*');
+        }
+      }
+    });
+  };
 
   const getActivePrayerIndex = () => {
     const parseTime = (timeStr: string) => {
@@ -170,9 +185,9 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|live\/)|youtu\.be\/)([^"&?\/\s]{11})/;
     const match = url.match(ytRegex);
     if (match && match[1]) {
-      // Use controls=1 so the user can interact with the YouTube volume slider if needed, 
-      // and mute=0 so it's not muted by default unless the browser forces it.
-      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=0&controls=1`;
+      // Use enablejsapi=1 to allow postMessage volume control
+      // mute=1 initially if isMuted is true to avoid sudden sound, else mute=0
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&enablejsapi=1`;
     }
     return url;
   };
@@ -491,6 +506,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
                     title="Live View"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                    onLoad={syncYouTubeVolume}
                     className="w-full h-full object-cover pointer-events-none"
                     sandbox="allow-scripts allow-same-origin allow-presentation"
                   ></iframe>
@@ -518,6 +534,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
                     title="Video"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                    onLoad={syncYouTubeVolume}
                     className="w-full h-full object-cover pointer-events-none"
                     sandbox="allow-scripts allow-same-origin allow-presentation"
                   ></iframe>
@@ -535,6 +552,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
                     title="Video"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                    onLoad={syncYouTubeVolume}
                     className="w-full h-full object-cover pointer-events-none"
                     sandbox="allow-scripts allow-same-origin allow-presentation"
                   ></iframe>
