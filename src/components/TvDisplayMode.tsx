@@ -156,6 +156,17 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
+  const getSmartVideoUrl = (url: string | undefined) => {
+    if (!url) return '';
+    // Convert standard YouTube links to embed format automatically
+    const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|live\/)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(ytRegex);
+    if (match && match[1]) {
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1`;
+    }
+    return url;
+  };
+
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -404,7 +415,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
                   />
                 ) : adminSettings?.tvVideoUrl ? (
                   <iframe 
-                    src={adminSettings.tvVideoUrl} 
+                    src={getSmartVideoUrl(adminSettings.tvVideoUrl)} 
                     title="Live View"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
