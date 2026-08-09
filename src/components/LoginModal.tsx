@@ -90,6 +90,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     onLogin(email, finalName, finalRole);
     
     alert(`Assalamualaikum, selamat datang di aplikasi Masjid Tazkia${finalName ? ', ' + finalName : ''}!`);
+    
+    // Ensure clean route without leftover query params like ?tab=...
+    if (finalRole !== 'jamaah') {
+      window.location.hash = '#dkm_portal';
+    } else {
+      window.location.hash = '#portal_jamaah';
+    }
+    
     onClose();
   };
 

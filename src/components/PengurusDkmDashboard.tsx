@@ -198,14 +198,10 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
       console.error('Error parsing URL for tab', e);
     }
 
-    // 2. Fallback to localStorage
-    const saved = localStorage.getItem(`masjidTazkiaDkmTab_${store.state.session?.role}`);
-    return (saved as any) || initialTab || 'dashboard_utama';
+    return initialTab || 'dashboard_utama';
   });
 
   useEffect(() => {
-    localStorage.setItem(`masjidTazkiaDkmTab_${store.state.session?.role}`, dkmTab);
-    
     // Update URL Hash automatically without triggering full app reload
     const currentHashBase = window.location.hash.split('?')[0];
     if (currentHashBase) {
