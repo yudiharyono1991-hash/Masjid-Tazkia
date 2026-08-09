@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Upload, Image as ImageIcon, QrCode, Store, Trash2, Plus, Link as LinkIcon, Download, Shield, Bot, Save } from 'lucide-react';
+import { Settings, Upload, Image as ImageIcon, QrCode, Store, Trash2, Plus, Link as LinkIcon, Download, Shield, Bot, Save, CheckCircle2, XCircle } from 'lucide-react';
 import { uploadMedia, deleteMediaFromSupabase } from '../lib/mediaUpload';
 import { getSupabaseClient } from '../lib/supabase';
 import { useMasjidStore } from '../lib/store';
@@ -18,6 +18,39 @@ export const AppManagerAdmin: React.FC = () => {
   const [heroImages, setHeroImages] = useState<{name: string, url: string}[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+
+  const showToast = (type: 'success' | 'error', msg: string) => {
+    setSaveStatus(type);
+    const toast = document.createElement('div');
+    toast.className = `fixed bottom-4 right-4 z-[9999] flex items-center gap-2 px-5 py-3 rounded-xl shadow-xl text-sm font-bold text-white transition-all ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`;
+    toast.innerHTML = `${type === 'success' ? '✅' : '❌'} ${msg}`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.remove(); setSaveStatus('idle'); }, 4000);
+  };
+
+  const saveTextSettings = async () => {
+    setSaveStatus('saving');
+    try {
+      // updateAdminSettings already persists to Supabase if connected
+      await updateAdminSettings({
+        heroPromoTitle: state.adminSettings.heroPromoTitle,
+        heroPromoSubtitle: state.adminSettings.heroPromoSubtitle,
+        heroPromoDescription: state.adminSettings.heroPromoDescription,
+        heroTitleFontSize: state.adminSettings.heroTitleFontSize,
+        heroTitleFontFamily: state.adminSettings.heroTitleFontFamily,
+        heroTextAlign: state.adminSettings.heroTextAlign,
+        showPrayerTimesOnHome: state.adminSettings.showPrayerTimesOnHome,
+        showLayananKamiOnHome: state.adminSettings.showLayananKamiOnHome,
+        showProgramCardsOnHome: state.adminSettings.showProgramCardsOnHome,
+        showFridayInfoOnHome: state.adminSettings.showFridayInfoOnHome,
+        showSocialMediaOnHome: state.adminSettings.showSocialMediaOnHome,
+      });
+      showToast('success', 'Pengaturan Beranda berhasil disimpan!');
+    } catch (err) {
+      showToast('error', 'Gagal menyimpan. Coba lagi.');
+    }
+  };
 
   // Sponsor State
   const [sponsors, setSponsors] = useState<Sponsor[]>(() => {
@@ -97,6 +130,8 @@ export const AppManagerAdmin: React.FC = () => {
     if (supabaseImages.length > 0) {
       setHeroImages(supabaseImages);
       localStorage.setItem('tazkia_hero_images', JSON.stringify(supabaseImages));
+      // Sync to global state so HeroSection carousel always reflects current images
+      updateAdminSettings({ masjidHeroCarouselUrls: supabaseImages.map(img => img.url) });
     } else {
       const defaultImages = [
         { name: 'default-masjid-1.jpg', url: '/hero-1.jpg' },
@@ -133,6 +168,10 @@ export const AppManagerAdmin: React.FC = () => {
     setHeroImages(updated);
     localStorage.setItem('tazkia_hero_images', JSON.stringify(updated));
     
+    // ✅ CRITICAL: Update global state so HeroSection carousel picks up the new photo
+    const newCarouselUrls = updated.map(img => img.url);
+    updateAdminSettings({ masjidHeroCarouselUrls: newCarouselUrls });
+    
     const msg = document.createElement('div');
     msg.className = 'fixed bottom-4 right-4 text-white px-6 py-3 rounded-xl shadow-lg z-50 text-sm font-bold';
     if (result.isLocal) {
@@ -140,7 +179,7 @@ export const AppManagerAdmin: React.FC = () => {
       msg.innerText = '⚠️ Tersimpan lokal. Buat bucket masjid-media di Supabase untuk akses semua perangkat!';
     } else {
       msg.className += ' bg-green-600';
-      msg.innerText = '✅ Foto berhasil diunggah ke server! Bisa dilihat dari semua perangkat.';
+      msg.innerText = '✅ Foto berhasil diunggah! Buka Beranda untuk melihat foto baru di slider.';
     }
     document.body.appendChild(msg);
     setTimeout(() => msg.remove(), 4000);
@@ -163,11 +202,7 @@ export const AppManagerAdmin: React.FC = () => {
     } catch(e) {}
 
     if (fileUrl && !fileUrl.startsWith('data:')) {
-      const supabase = getSupabaseClient();
-      if (supabase) {
-        // file.name does not include 'hero/' prefix since it was fetched via list('hero')
-        await supabase.storage.from('tazkia-media').remove([`hero/${fileName}`]);
-      }
+      await deleteMediaFromSupabase(fileUrl);
     }
     
     const updated = heroImages.filter(img => img.name !== fileName);
@@ -282,6 +317,145 @@ export const AppManagerAdmin: React.FC = () => {
                   Belum ada foto yang diunggah. Foto bawaan (default) akan ditampilkan.
                 </div>
               )}
+            </div>
+
+            {/* ====== Pengaturan Teks, Font & Tombol Hero ====== */}
+            <div className="bg-blue-950/60 p-5 rounded-2xl border border-blue-700 space-y-4 mt-2">
+              <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                <span className="text-xl">✍️</span> Pengaturan Teks &amp; Tampilan Beranda
+              </h4>
+              <p className="text-[11px] text-blue-300">Teks &amp; gaya font di bawah ini akan muncul di atas setiap foto animasi. Tombol sudah otomatis terintegrasi.</p>
+
+              {/* Teks */}
+              <div>
+                <label className="text-amber-300 font-bold block mb-1.5 text-xs">📌 Judul Utama (baris besar):</label>
+                <input
+                  type="text"
+                  value={state.adminSettings?.heroPromoTitle || ''}
+                  onChange={(e) => updateAdminSettings({ heroPromoTitle: e.target.value })}
+                  className="w-full bg-blue-900 border border-blue-700 rounded-xl px-4 py-3 text-white font-serif text-sm outline-none focus:border-amber-400 transition"
+                  placeholder="Contoh: Wakaf Pembangunan Masjid"
+                />
+              </div>
+
+              <div>
+                <label className="text-amber-300 font-bold block mb-1.5 text-xs">🏷️ Sub-judul (tulisan kecil di atas judul):</label>
+                <input
+                  type="text"
+                  value={state.adminSettings?.heroPromoSubtitle || ''}
+                  onChange={(e) => updateAdminSettings({ heroPromoSubtitle: e.target.value })}
+                  className="w-full bg-blue-900 border border-blue-700 rounded-xl px-4 py-3 text-emerald-300 font-mono text-xs outline-none focus:border-amber-400 transition uppercase"
+                  placeholder="Contoh: MASJID TAZKIA SENTUL"
+                />
+              </div>
+
+              <div>
+                <label className="text-amber-300 font-bold block mb-1.5 text-xs">📝 Deskripsi / Keterangan:</label>
+                <textarea
+                  rows={3}
+                  value={state.adminSettings?.heroPromoDescription || ''}
+                  onChange={(e) => updateAdminSettings({ heroPromoDescription: e.target.value })}
+                  className="w-full bg-blue-900 border border-blue-700 rounded-xl px-4 py-3 text-slate-200 text-xs outline-none focus:border-amber-400 transition leading-relaxed resize-none"
+                  placeholder="Contoh: Amal Jariyah Tak Terputus — salurkan wakaf Anda..."
+                />
+              </div>
+
+              {/* Typography Controls */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-blue-800">
+                <div>
+                  <label className="text-blue-300 font-bold block mb-1.5 text-xs">🔡 Ukuran Font Judul:</label>
+                  <select
+                    value={state.adminSettings?.heroTitleFontSize || 'lg'}
+                    onChange={(e) => updateAdminSettings({ heroTitleFontSize: e.target.value as any })}
+                    className="w-full bg-blue-900 border border-blue-700 rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-amber-400"
+                  >
+                    <option value="sm">Kecil (S)</option>
+                    <option value="md">Sedang (M)</option>
+                    <option value="lg">Besar (L) — Default</option>
+                    <option value="xl">Sangat Besar (XL)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-blue-300 font-bold block mb-1.5 text-xs">🖋️ Jenis Font Judul:</label>
+                  <select
+                    value={state.adminSettings?.heroTitleFontFamily || 'serif'}
+                    onChange={(e) => updateAdminSettings({ heroTitleFontFamily: e.target.value as any })}
+                    className="w-full bg-blue-900 border border-blue-700 rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-amber-400"
+                  >
+                    <option value="serif">Serif (Klasik/Elegan)</option>
+                    <option value="sans">Sans-Serif (Modern)</option>
+                    <option value="mono">Monospace (Digital)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-blue-300 font-bold block mb-1.5 text-xs">↔️ Posisi Teks:</label>
+                  <select
+                    value={state.adminSettings?.heroTextAlign || 'left'}
+                    onChange={(e) => updateAdminSettings({ heroTextAlign: e.target.value as any })}
+                    className="w-full bg-blue-900 border border-blue-700 rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-amber-400"
+                  >
+                    <option value="left">Rata Kiri</option>
+                    <option value="center">Tengah</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Tombol Info */}
+              <div className="flex flex-wrap gap-3 items-center pt-1">
+                <div className="flex items-center gap-2 bg-emerald-700/40 border border-emerald-600/50 text-emerald-300 px-4 py-2 rounded-full text-xs font-bold">
+                  ✅ Tombol "Salurkan Wakaf" → membuka form donasi
+                </div>
+                <div className="flex items-center gap-2 bg-blue-700/40 border border-blue-600/50 text-blue-300 px-4 py-2 rounded-full text-xs font-bold">
+                  ✅ Tombol "Lihat Program" → ke halaman ZISWAF
+                </div>
+              </div>
+            </div>
+
+            {/* ====== Pengaturan Visibilitas Bagian Beranda ====== */}
+            <div className="bg-blue-950/60 p-5 rounded-2xl border border-blue-700 space-y-3 mt-2">
+              <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                <span className="text-xl">☑️</span> Tampilkan / Sembunyikan Bagian di Beranda
+              </h4>
+              <p className="text-[11px] text-blue-300">Centang bagian yang ingin ditampilkan kepada jamaah. Hapus centang untuk menyembunyikan sementara.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {[
+                  { key: 'showPrayerTimesOnHome', label: '🕌 Jadwal Waktu Shalat' },
+                  { key: 'showLayananKamiOnHome', label: '🔗 Grid Layanan Kami' },
+                  { key: 'showProgramCardsOnHome', label: '💰 Kartu Program ZISWAF' },
+                  { key: 'showFridayInfoOnHome', label: '📢 Info Jumat & Pengumuman' },
+                  { key: 'showSocialMediaOnHome', label: '📱 Media Sosial & Dakwah Digital' },
+                ].map(item => (
+                  <label key={item.key} className="flex items-center gap-3 bg-blue-900/60 px-4 py-3 rounded-xl cursor-pointer hover:bg-blue-800/60 transition">
+                    <input
+                      type="checkbox"
+                      checked={(state.adminSettings as any)[item.key] !== false}
+                      onChange={(e) => updateAdminSettings({ [item.key]: e.target.checked } as any)}
+                      className="w-4 h-4 accent-amber-400 cursor-pointer"
+                    />
+                    <span className="text-white text-xs font-semibold">{item.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={saveTextSettings}
+                disabled={saveStatus === 'saving'}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-emerald-500/30 transition-all flex items-center gap-2"
+              >
+                {saveStatus === 'saving' ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : saveStatus === 'success' ? (
+                  <CheckCircle2 className="w-5 h-5" />
+                ) : saveStatus === 'error' ? (
+                  <XCircle className="w-5 h-5" />
+                ) : (
+                  <Save className="w-5 h-5" />
+                )}
+                {saveStatus === 'saving' ? 'Menyimpan...' : 'Simpan Pengaturan'}
+              </button>
             </div>
           </div>
         )}

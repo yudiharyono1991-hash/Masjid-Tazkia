@@ -1,251 +1,150 @@
-import React from 'react';
-import { TazkiaBrandLogo } from './TazkiaBrandLogo';
-import {
-  MapPin,
-  Phone,
-  Mail,
-  HeartHandshake,
-  BookOpen,
-  Calendar,
-  Sparkles,
-  FileText,
-  UserCheck,
-  ExternalLink
+import React, { useState } from 'react';
+import { 
+  Facebook, 
+  Instagram, 
+  Youtube, 
+  Copy,
+  Check,
+  Twitter,
+  Globe,
+  Linkedin,
+  MessageCircle
 } from 'lucide-react';
 import { useMasjidStore } from '../lib/store';
 
 interface FooterProps {
-  openDonationModal: () => void;
-  openCalculator: () => void;
-  openDigitalIbadah: (tab?: 'quran' | 'salat' | 'kiblat') => void;
-  openTvMode: () => void;
+  // Keeping props just in case they are passed, but we won't use them for the new static layout
+  openDonationModal?: () => void;
+  openCalculator?: () => void;
+  openDigitalIbadah?: (tab?: 'quran' | 'salat' | 'kiblat') => void;
+  openTvMode?: () => void;
   session?: any;
   isDark?: boolean;
 }
 
-export const Footer: React.FC<FooterProps> = ({
-  openDonationModal,
-  openCalculator,
-  openDigitalIbadah,
-  openTvMode,
-  session,
-  isDark = false
-}) => {
-  const { state } = useMasjidStore();
+export const Footer: React.FC<FooterProps> = () => {
+  const [copied, setCopied] = useState(false);
+  const store = useMasjidStore();
+  const adminSettings = store.state.adminSettings;
+  const socialLinks = adminSettings?.socialMediaLinks || [];
+
+  const getIcon = (platform: string) => {
+    const p = platform.toLowerCase();
+    if (p.includes('facebook')) return <Facebook className="w-5 h-5" />;
+    if (p.includes('instagram')) return <Instagram className="w-5 h-5" />;
+    if (p.includes('youtube')) return <Youtube className="w-5 h-5" />;
+    if (p.includes('twitter') || p.includes('x')) return <Twitter className="w-5 h-5" />;
+    if (p.includes('linkedin')) return <Linkedin className="w-5 h-5" />;
+    if (p.includes('whatsapp') || p.includes('telegram')) return <MessageCircle className="w-5 h-5" />;
+    return <Globe className="w-5 h-5" />;
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText('7075678899');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <footer className="pt-16 pb-12 border-t transition-colors bg-[#172554] text-white border-[#172554] relative overflow-hidden">
-      <div
-        className="absolute inset-0 z-0 bg-cover bg-center"
-        style={{ backgroundImage: `url("/hero-1.jpg")` }}
-      />
-      <div className="absolute inset-0 z-0 bg-[#153476]/95 pointer-events-none" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Col 1: Brand Info */}
-          <div className="space-y-4">
-            <TazkiaBrandLogo variant="navbar" isDark={true} />
-
-            <p className="text-xs leading-relaxed font-sans text-blue-200">
-              Pusat ibadah, ZISWAF transparan, dan pelayanan umat di Sentul City, Bogor.
-            </p>
-
-            <div className="pt-2 text-xs space-y-3 font-mono text-blue-200">
-              <div className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                <div className="flex flex-col">
-                  <span className="leading-snug">Jl. Ir. H. Djuanda No. 78 Sentul City,</span>
-                  <span className="opacity-90 mt-0.5">Bogor, Indonesia</span>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                <div className="flex flex-col">
-                  <span className="leading-snug">0858 1000 8899</span>
-                  <span className="opacity-90 mt-0.5">(WA / Telp Sekretariat DKM)</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>masjidtazkia@tazkia.ac.id</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Col 2: Navigasi Layanan */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-amber-400 border-b border-blue-800 pb-2">
-              Layanan Jamaah
-            </h4>
-            <ul className="space-y-2 text-xs font-medium text-blue-300">
-              {(state.adminSettings?.layananJamaahLinks && state.adminSettings.layananJamaahLinks.length > 0) ? (
-                state.adminSettings.layananJamaahLinks.map(link => {
-                  const getIcon = () => {
-                    switch (link.action) {
-                      case 'donation': return <HeartHandshake className="w-3.5 h-3.5 text-amber-400" />;
-                      case 'calculator': return <Sparkles className="w-3.5 h-3.5 text-amber-400" />;
-                      case 'quran': return <BookOpen className="w-3.5 h-3.5 text-blue-400" />;
-                      case 'salat': return <Calendar className="w-3.5 h-3.5 text-amber-400" />;
-                      default: return <ExternalLink className="w-3.5 h-3.5 text-amber-400" />;
-                    }
-                  };
-                  const getOnClick = () => {
-                    switch (link.action) {
-                      case 'donation': return openDonationModal;
-                      case 'calculator': return openCalculator;
-                      case 'quran': return () => openDigitalIbadah('quran');
-                      case 'salat': return () => openDigitalIbadah('salat');
-                      case 'link': return () => link.url && window.open(link.url, '_blank');
-                      default: return undefined;
-                    }
-                  };
-                  return (
-                    <li key={link.id}>
-                      <button onClick={getOnClick()} className="hover:text-blue-400 transition-colors flex items-center gap-1.5 cursor-pointer text-left">
-                        {getIcon()}
-                        <span>{link.title}</span>
-                      </button>
-                    </li>
-                  );
-                })
-              ) : (
-                <>
-                  <li>
-                    <button onClick={openDonationModal} className="hover:text-blue-400 transition-colors flex items-center gap-1.5 cursor-pointer text-left">
-                      <HeartHandshake className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Donasi Zakat, Infaq & Wakaf</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={openCalculator} className="hover:text-blue-400 transition-colors flex items-center gap-1.5 cursor-pointer text-left">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Kalkulator ZISWAF Syariah</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => openDigitalIbadah('quran')} className="hover:text-blue-400 transition-colors flex items-center gap-1.5 cursor-pointer text-left">
-                      <BookOpen className="w-3.5 h-3.5 text-blue-400" />
-                      <span>Al-Qur'an Digital Audio Murottal</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => openDigitalIbadah('salat')} className="hover:text-blue-400 transition-colors flex items-center gap-1.5 cursor-pointer text-left">
-                      <Calendar className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Jadwal Shalat & Adzan</span>
-                    </button>
-                  </li>
-                </>
-              )}
-            </ul>
-          </div>
-
-          {/* Col 3: Program Operasional */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-amber-400 border-b border-blue-800 pb-2">
-              Daftar Program Saat Ini
-            </h4>
-            <ul className="space-y-2 text-xs font-medium text-blue-200">
-              {state.programs.length > 0 ? (
-                state.programs.slice(0, 5).map((p, index) => (
-                  <li key={p.id}>{index + 1}. {p.title}</li>
-                ))
-              ) : (
-                <li>Belum ada program.</li>
-              )}
-            </ul>
-          </div>
-
-          {/* Col 4: Pengurus DKM */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-amber-400 border-b border-blue-800 pb-2">
-              Pengurus DKM
-            </h4>
-            <div className="space-y-2 text-xs text-blue-200">
-              {(state.adminSettings?.footerPengurusIds?.length 
-                ? state.adminSettings.footerPengurusIds
-                    .map(id => state.boardMembers?.find(m => m.id === id))
-                    .filter((m): m is NonNullable<typeof m> => !!m)
-                : (state.boardMembers || []).sort((a, b) => a.orderIdx - b.orderIdx).slice(0, 3)
-              ).map(member => (
-                <div key={member.id} className="flex items-start gap-2 mb-3">
-                  <UserCheck className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                  <div className="flex flex-col">
-                    <strong className="text-blue-100 leading-snug">{member.groupTitle || member.position}</strong>
-                    <span className="opacity-90 mt-0.5">{member.name}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {session && ['admin_masjid', 'ketua_dkm', 'pengurus_dkm'].includes(session.role) && (
-              <button
-                onClick={openTvMode}
-                className="w-full bg-blue-700 hover:bg-blue-800 text-white font-mono font-bold text-xs uppercase tracking-wider py-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all border border-blue-500/40 mt-4"
+    <footer className="bg-slate-900 text-slate-300 pt-14 pb-6 font-sans">
+      <div className="mx-auto max-w-6xl px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
+        
+        {/* Kolom 1: Tentang Kami */}
+        <div>
+          <h3 className="text-white text-lg font-bold mb-4 border-b-2 border-amber-500 inline-block pb-1">
+            TENTANG KAMI
+          </h3>
+          <p className="text-sm leading-relaxed mb-6 text-slate-400">
+            Masjid Tazkia Islamic Center hadir sebagai pusat peradaban dan ibadah, mengedepankan nilai spiritualitas dan pendidikan Al-Qur'an.
+          </p>
+          <div className="flex gap-4 flex-wrap">
+            {socialLinks.map((link) => (
+              <a 
+                key={link.id} 
+                href={link.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                title={link.platform}
+                className="bg-slate-800 p-2.5 rounded-lg hover:bg-slate-700 transition text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500"
               >
-                <span>Tampilkan Mode TV Masjid</span>
-              </button>
+                {getIcon(link.platform)}
+              </a>
+            ))}
+            {socialLinks.length === 0 && (
+              <span className="text-xs text-slate-500 italic">Belum ada tautan media sosial.</span>
             )}
           </div>
         </div>
 
-        {/* Bottom: Salam & Identitas Resmi */}
-        <div className="rounded-2xl border p-6 space-y-4 bg-blue-950/50 border-blue-800">
-          <p className="text-sm font-serif italic leading-relaxed text-amber-200">
-            Assalamu&apos;alaikum Warahmatullahi Wabarakatuh.
-          </p>
-          <p className="text-xs leading-relaxed text-blue-200">
-            Aplikasi digital <strong className="text-blue-100">Masjid Tazkia</strong> hadir untuk memudahkan jamaah dalam ber-ZISWAF,
-            memantau transparansi keuangan, serta mengakses layanan ibadah dan informasi masjid secara modern dan amanah.
-          </p>
-          <div className="grid sm:grid-cols-2 gap-3 text-[11px] font-mono text-blue-300">
-            <p><span className="text-amber-400 font-bold">Nama Masjid:</span> Masjid Tazkia</p>
-            <p><span className="text-amber-400 font-bold">Pengurus Utama:</span> {(
-              state.adminSettings?.footerPengurusIds?.length
-                ? state.adminSettings.footerPengurusIds
-                    .map(id => state.boardMembers?.find(m => m.id === id)?.name)
-                    .filter(Boolean)
-                    .join(', ')
-                : (state.boardMembers || []).sort((a,b)=>a.orderIdx-b.orderIdx).slice(0, 3).map(m => m.name).join(', ')
-            ) || 'Syarifudin Kusin'}</p>
-            <p className="sm:col-span-2"><span className="text-amber-400 font-bold">Alamat:</span> Jl. Ir. H. Djuanda No. 78 Sentul City, Bogor Indonesia</p>
-            <p><span className="text-amber-400 font-bold">Email:</span> masjidtazkia@tazkia.ac.id</p>
-            <p><span className="text-amber-400 font-bold">Telp / WA:</span> 0858 1000 8899</p>
+        {/* Kolom 2: Tautan Cepat */}
+        <div>
+          <h3 className="text-white text-lg font-bold mb-4 border-b-2 border-amber-500 inline-block pb-1">
+            TAUTAN CEPAT
+          </h3>
+          <ul className="space-y-3 text-sm text-slate-400 font-medium">
+            <li>
+              <button onClick={() => { window.location.hash = 'booking'; window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-amber-500 transition flex items-center gap-2">
+                <span className="text-amber-500/50">»</span> Cek Ketersediaan Gedung
+              </button>
+            </li>
+            <li>
+              <button onClick={() => { window.location.hash = 'muallaf'; window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-amber-500 transition flex items-center gap-2">
+                <span className="text-amber-500/50">»</span> Muallaf Center
+              </button>
+            </li>
+            <li>
+              <button onClick={() => { window.location.hash = 'tpa'; window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-amber-500 transition flex items-center gap-2">
+                <span className="text-amber-500/50">»</span> Program TPA
+              </button>
+            </li>
+            <li>
+              <button onClick={() => { window.location.hash = 'program'; window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-amber-500 transition flex items-center gap-2">
+                <span className="text-amber-500/50">»</span> Salurkan Infaq
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        {/* Kolom 3: Salurkan Infaq */}
+        <div>
+          <h3 className="text-white text-lg font-bold mb-4 border-b-2 border-amber-500 inline-block pb-1">
+            SALURKAN INFAQ
+          </h3>
+          <div className="bg-slate-800 p-5 rounded-xl border-l-4 border-amber-500 space-y-3 shadow-lg">
+            <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Bank Syariah Indonesia (BSI)</p>
+            <p className="text-2xl font-bold text-white tracking-widest font-mono">707 567 8899</p>
+            <p className="text-[11px] text-slate-400 font-medium">A.N MASJID TAZKIA / YYS PUSAT ISLAM ANDALUSIA</p>
+            <button 
+              onClick={copyToClipboard}
+              className={`w-full flex items-center justify-center gap-2 text-sm font-bold py-2.5 rounded-lg transition-all mt-2
+                ${copied ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>Berhasil Disalin!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Salin Nomor Rekening</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
-        {(() => {
-          try {
-            const saved = localStorage.getItem('tazkia_sponsors');
-            if (saved) {
-              const sponsors = JSON.parse(saved);
-              if (sponsors && sponsors.length > 0) {
-                return (
-                  <div className="py-6 border-t border-blue-800/50">
-                    <p className="text-center text-xs font-bold text-blue-300 mb-4 uppercase tracking-widest">Sponsored & Supported By</p>
-                    <div className="flex flex-wrap justify-center gap-6 items-center">
-                      {sponsors.map((sp: any) => (
-                        <div key={sp.id} className="bg-white/90 p-2 rounded-xl hover:bg-white transition-colors">
-                          <img src={sp.imageUrl} alt={sp.name} className="h-10 object-contain" title={sp.name} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              }
-            }
-          } catch(e) {}
-          return null;
-        })()}
-
-        <div className="pt-4 border-t border-blue-800 flex flex-col items-center justify-center text-xs text-blue-400 text-center">
-          <div className="space-y-1">
-            <p className="font-semibold text-blue-200 tracking-wide text-xs sm:text-sm">
-              &copy; 2026 Masjid Tazkia. All Rights Reserved.
-            </p>
-            <p className="text-[11px] text-blue-400">
-              Jl. Ir. H. Djuanda No. 78 Sentul City, Bogor Indonesia
-            </p>
-          </div>
+      </div>
+      
+      {/* Footer Bottom */}
+      <div className="border-t border-slate-800 mt-12 pt-6">
+        <div className="mx-auto max-w-6xl px-6 flex flex-col items-center justify-center text-xs text-slate-500 space-y-2">
+          <p className="font-semibold text-slate-400 text-[11px] sm:text-xs">
+            &copy; 2026 Masjid Tazkia Islamic Center. All Rights Reserved.
+          </p>
+          <p className="text-[10px] text-slate-600">
+            Jl. Ir. H. Djuanda No. 78 Sentul City, Bogor Indonesia
+          </p>
         </div>
       </div>
     </footer>

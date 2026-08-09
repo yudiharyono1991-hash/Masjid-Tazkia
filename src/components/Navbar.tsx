@@ -235,7 +235,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="relative group">
               <button
                 className={`px-3.5 py-6 transition-all cursor-pointer font-semibold text-sm border-b-[3px] flex items-center gap-1 ${
-                  ['sejarah', 'galeri'].includes(activeTab)
+                  ['sejarah', 'galeri', 'muallaf', 'tpa'].includes(activeTab)
                     ? (isDark ? 'border-amber-400 text-amber-400' : 'border-blue-600 text-blue-700')
                     : (isDark ? 'border-transparent text-slate-300 hover:text-amber-300' : 'border-transparent text-slate-600 hover:text-blue-700')
                 }`}
@@ -246,9 +246,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="py-2 flex flex-col">
                   <button onClick={() => handleTabClick('sejarah')} className="text-left px-4 py-2 hover:bg-amber-500/20 hover:text-amber-200 transition-colors text-amber-300 font-medium">Sejarah Tazkia</button>
                   <button onClick={() => handleTabClick('galeri')} className="text-left px-4 py-2 hover:bg-amber-500/20 hover:text-amber-200 transition-colors text-amber-300 font-medium">Galeri & Kajian</button>
+                  <button onClick={() => handleTabClick('muallaf')} className="text-left px-4 py-2 hover:bg-amber-500/20 hover:text-amber-200 transition-colors text-amber-300 font-medium">Muallaf Center</button>
+                  <button onClick={() => handleTabClick('tpa')} className="text-left px-4 py-2 hover:bg-amber-500/20 hover:text-amber-200 transition-colors text-amber-300 font-medium">Program TPA</button>
                 </div>
               </div>
             </div>
+
+            <button
+              onClick={() => handleTabClick('kontak')}
+              className={`px-3.5 py-6 transition-all cursor-pointer font-semibold text-sm border-b-[3px] ${
+                activeTab === 'kontak'
+                  ? (isDark ? 'border-amber-400 text-amber-400' : 'border-blue-600 text-blue-700')
+                  : (isDark ? 'border-transparent text-slate-300 hover:text-amber-300' : 'border-transparent text-slate-600 hover:text-blue-700')
+              }`}
+            >
+              Kontak Kami
+            </button>
 
 
 
@@ -450,13 +463,43 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               <button
+                onClick={() => { setActiveTab('muallaf'); setMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all flex items-center justify-between ${
+                  activeTab === 'muallaf' ? 'bg-blue-700 text-white font-extrabold shadow-md' : 'bg-blue-950/40 hover:bg-blue-900/60 text-amber-300 hover:text-amber-200'
+                }`}
+              >
+                <span>9. Muallaf Center</span>
+                <span className="text-[10px] font-mono font-normal opacity-70">Bimbingan Syahadat</span>
+              </button>
+
+              <button
+                onClick={() => { setActiveTab('tpa'); setMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all flex items-center justify-between ${
+                  activeTab === 'tpa' ? 'bg-blue-700 text-white font-extrabold shadow-md' : 'bg-blue-950/40 hover:bg-blue-900/60 text-amber-300 hover:text-amber-200'
+                }`}
+              >
+                <span>10. Program TPA</span>
+                <span className="text-[10px] font-mono font-normal opacity-70">Pendidikan Al-Qur'an</span>
+              </button>
+
+              <button
                 onClick={() => { setActiveTab('booking'); setMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                 className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all flex items-center justify-between ${
                   activeTab === 'booking' ? 'bg-blue-700 text-white font-extrabold shadow-md' : 'bg-blue-950/40 hover:bg-blue-900/60 text-amber-300 hover:text-amber-200'
                 }`}
               >
-                <span>9. Booking Gedung</span>
+                <span>11. Booking Gedung</span>
                 <span className="text-[10px] font-mono font-normal text-amber-300">Sewa Fasilitas</span>
+              </button>
+
+              <button
+                onClick={() => { setActiveTab('kontak'); setMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all flex items-center justify-between ${
+                  activeTab === 'kontak' ? 'bg-blue-700 text-white font-extrabold shadow-md' : 'bg-blue-950/40 hover:bg-blue-900/60 text-amber-300 hover:text-amber-200'
+                }`}
+              >
+                <span>12. Kontak Kami</span>
+                <span className="text-[10px] font-mono font-normal text-amber-300">Hubungi Kami</span>
               </button>
 
               {session && session.isLoggedIn && hasDkmPortalAccess(session.role) && (

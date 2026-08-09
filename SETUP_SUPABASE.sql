@@ -46,3 +46,24 @@ ALTER TABLE public.gallery_items DISABLE ROW LEVEL SECURITY;
 GRANT ALL ON TABLE public.app_sync_state TO anon, authenticated;
 GRANT ALL ON TABLE public.programs TO anon, authenticated;
 GRANT ALL ON TABLE public.gallery_items TO anon, authenticated;
+
+-- 4. Storage Bucket: tazkia-media
+-- Digunakan untuk menyimpan foto-foto real pict dan bukti transfer
+INSERT INTO storage.buckets (id, name, public) VALUES ('tazkia-media', 'tazkia-media', true) ON CONFLICT DO NOTHING;
+
+-- Mengizinkan public access ke bucket secara aman
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Public Access'
+    ) THEN
+        CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'tazkia-media');
+    END IF;
+    
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Public Insert'
+    ) THEN
+        CREATE POLICY "Public Insert" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'tazkia-media');
+    END IF;
+END
+$$;

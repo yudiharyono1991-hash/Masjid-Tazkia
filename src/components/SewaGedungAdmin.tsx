@@ -4,16 +4,21 @@ import { uploadMedia, deleteMediaFromSupabase } from '../lib/mediaUpload';
 import { useMasjidStore } from '../lib/store';
 
 export const SewaGedungAdmin: React.FC = () => {
-  const { state, updateGedungBookingStatus } = useMasjidStore();
+  const { state, updateGedungBookingStatus, updateKamarBookingStatus } = useMasjidStore();
   const gedungBookings = state.gedungBookings || [];
-  const [activeTab, setActiveTab] = useState<'assets' | 'bookings'>('bookings');
+  const kamarBookings = state.kamarBookings || [];
+  const [activeTab, setActiveTab] = useState<'assets' | 'bookings' | 'kamar'>('bookings');
   
   // Date utils
   const getFirstDayOfMonth = () => { const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" })); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`; };
   const getToday = () => { const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" })); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
   const [startDate, setStartDate] = useState(getFirstDayOfMonth());
-  const [endDate, setEndDate] = useState(getToday());
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
 
   const [images, setImages] = useState<{name: string, url: string}[]>([]);
   const [pdf, setPdf] = useState<{name: string, url: string} | null>(null);
@@ -59,6 +64,82 @@ export const SewaGedungAdmin: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePrintInvoice = (booking: any) => {
+    const invoiceWindow = window.open('', '_blank');
+    if (!invoiceWindow) return alert('Izinkan pop-up untuk mencetak invoice.');
+
+    const invoiceDate = new Date().toLocaleDateString('id-ID', { dateStyle: 'long' });
+    const bookingDate = new Date(booking.date).toLocaleDateString('id-ID', { dateStyle: 'long' });
+
+    const html = `
+      <html>
+        <head>
+          <title>Invoice Booking - ${booking.name}</title>
+          <style>
+            body { font-family: 'Arial', sans-serif; padding: 40px; color: #333; line-height: 1.6; }
+            .header { text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+            .title { font-size: 24px; font-weight: bold; color: #1e3a8a; }
+            .subtitle { color: #64748b; }
+            .invoice-details { display: flex; justify-content: space-between; margin-bottom: 40px; }
+            .invoice-details > div { width: 48%; }
+            table { w-full; width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: left; }
+            th { background-color: #f1f5f9; color: #1e293b; }
+            .total { text-align: right; font-weight: bold; font-size: 18px; }
+            .footer { margin-top: 50px; text-align: center; font-size: 14px; color: #64748b; border-top: 1px solid #cbd5e1; padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="title">MASJID TAZKIA ISLAMIC CENTER</div>
+            <div class="subtitle">Jl. Ir. H. Djuanda No. 78, Sentul City, Bogor</div>
+            <h2>INVOICE PENYEWAAN GEDUNG</h2>
+          </div>
+          <div class="invoice-details">
+            <div>
+              <strong>Kepada Yth:</strong><br/>
+              ${booking.name}<br/>
+              WA: ${booking.whatsapp}<br/>
+              Email: ${booking.email || '-'}
+            </div>
+            <div style="text-align: right;">
+              <strong>No. Invoice:</strong> INV-GB-${booking.id.split('-')[1] || Math.floor(Math.random() * 10000)}<br/>
+              <strong>Tanggal Cetak:</strong> ${invoiceDate}
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Deskripsi Layanan</th>
+                <th>Tanggal Acara</th>
+                <th>Harga</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Penyewaan Alhambra Ballroom (Gedung Masjid Tazkia)<br/><small>Catatan: ${booking.notes || '-'}</small></td>
+                <td>${bookingDate}</td>
+                <td>Sesuai Kesepakatan</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="total">
+            Total Tagihan: Silakan hubungi admin untuk konfirmasi pembayaran.
+          </div>
+          <div class="footer">
+            Terima kasih telah mempercayakan acara Anda di Masjid Tazkia.<br/>
+            Pembayaran dapat ditransfer ke Bank BSI 7130-2498-17 a.n. DKM Masjid Tazkia.
+          </div>
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `;
+    invoiceWindow.document.write(html);
+    invoiceWindow.document.close();
   };
 
   useEffect(() => {
@@ -150,6 +231,16 @@ export const SewaGedungAdmin: React.FC = () => {
           }`}
         >
           <Building className="w-4 h-4" /> Aset & Galeri Gedung
+        </button>
+        <button
+          onClick={() => setActiveTab('kamar')}
+          className={`px-6 py-3 font-bold text-sm transition-all border-b-2 flex items-center gap-2 ${
+            activeTab === 'kamar' 
+              ? 'border-amber-400 text-amber-400 bg-blue-900/50' 
+              : 'border-transparent text-blue-300 hover:text-white hover:bg-blue-900/30'
+          }`}
+        >
+          <CalendarCheck className="w-4 h-4" /> Reservasi Kamar
         </button>
       </div>
 
@@ -243,12 +334,22 @@ export const SewaGedungAdmin: React.FC = () => {
                           </div>
                         )}
                         {booking.status !== 'pending' && (
-                          <button 
-                            onClick={() => updateGedungBookingStatus(booking.id, 'pending')}
-                            className="text-xs text-blue-400 hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
-                          >
-                            Batalkan Status
-                          </button>
+                          <div className="flex flex-col gap-2 items-end">
+                            <button 
+                              onClick={() => updateGedungBookingStatus(booking.id, 'pending')}
+                              className="text-xs text-blue-400 hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
+                            >
+                              Batalkan Status
+                            </button>
+                            {booking.status === 'approved' && (
+                              <button
+                                onClick={() => handlePrintInvoice(booking)}
+                                className="text-xs text-amber-400 hover:text-amber-300 font-bold border border-amber-500/30 px-2 py-1 rounded-md bg-amber-500/10 cursor-pointer flex items-center gap-1"
+                              >
+                                <FileText className="w-3 h-3" /> Cetak Invoice
+                              </button>
+                            )}
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -345,6 +446,112 @@ export const SewaGedungAdmin: React.FC = () => {
         )}
       </div>
       )}
+
+      {activeTab === 'kamar' && (
+        <div className="bg-blue-900 border border-blue-800 rounded-2xl p-6 shadow-lg">
+          <h3 className="font-serif text-xl font-bold text-white mb-2 flex items-center gap-2">
+            <CalendarCheck className="w-5 h-5 text-amber-400" />
+            Daftar Pesanan Kamar Penginapan Jamaah
+          </h3>
+          <p className="text-sm text-blue-200 mb-6">
+            Kelola permintaan pemesanan kamar/guest house masjid.
+          </p>
+
+          <div className="flex items-center gap-2 mb-6">
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-blue-950 border border-blue-700 text-white text-sm rounded-lg px-3 py-1.5 outline-none focus:border-amber-500" />
+            <span className="text-blue-400 font-bold text-sm">s/d</span>
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-blue-950 border border-blue-700 text-white text-sm rounded-lg px-3 py-1.5 outline-none focus:border-amber-500" />
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-blue-800 text-blue-300 text-xs uppercase tracking-wider">
+                  <th className="p-4 font-semibold">TANGGAL (IN - OUT)</th>
+                  <th className="p-4 font-semibold">PEMESAN</th>
+                  <th className="p-4 font-semibold">TIPE KAMAR</th>
+                  <th className="p-4 font-semibold text-center">STATUS</th>
+                  <th className="p-4 font-semibold text-right">AKSI</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-blue-800/50 text-sm">
+                {kamarBookings.filter(b => b.date >= startDate && b.date <= endDate).length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-blue-400 italic">
+                      Belum ada permintaan booking kamar pada rentang tanggal ini.
+                    </td>
+                  </tr>
+                ) : (
+                  kamarBookings.filter(b => b.date >= startDate && b.date <= endDate).map(booking => (
+                    <tr key={booking.id} className="hover:bg-blue-800/20 transition-colors">
+                      <td className="p-4 font-medium text-white whitespace-nowrap">
+                        In: {new Date(booking.date).toLocaleDateString('id-ID')}<br/>
+                        Out: {new Date(booking.checkoutDate).toLocaleDateString('id-ID')}
+                      </td>
+                      <td className="p-4 text-blue-100">
+                        <div className="flex flex-col gap-1">
+                          <span>{booking.name}</span>
+                          <a href={`https://wa.me/${booking.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="text-amber-300 hover:underline">{booking.whatsapp}</a>
+                        </div>
+                      </td>
+                      <td className="p-4 text-blue-200">
+                        <span className="font-bold text-amber-300 bg-amber-500/20 px-2 py-1 rounded">{booking.roomType}</span>
+                        <div className="mt-1 text-xs">{booking.notes}</div>
+                      </td>
+                      <td className="p-4 text-center">
+                        {booking.status === 'pending' && (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                            <Clock className="w-3.5 h-3.5" /> Menunggu
+                          </span>
+                        )}
+                        {booking.status === 'approved' && (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Disetujui
+                          </span>
+                        )}
+                        {booking.status === 'rejected' && (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                            <XCircle className="w-3.5 h-3.5" /> Ditolak
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-right whitespace-nowrap">
+                        {booking.status === 'pending' && (
+                          <div className="flex justify-end gap-2">
+                            <button 
+                              onClick={() => updateKamarBookingStatus(booking.id, 'approved')}
+                              className="p-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white transition-colors cursor-pointer"
+                              title="Setujui"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => updateKamarBookingStatus(booking.id, 'rejected')}
+                              className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-colors cursor-pointer"
+                              title="Tolak"
+                            >
+                              <XCircle className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        {booking.status !== 'pending' && (
+                          <button 
+                            onClick={() => updateKamarBookingStatus(booking.id, 'pending')}
+                            className="text-xs text-blue-400 hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
+                          >
+                            Batalkan Status
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

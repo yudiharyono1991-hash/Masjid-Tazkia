@@ -25,6 +25,38 @@ async function startServer() {
     res.json({ status: "ok", app: "Masjid Tazkia Platform", aiReady: !!cachedGeminiKey, keyUpdatedAt });
   });
 
+  // WhatsApp Gateway Endpoint (Fonnte/Wablas/Wazzup Simulation)
+  app.post("/api/wa/send", async (req, res) => {
+    const { phone, message } = req.body;
+    if (!phone || !message) {
+      return res.status(400).json({ success: false, error: 'Phone dan message wajib diisi.' });
+    }
+    
+    console.log(`\n📱 [WA GATEWAY] Mengirim pesan ke ${phone}:\n${message}\n`);
+    
+    // TODO: Ganti dengan panggilan API asli ke provider WA Gateway pilihan Anda.
+    // Contoh menggunakan Fonnte:
+    /*
+    try {
+      const response = await fetch('https://api.fonnte.com/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': process.env.FONNTE_TOKEN || 'YOUR_TOKEN',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ target: phone, message: message })
+      });
+      const result = await response.json();
+      return res.json({ success: result.status, data: result });
+    } catch (err) { ... }
+    */
+
+    // Simulasi Berhasil
+    setTimeout(() => {
+      res.json({ success: true, message: 'Pesan WhatsApp berhasil dikirim (Simulasi).' });
+    }, 500);
+  });
+
   // Update Gemini API Key tanpa restart server (via Admin DKM Portal)
   app.post("/api/admin/update-ai-key", (req, res) => {
     const { apiKey, adminSecret } = req.body;

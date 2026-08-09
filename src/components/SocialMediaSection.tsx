@@ -10,50 +10,62 @@ const YT_CHANNEL_ID = 'UC5107eQh328s76H_mZ34Sog';
 const YT_UPLOADS_PLAYLIST = `UU${YT_CHANNEL_ID.replace('UC', '')}`;
 const YT_CHANNEL_URL = 'https://www.youtube.com/@masjidtazkia';
 
-export const SocialMediaSection: React.FC = () => {
+interface SocialMediaProps {
+  isDark?: boolean;
+}
+
+export const SocialMediaSection: React.FC<SocialMediaProps> = ({ isDark = false }) => {
   const [activeTab, setActiveTab] = useState<'featured' | 'playlist'>('featured');
   const [activeVideoIdx, setActiveVideoIdx] = useState(0);
   const [fbLoaded, setFbLoaded] = useState(false);
   const [igLoaded, setIgLoaded] = useState(false);
 
   return (
-    <section className="py-16 bg-[#172554] border-t border-blue-900/50 relative overflow-hidden">
-      <div
-        className="absolute inset-0 z-0 bg-cover bg-center"
-        style={{ backgroundImage: `url("/hero-1.jpg")` }}
-      />
-      <div className="absolute inset-0 z-0 bg-[#153476]/90 pointer-events-none" />
+    <section className={`py-16 border-t relative overflow-hidden transition-colors ${isDark ? 'bg-[#172554] border-blue-900/50' : 'bg-slate-50 border-slate-200'}`}>
+      {isDark && (
+        <>
+          <div
+            className="absolute inset-0 z-0 bg-cover bg-center opacity-30"
+            style={{ backgroundImage: `url("/hero-1.jpg")` }}
+          />
+          <div className="absolute inset-0 z-0 bg-[#153476]/90 pointer-events-none" />
+        </>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
         <div className="text-center mb-10">
-          <p className="text-[10px] font-mono font-bold tracking-[0.2em] text-amber-400 uppercase mb-2">Ikuti Kami</p>
-          <h2 className="text-2xl sm:text-3xl font-serif text-white">Media Sosial &amp; Dakwah Digital</h2>
-          <p className="text-blue-300 text-sm mt-2 font-sans">Ikuti terus pembaruan berita, kajian, dan aktivitas Masjid Tazkia</p>
+          <p className={`text-[10px] font-mono font-bold tracking-[0.2em] uppercase mb-2 ${isDark ? 'text-amber-400' : 'text-blue-600'}`}>Ikuti Kami</p>
+          <h2 className={`text-2xl sm:text-3xl font-serif ${isDark ? 'text-white' : 'text-slate-900'}`}>Media Sosial &amp; Dakwah Digital</h2>
+          <p className={`text-sm mt-2 font-sans ${isDark ? 'text-blue-300' : 'text-slate-600'}`}>Ikuti terus pembaruan berita, kajian, dan aktivitas Masjid Tazkia</p>
         </div>
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
 
           {/* ========== YOUTUBE — Left Column ========== */}
-          <div className="bg-black/30 border border-red-500/20 rounded-2xl overflow-hidden shadow-xl flex flex-col">
-            <div className="flex items-center gap-3 px-5 py-3 bg-red-600/10 border-b border-red-500/20 shrink-0">
+          <div className={`border rounded-2xl overflow-hidden shadow-xl flex flex-col transition-colors ${isDark ? 'bg-black/30 border-red-500/20' : 'bg-white border-slate-200'}`}>
+            <div className={`flex items-center gap-3 px-5 py-3 border-b shrink-0 transition-colors ${isDark ? 'bg-red-600/10 border-red-500/20' : 'bg-red-50 border-red-100'}`}>
               <Youtube className="w-5 h-5 text-red-500" />
-              <span className="text-white font-semibold text-sm">YouTube Masjid Tazkia</span>
+              <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>YouTube Masjid Tazkia</span>
               <a href={YT_CHANNEL_URL} target="_blank" rel="noopener noreferrer"
-                className="ml-auto text-[10px] text-red-400 flex items-center gap-1 hover:text-red-300 transition-colors">
+                className={`ml-auto text-[10px] flex items-center gap-1 transition-colors ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-700'}`}>
                 Lihat Channel <ExternalLink className="w-3 h-3" />
               </a>
             </div>
 
             {/* Tab bar: Featured videos vs Full channel playlist */}
-            <div className="flex border-b border-white/10 shrink-0">
+            <div className={`flex border-b shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
               <button onClick={() => setActiveTab('featured')}
-                className={`flex-1 py-2 text-xs font-mono font-bold uppercase tracking-wide transition-colors ${activeTab === 'featured' ? 'bg-red-600/20 text-red-300 border-b-2 border-red-500' : 'text-blue-400 hover:text-white hover:bg-white/5'
+                className={`flex-1 py-2 text-xs font-mono font-bold uppercase tracking-wide transition-colors ${activeTab === 'featured' 
+                  ? (isDark ? 'bg-red-600/20 text-red-300 border-b-2 border-red-500' : 'bg-red-50 text-red-600 border-b-2 border-red-500') 
+                  : (isDark ? 'text-blue-400 hover:text-white hover:bg-white/5' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50')
                   }`}>
                 📌 Video Pilihan
               </button>
               <button onClick={() => setActiveTab('playlist')}
-                className={`flex-1 py-2 text-xs font-mono font-bold uppercase tracking-wide transition-colors ${activeTab === 'playlist' ? 'bg-red-600/20 text-red-300 border-b-2 border-red-500' : 'text-blue-400 hover:text-white hover:bg-white/5'
+                className={`flex-1 py-2 text-xs font-mono font-bold uppercase tracking-wide transition-colors ${activeTab === 'playlist' 
+                  ? (isDark ? 'bg-red-600/20 text-red-300 border-b-2 border-red-500' : 'bg-red-50 text-red-600 border-b-2 border-red-500') 
+                  : (isDark ? 'text-blue-400 hover:text-white hover:bg-white/5' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50')
                   }`}>
                 🔴 Semua Video Channel
               </button>
@@ -73,12 +85,12 @@ export const SocialMediaSection: React.FC = () => {
                 />
               ) : (
                 /* Full channel playlist fallback (since YouTube blocks some UU playlist embeds) */
-                <div className="w-full h-full flex flex-col items-center justify-center bg-blue-950/50 p-6 text-center border border-white/5">
+                <div className={`w-full h-full flex flex-col items-center justify-center p-6 text-center border ${isDark ? 'bg-blue-950/50 border-white/5' : 'bg-slate-100 border-slate-200'}`}>
                   <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
                     <Youtube className="w-8 h-8 text-red-500" />
                   </div>
-                  <h3 className="text-white font-bold text-lg mb-2">Lihat Semua Video Dakwah</h3>
-                  <p className="text-blue-300 text-sm mb-6 max-w-xs">
+                  <h3 className={`font-bold text-lg mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>Lihat Semua Video Dakwah</h3>
+                  <p className={`text-sm mb-6 max-w-xs ${isDark ? 'text-blue-300' : 'text-slate-600'}`}>
                     Kunjungi channel YouTube resmi Masjid Tazkia untuk melihat ratusan video kajian dan liputan kegiatan lainnya.
                   </p>
                   <a href={YT_CHANNEL_URL} target="_blank" rel="noopener noreferrer"
@@ -91,12 +103,12 @@ export const SocialMediaSection: React.FC = () => {
 
             {/* Video selector tabs (only for featured mode) */}
             {activeTab === 'featured' && (
-              <div className="flex border-t border-white/10 shrink-0">
+              <div className={`flex border-t shrink-0 ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
                 {YT_FEATURED.map((v, i) => (
                   <button key={v.id} onClick={() => setActiveVideoIdx(i)}
                     className={`flex-1 py-2 px-3 text-xs transition-colors ${activeVideoIdx === i
-                        ? 'bg-red-600/20 text-red-300'
-                        : 'text-blue-400 hover:text-white hover:bg-white/5'
+                        ? (isDark ? 'bg-red-600/20 text-red-300' : 'bg-red-50 text-red-600')
+                        : (isDark ? 'text-blue-400 hover:text-white hover:bg-white/5' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50')
                       }`}>
                     {v.label}
                   </button>
@@ -105,12 +117,12 @@ export const SocialMediaSection: React.FC = () => {
             )}
 
             {/* Channel link */}
-            <div className="px-4 py-2 bg-black/20 flex items-center justify-between gap-2 shrink-0">
-              <span className="text-[10px] text-blue-400 font-mono">
+            <div className={`px-4 py-2 flex items-center justify-between gap-2 shrink-0 ${isDark ? 'bg-black/20' : 'bg-slate-50'}`}>
+              <span className={`text-[10px] font-mono ${isDark ? 'text-blue-400' : 'text-slate-500'}`}>
                 {activeTab === 'featured' ? '📌 Video pilihan dari Masjid Tazkia' : '🔴 Otomatis update video terbaru'}
               </span>
               <a href={YT_CHANNEL_URL} target="_blank" rel="noopener noreferrer"
-                className="text-[10px] font-mono font-bold uppercase tracking-widest text-red-400 flex items-center gap-1.5 bg-red-500/10 px-3 py-1.5 rounded-full hover:bg-red-500/20 transition-colors shrink-0">
+                className={`text-[10px] font-mono font-bold uppercase tracking-widest flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors shrink-0 ${isDark ? 'text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'text-red-600 bg-red-50 hover:bg-red-100'}`}>
                 Semua Video <ExternalLink className="w-3 h-3" />
               </a>
             </div>
@@ -120,24 +132,24 @@ export const SocialMediaSection: React.FC = () => {
           <div className="flex flex-col gap-5">
 
             {/* Instagram */}
-            <div className="bg-black/30 border border-pink-500/20 rounded-2xl overflow-hidden shadow-xl flex-1">
-              <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-pink-600/10 to-purple-600/10 border-b border-pink-500/20">
-                <Instagram className="w-5 h-5 text-pink-400" />
-                <span className="text-white font-semibold text-sm">Instagram @masjidtazkia</span>
+            <div className={`border rounded-2xl overflow-hidden shadow-xl flex-1 transition-colors ${isDark ? 'bg-black/30 border-pink-500/20' : 'bg-white border-slate-200'}`}>
+              <div className={`flex items-center gap-3 px-5 py-3 border-b ${isDark ? 'bg-gradient-to-r from-pink-600/10 to-purple-600/10 border-pink-500/20' : 'bg-pink-50 border-pink-100'}`}>
+                <Instagram className="w-5 h-5 text-pink-500" />
+                <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>Instagram @masjidtazkia</span>
                 <a href="https://www.instagram.com/masjidtazkia/" target="_blank" rel="noopener noreferrer"
-                  className="ml-auto text-[10px] text-pink-400 flex items-center gap-1 hover:text-pink-300 transition-colors">
+                  className={`ml-auto text-[10px] flex items-center gap-1 transition-colors ${isDark ? 'text-pink-400 hover:text-pink-300' : 'text-pink-600 hover:text-pink-700'}`}>
                   Kunjungi <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
               {/* Instagram Embed — auto-loads latest posts */}
               <div className="overflow-hidden" style={{ minHeight: '320px' }}>
                 {!igLoaded ? (
-                  <div className="flex flex-col items-center gap-3 py-8 px-4">
+                  <div className={`flex flex-col items-center gap-3 py-8 px-4 ${isDark ? '' : 'bg-slate-50 h-full'}`}>
                     <div className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
                       <Instagram className="w-7 h-7 text-white" />
                     </div>
-                    <p className="text-white font-semibold text-sm">@masjidtazkia</p>
-                    <p className="text-blue-200 text-xs text-center text-balance">
+                    <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>@masjidtazkia</p>
+                    <p className={`text-xs text-center text-balance ${isDark ? 'text-blue-200' : 'text-slate-600'}`}>
                       Foto &amp; Reels dakwah terbaru dari Masjid Tazkia Islamic Center
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center mt-1">
@@ -146,7 +158,7 @@ export const SocialMediaSection: React.FC = () => {
                         Tampilkan Postingan
                       </button>
                       <a href="https://www.instagram.com/masjidtazkia/" target="_blank" rel="noopener noreferrer"
-                        className="text-[10px] font-mono font-bold uppercase tracking-wider text-pink-400 flex items-center gap-1.5 bg-pink-500/10 px-3 py-2 rounded-full hover:bg-pink-500/20 transition-colors border border-pink-500/20">
+                        className={`text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 px-3 py-2 rounded-full transition-colors border ${isDark ? 'text-pink-400 bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/20' : 'text-pink-600 bg-pink-50 hover:bg-pink-100 border-pink-100'}`}>
                         Buka Instagram <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
@@ -166,23 +178,23 @@ export const SocialMediaSection: React.FC = () => {
             </div>
 
             {/* Facebook */}
-            <div className="bg-black/30 border border-blue-500/20 rounded-2xl overflow-hidden shadow-xl flex-1">
-              <div className="flex items-center gap-3 px-5 py-3 bg-blue-600/10 border-b border-blue-500/20">
-                <Facebook className="w-5 h-5 text-blue-400" />
-                <span className="text-white font-semibold text-sm">Facebook Masjid Tazkia</span>
+            <div className={`border rounded-2xl overflow-hidden shadow-xl flex-1 transition-colors ${isDark ? 'bg-black/30 border-blue-500/20' : 'bg-white border-slate-200'}`}>
+              <div className={`flex items-center gap-3 px-5 py-3 border-b ${isDark ? 'bg-blue-600/10 border-blue-500/20' : 'bg-blue-50 border-blue-100'}`}>
+                <Facebook className="w-5 h-5 text-blue-500" />
+                <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>Facebook Masjid Tazkia</span>
                 <a href="https://www.facebook.com/MasjidTazkia/" target="_blank" rel="noopener noreferrer"
-                  className="ml-auto text-[10px] text-blue-400 flex items-center gap-1 hover:text-blue-300 transition-colors">
+                  className={`ml-auto text-[10px] flex items-center gap-1 transition-colors ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>
                   Kunjungi <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
               <div className="overflow-hidden" style={{ minHeight: '260px' }}>
                 {!fbLoaded ? (
-                  <div className="flex flex-col items-center gap-3 py-8 px-4">
+                  <div className={`flex flex-col items-center gap-3 py-8 px-4 ${isDark ? '' : 'bg-slate-50 h-full'}`}>
                     <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center">
                       <Facebook className="w-7 h-7 text-white" />
                     </div>
-                    <p className="text-white font-semibold text-sm">Masjid Tazkia Islamic Center</p>
-                    <p className="text-blue-200 text-xs text-center text-balance">
+                    <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>Masjid Tazkia Islamic Center</p>
+                    <p className={`text-xs text-center text-balance ${isDark ? 'text-blue-200' : 'text-slate-600'}`}>
                       Berita kajian &amp; kegiatan terbaru Masjid Tazkia di Facebook
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center mt-1">
@@ -191,7 +203,7 @@ export const SocialMediaSection: React.FC = () => {
                         Tampilkan Timeline
                       </button>
                       <a href="https://www.facebook.com/MasjidTazkia/" target="_blank" rel="noopener noreferrer"
-                        className="text-[10px] font-mono font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5 bg-blue-500/10 px-3 py-2 rounded-full hover:bg-blue-500/20 transition-colors border border-blue-500/20">
+                        className={`text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 px-3 py-2 rounded-full transition-colors border ${isDark ? 'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20' : 'text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-100'}`}>
                         Buka Facebook <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
@@ -214,7 +226,7 @@ export const SocialMediaSection: React.FC = () => {
         </div>
 
         {/* Bottom CTA Row */}
-        <div className="flex flex-wrap justify-center gap-4 pt-4 border-t border-white/10">
+        <div className={`flex flex-wrap justify-center gap-4 pt-4 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
           <a href="https://www.instagram.com/masjidtazkia/" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 text-white text-sm font-bold rounded-full shadow-lg hover:opacity-90 transition-opacity">
             <Instagram className="w-4 h-4" /> Follow Instagram

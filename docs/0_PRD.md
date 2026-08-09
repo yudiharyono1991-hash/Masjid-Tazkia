@@ -25,23 +25,25 @@ Sistem ini dirancang dengan arsitektur multi-role yang mencakup:
 - **Personal Dashboard:** Riwayat donasi, sertifikat digital (PDF), dan status pendaftaran qurban.
 
 ### B. Portal Pengurus DKM (Back-Office / ERP)
-- **Dashboard Terpusat:** Menampilkan metrik keuangan dan operasional secara visual (Chart.js).
-- **Modul Akuntansi Dasar (Double-Entry):**
+- **Dashboard Terpusat:** Menampilkan metrik keuangan dan operasional secara visual (Chart.js) dengan dukungan responsivitas adaptif (System-wide Dark Mode).
+- **Modul Keuangan Terpadu (Terpusat):**
   - **Chart of Accounts (CoA):** Pemetaan kode akun keuangan.
-  - **Jurnal Umum:** Pencatatan transaksi masuk dan keluar.
+  - **Jurnal Umum & Kas Kecil:** Pencatatan transaksi masuk dan keluar.
   - **Buku Besar:** Rekapitulasi per akun.
+  - **Penyusutan Aset:** Kalkulasi dan posting otomatis beban penyusutan aset tetap.
+  - **Verifikasi ZISWAF & Approval:** Manajemen validasi donasi masuk.
   - **Report Printer:** Cetak Laporan Laba/Rugi, Neraca, dan Arus Kas.
 - **Manajemen Aset & Inventaris:** Pencatatan barang masjid beserta nilainya.
 - **Manajemen App (CMS):** Mengganti foto hero, logo masjid, banner, foto pengurus, QRIS.
-- **Manajemen Media Cloud:** Semua unggahan tersimpan di Supabase Storage sehingga tersinkronisasi antar perangkat (Cross-device).
+- **Manajemen Media Cloud:** Semua unggahan (real pict, bukti bayar) tersimpan di Supabase Storage (`tazkia-media`) sehingga tersinkronisasi antar perangkat.
 
 ## 4. Kebutuhan Sistem (System Requirements)
-- **Teknologi Front-End:** React (TypeScript), Vite, Tailwind CSS, Lucide Icons, Chart.js.
-- **Manajemen State:** Zustand (dengan sinkronisasi LocalStorage untuk offline persistence terbatas).
-- **Penyimpanan Media & Cloud:** 
-  - **Supabase Storage** (Primary) untuk cross-device persistence.
-  - **IndexedDB** & **Base64** (Fallback) untuk penyimpanan luring/kapasitas lokal besar.
-- **Responsivitas:** Wajib Mobile-First Design (Aplikasi harus nyaman digunakan di smartphone).
+- **Teknologi Front-End:** React 18 (TypeScript), Vite, Tailwind CSS (dengan dukungan native Dark Mode `dark:` class), Lucide Icons, Chart.js.
+- **Manajemen State:** Zustand (tersinkronisasi dengan Supabase JSONB `app_sync_state` + LocalStorage fallback).
+- **Penyimpanan Media & Cloud Database:** 
+  - **Supabase Storage** (`tazkia-media` bucket) untuk penyimpanan file media lintas perangkat dengan public access policies.
+  - **Supabase PostgreSQL** sebagai backend utama pencatatan (Role Level Security via bypass anon access).
+- **Responsivitas:** Wajib Mobile-First Design (Aplikasi harus nyaman digunakan di smartphone) dan mendukung Dark Mode.
 
 ---
 

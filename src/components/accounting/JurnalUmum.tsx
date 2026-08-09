@@ -290,9 +290,9 @@ export function JurnalUmum() {
               
               return (
                 <React.Fragment key={journal.id}>
-                  <tr className="bg-gray-50/50">
+                  <tr className="bg-gray-50/50 text-slate-900">
                     <td className="p-4 align-top w-1/4">
-                      <div className="font-semibold text-gray-800">{journal.date}</div>
+                      <div className="font-semibold">{journal.date}</div>
                       <div className="font-mono text-xs text-blue-600">{journal.journalNo}</div>
                       <div className="text-xs text-gray-400 mt-1">Ref: {journal.reference || '-'}</div>
                     </td>

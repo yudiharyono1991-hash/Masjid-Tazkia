@@ -13,7 +13,8 @@ import {
   AuditLog,
   BoardMember,
   ReportSignatory,
-  MasjidAgenda
+  MasjidAgenda,
+  ERPBudgetEntry
 } from '../types';
 
 export const INITIAL_PROGRAMS: Program[] = [
@@ -537,6 +538,14 @@ export const INITIAL_ADMIN_SETTINGS = {
   heroPromoTitle: 'Pusat Peradaban Islam & Kesejahteraan Umat',
   heroPromoSubtitle: 'Melalui Optimalisasi ZISWAF, Dakwah & Zikir',
   heroPromoDescription: 'Salurkan Zakat, Infaq, Shadaqah, dan Wakaf Anda secara transparan di Masjid Tazkia untuk dakwah, pendidikan pesantren, dan pemberdayaan ekonomi umat.',
+  heroTitleFontSize: 'lg',
+  heroTitleFontFamily: 'serif',
+  heroTextAlign: 'left',
+  showPrayerTimesOnHome: true,
+  showLayananKamiOnHome: true,
+  showProgramCardsOnHome: true,
+  showFridayInfoOnHome: true,
+  showSocialMediaOnHome: true,
   jumatKhatibName: 'Prof. Dr. KH. Nasaruddin Umar, MA',
   jumatImamName: 'Ustadz H. M. Zainuddin, Sq',
   jumatMuadzinName: 'Ustadz Bilal Al-Hafiz',
@@ -544,7 +553,12 @@ export const INITIAL_ADMIN_SETTINGS = {
   jumatTimeInfo: 'Jumat Ini, 11:55 WIB - Selesai',
   masjidAddressInfo: 'Jl. Ir. H. Djuanda No. 78 Sentul City, Bogor Indonesia',
   masjidPhoneContact: '0858 1000 8899 (Sekretariat DKM) / masjidtazkia@tazkia.ac.id',
-  featureInfoAnnouncement: 'Ekosistem Digital Masjid Tazkia melayani ZISWAF, Al-Qur\'an MP3, Jadwal Shalat & Adzan, Penunjuk Arah Kiblat, Sejarah Masjid, serta TV Signage Display.'
+  featureInfoAnnouncement: 'Ekosistem Digital Masjid Tazkia melayani ZISWAF, Al-Qur\'an MP3, Jadwal Shalat & Adzan, Penunjuk Arah Kiblat, Sejarah Masjid, serta TV Signage Display.',
+  socialMediaLinks: [
+    { id: 'sm-1', platform: 'Facebook', url: 'https://www.facebook.com/MasjidTazkia/' },
+    { id: 'sm-2', platform: 'Instagram', url: 'https://www.instagram.com/masjidtazkia/' },
+    { id: 'sm-3', platform: 'Youtube', url: 'https://www.youtube.com/@masjidtazkia' }
+  ]
 };
 
 export const INITIAL_GALLERY: GalleryItem[] = [
@@ -793,6 +807,72 @@ export const INITIAL_ERP_COA = [
 
 export const INITIAL_JAMAAH_PROFILES: JamaahProfile[] = [
   {
+    id: 'jam-ketua-dewan',
+    name: 'Ketua Dewan Pembina',
+    email: 'ketua.dewan@tazkia.id',
+    joinDate: '2026-01-01T08:00:00Z',
+    lastLogin: '2026-07-26T10:00:00Z',
+    totalDonation: 0,
+    role: 'ketua_dewan_pembina',
+    dkmPosition: 'Ketua Dewan Pembina',
+    password: 'password123'
+  },
+  {
+    id: 'jam-direktur',
+    name: 'Direktur',
+    email: 'direktur@tazkia.id',
+    joinDate: '2026-01-01T08:00:00Z',
+    lastLogin: '2026-07-26T10:00:00Z',
+    totalDonation: 0,
+    role: 'direktur',
+    dkmPosition: 'Direktur',
+    password: 'password123'
+  },
+  {
+    id: 'jam-ketua-dkm',
+    name: 'Ketua DKM',
+    email: 'ketua.dkm@tazkia.id',
+    joinDate: '2026-01-01T08:00:00Z',
+    lastLogin: '2026-07-26T10:00:00Z',
+    totalDonation: 0,
+    role: 'ketua_dkm',
+    dkmPosition: 'Ketua DKM',
+    password: 'password123'
+  },
+  {
+    id: 'jam-bendahara',
+    name: 'Bendahara',
+    email: 'bendahara@tazkia.id',
+    joinDate: '2026-01-01T08:00:00Z',
+    lastLogin: '2026-07-26T10:00:00Z',
+    totalDonation: 0,
+    role: 'bendahara',
+    dkmPosition: 'Bendahara',
+    password: 'password123'
+  },
+  {
+    id: 'jam-penghimpunan',
+    name: 'Bagian Penghimpunan',
+    email: 'penghimpunan@tazkia.id',
+    joinDate: '2026-01-01T08:00:00Z',
+    lastLogin: '2026-07-26T10:00:00Z',
+    totalDonation: 0,
+    role: 'penghimpunan',
+    dkmPosition: 'Bagian Penghimpunan',
+    password: 'password123'
+  },
+  {
+    id: 'jam-penyaluran',
+    name: 'Bagian Penyaluran',
+    email: 'penyaluran@tazkia.id',
+    joinDate: '2026-01-01T08:00:00Z',
+    lastLogin: '2026-07-26T10:00:00Z',
+    totalDonation: 0,
+    role: 'penyaluran',
+    dkmPosition: 'Bagian Penyaluran',
+    password: 'password123'
+  },
+  {
     id: 'jam-1',
     name: 'Haji Ahmad Subagja',
     email: 'ahmad.subagja@gmail.com',
@@ -983,3 +1063,45 @@ export const INITIAL_AGENDAS: MasjidAgenda[] = [
   }
 ];
 
+export const INITIAL_ERP_BUDGETS: ERPBudgetEntry[] = [
+  {
+    id: 'budget-1',
+    accountId: 'coa-5101',
+    year: 2026,
+    amount: 50000000,
+    description: 'Anggaran Penyaluran Zakat (Asnaf) 2026',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'budget-2',
+    accountId: 'coa-5102',
+    year: 2026,
+    amount: 25000000,
+    description: 'Anggaran Penyaluran Infaq (Operasional) 2026',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'budget-3',
+    accountId: 'coa-5201',
+    year: 2026,
+    amount: 15000000,
+    description: 'Anggaran Listrik, Air, & Telepon 2026',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'budget-4',
+    accountId: 'coa-5204',
+    year: 2026,
+    amount: 30000000,
+    description: 'Anggaran Honorarium Imam & Khatib 2026',
+    createdAt: '2026-01-01T00:00:00Z'
+  },
+  {
+    id: 'budget-5',
+    accountId: 'coa-5302',
+    year: 2026,
+    amount: 45000000,
+    description: 'Anggaran Kegiatan Ramadhan 2026',
+    createdAt: '2026-01-01T00:00:00Z'
+  }
+];

@@ -8,10 +8,11 @@ Aplikasi ini dibangun menggunakan arsitektur Single Page Application (SPA) denga
 - **Backend & Database:** Supabase (PostgreSQL, Storage)
 
 ## Data Flow
-1. **Client Action:** Pengguna melakukan aksi di UI (misal: isi form donasi).
-2. **State Update:** Zustand store memperbarui state secara instan untuk UI yang responsif.
-3. **Persistence:** Data dikirim ke Supabase untuk disimpan secara permanen. Jika berupa file media (gambar/PDF), diunggah ke Supabase Storage, lalu URL-nya disimpan ke database/state.
-4. **Offline Fallback:** Untuk versi saat ini, beberapa data masih disinkronkan ke `localStorage` atau `IndexedDB` sebagai cache lokal jika koneksi terputus.
+1. **Client Action:** Pengguna melakukan aksi di UI (misal: isi form donasi, cetak jurnal).
+2. **State Update:** Zustand store memperbarui state secara instan untuk UI yang sangat responsif.
+3. **Persistence (Hybrid Model):** Data utama disinkronkan ke Supabase menggunakan JSONB ke dalam tabel `app_sync_state` sebagai mekanisme *global state synchronization* (Tahap 1), sembari perlahan dipindahkan ke tabel murni relasional seperti `programs`, `donations`, dan `gallery_items`.
+4. **Media Storage:** Jika berupa file media (gambar/PDF/bukti transfer), diunggah langsung ke Supabase Storage (`tazkia-media`), lalu URL-nya disimpan ke database/state. Fitur ini dijamin *cross-device* dan anti hilang dengan Public Access Policies.
+5. **Offline Fallback:** `localStorage` bertindak sebagai lapisan cache tambahan untuk memastikan aplikasi tidak nge-*freeze* atau langsung *blank* saat sinyal terputus sesaat.
 
 ## Skema Database (Logical Schema)
 ### 1. `users`
@@ -32,7 +33,9 @@ Aplikasi ini dibangun menggunakan arsitektur Single Page Application (SPA) denga
 - `id` (singleton)
 - `masjid_name`, `logo_url`, `hero_urls`, `qris_url`
 
-## Ringkasan API Spec
-Karena menggunakan Supabase, komunikasi data terjadi via Supabase Client (RPC & PostgREST API).
-- `supabase.storage.from('masjid-media').upload()`: Endpoint unggah media.
-- `supabase.from('transactions').insert()`: Rekam transaksi baru.
+## Ringkasan Integrasi Backend
+Karena menggunakan arsitektur modern Serverless, komunikasi data langsung terjadi via Supabase Client:
+- **Upload Media:** `supabase.storage.from('tazkia-media').upload()` dengan penamaan file berbasis UNIX Timestamp.
+- **State Sync (Tahap 1):** `supabase.from('app_sync_state').upsert()` untuk menyimpan seluruh object JSON Zustand.
+- **Relational Operations:** `supabase.from('programs').select()` untuk membaca tabel yang sudah dimigrasi sempurna.
+- **Idempotency Policies:** Kebijakan RLS publik (Public Access/Insert) dirancang dengan pendekatan `DO BLOCK` pada SQL untuk meminimalisasi konflik "Already Exists" saat deploy.

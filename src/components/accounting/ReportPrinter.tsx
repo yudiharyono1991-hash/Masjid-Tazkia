@@ -173,6 +173,26 @@ export function ReportPrinter() {
               />
             </div>
           )}
+          {reportType === 'LabaRugi' && (
+            <div className="flex gap-2">
+              <button onClick={() => {
+                if(window.confirm('Anda yakin ingin melakukan Tutup Buku Bulanan? Jurnal Surplus/Defisit akan otomatis dibuat.')) {
+                  useMasjidStore.getState().tutupBuku('bulanan');
+                  alert('Tutup Buku Bulanan Berhasil!');
+                }
+              }} className="px-3 py-2 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600">
+                Tutup Buku Bulanan
+              </button>
+              <button onClick={() => {
+                if(window.confirm('Anda yakin ingin melakukan Tutup Buku Tahunan? Saldo Pendapatan & Beban akan direset (dipindah ke Laba Ditahan).')) {
+                  useMasjidStore.getState().tutupBuku('tahunan');
+                  alert('Tutup Buku Tahunan Berhasil!');
+                }
+              }} className="px-3 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700">
+                Tutup Buku Tahunan
+              </button>
+            </div>
+          )}
           <button onClick={handlePrint} className="px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100 flex-1 sm:flex-none">
             <Printer className="w-4 h-4" /> Print
           </button>

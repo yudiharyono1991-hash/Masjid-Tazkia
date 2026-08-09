@@ -18,11 +18,20 @@ import { ProgramDetailModal } from './components/ProgramDetailModal';
 import { EdukasiZiswafSection } from './components/EdukasiZiswafSection';
 import { KalenderKegiatanSection } from './components/KalenderKegiatanSection';
 import { PatunganQurbanSection } from './components/PatunganQurbanSection';
-import { SejarahTazkiaSection } from './components/SejarahTazkiaSection';
-import { SocialMediaSection } from './components/SocialMediaSection';
-import { BookingGedung } from './components/BookingGedung';
-import { PortalJamaahDashboard } from './components/PortalJamaahDashboard';
+import { ProfilTazkiaSection } from './components/ProfilTazkiaSection';
+import { MuallafCenterSection } from './components/MuallafCenterSection';
+import { TpaProgramSection } from './components/TpaProgramSection';
+import { ZiswafLandingSection } from './components/ZiswafLandingSection';
+import { KontakKamiSection } from './components/KontakKamiSection';
 import { FloatingMobileNav } from './components/FloatingMobileNav';
+import { SocialMediaSection } from './components/SocialMediaSection';
+import { seedTestData } from './utils/seedTestData';
+import { LayananKamiSection } from './components/LayananKamiSection';
+import { PrayerTimesCard } from './components/PrayerTimesCard';
+import { FridayAgendaSection } from './components/FridayAgendaSection';
+import { BookingGedung } from './components/BookingGedung';
+import { BookingKamar } from './components/BookingKamar';
+import { PortalJamaahDashboard } from './components/PortalJamaahDashboard';
 import { Footer } from './components/Footer';
 import { RoleSwitcherWidget } from './components/admin/RoleSwitcherWidget';
 import { Bot } from 'lucide-react';
@@ -174,62 +183,54 @@ export default function App() {
           <>
             <HeroSection
               openDigitalIbadah={handleOpenDigitalIbadah}
+              openDonationModal={handleOpenDonationModal}
               isDark={isDark}
             />
+            
+            {state.adminSettings.showPrayerTimesOnHome !== false && <PrayerTimesCard />}
+            
+            {state.adminSettings.showFridayInfoOnHome !== false && (
+              <FridayAgendaSection 
+                adminSettings={state.adminSettings}
+                isDark={isDark}
+              />
+            )}
+            
+            {state.adminSettings.showLayananKamiOnHome !== false && <LayananKamiSection />}
 
-            <ProgramCardsSection
-              programs={state.programs}
-              adminSettings={state.adminSettings}
-              openDonationForProgram={handleOpenDonationForProgram}
-              onSelectProgramDetail={(prog) => setSelectedDetailProgram(prog)}
-              totalCollected={totalCollected}
-              activeDonors={activeDonors}
-              totalDisbursed={totalDisbursed}
-              efficiencyRate={efficiencyRate}
-              openDonationModal={handleOpenDonationModal}
-              openCalculator={() => setCalculatorModalOpen(true)}
-              openCatalogPdf={() => setCatalogPdfOpen(true)}
-            />
+            {state.adminSettings.showProgramCardsOnHome !== false && (
+              <ProgramCardsSection
+                programs={state.programs}
+                adminSettings={state.adminSettings}
+                openDonationForProgram={handleOpenDonationForProgram}
+                onSelectProgramDetail={(prog) => setSelectedDetailProgram(prog)}
+                totalCollected={totalCollected}
+                activeDonors={activeDonors}
+                totalDisbursed={totalDisbursed}
+                efficiencyRate={efficiencyRate}
+                openDonationModal={handleOpenDonationModal}
+                openCalculator={() => setCalculatorModalOpen(true)}
+                openCatalogPdf={() => setCatalogPdfOpen(true)}
+              />
+            )}
           </>
         )}
 
         {activeTab === 'program' && (
-          <>
-            <div className="relative overflow-hidden bg-[#172554] text-white py-16 md:py-24 border-b border-blue-900 flex flex-col justify-center items-center">
-              <div
-                className="absolute inset-0 z-0 bg-cover bg-center opacity-40"
-                style={{ backgroundImage: `url("/hero-1.jpg")` }}
-              />
-              <div className={`absolute inset-0 z-0 bg-gradient-to-b ${isDark ? 'from-slate-950/60 via-transparent to-slate-950/90' : 'from-[#172554]/40 via-transparent to-[#172554]/90'} pointer-events-none`} />
-              
-              <div className="relative z-10 flex flex-col items-center justify-center text-center drop-shadow-2xl px-4 mt-8">
-                <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold font-sans text-white uppercase tracking-wider mb-4 sm:mb-6 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
-                  ZISWAF CENTER
-                </h1>
-                <p className="text-sm sm:text-lg md:text-xl font-medium text-white max-w-4xl leading-relaxed drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
-                  Menghimpun Kebaikan, Memberdayakan Umat melalui Zakat, Infaq, Sedekah, dan Wakaf.
-                </p>
-              </div>
-            </div>
-            <ProgramCardsSection
-              programs={state.programs}
-              adminSettings={state.adminSettings}
-              openDonationForProgram={handleOpenDonationForProgram}
-              onSelectProgramDetail={(prog) => setSelectedDetailProgram(prog)}
-              totalCollected={totalCollected}
-              activeDonors={activeDonors}
-              totalDisbursed={totalDisbursed}
-              efficiencyRate={efficiencyRate}
-              openDonationModal={handleOpenDonationModal}
-              openCalculator={() => setCalculatorModalOpen(true)}
-              isDark={isDark}
-            />
-            <EdukasiZiswafSection
-              isDark={isDark}
-              onOpenCalculator={() => setCalculatorModalOpen(true)}
-              onSelectCategoryDonate={(cat) => handleOpenDonationModal(cat)}
-            />
-          </>
+          <ZiswafLandingSection 
+            programs={state.programs}
+            adminSettings={state.adminSettings}
+            openDonationForProgram={handleOpenDonationForProgram}
+            onSelectProgramDetail={(prog) => setSelectedDetailProgram(prog)}
+            totalCollected={totalCollected}
+            activeDonors={activeDonors}
+            totalDisbursed={totalDisbursed}
+            efficiencyRate={efficiencyRate}
+            openDonationModal={handleOpenDonationModal}
+            openCalculator={() => setCalculatorModalOpen(true)}
+            openCatalogPdf={() => setCatalogPdfOpen(true)}
+            isDark={isDark}
+          />
         )}
 
         {activeTab === 'transparansi' && (
@@ -260,8 +261,20 @@ export default function App() {
           <BookingGedung isDark={isDark} />
         )}
 
+        {activeTab === 'booking_kamar' && (
+          <BookingKamar isDark={isDark} />
+        )}
+
         {activeTab === 'sejarah' && (
-          <SejarahTazkiaSection isDark={isDark} />
+          <ProfilTazkiaSection />
+        )}
+
+        {activeTab === 'muallaf' && (
+          <MuallafCenterSection />
+        )}
+
+        {activeTab === 'tpa' && (
+          <TpaProgramSection />
         )}
 
         {activeTab === 'edukasi' && (
@@ -279,6 +292,10 @@ export default function App() {
             onIncrementView={incrementGalleryViews}
             isDark={isDark}
           />
+        )}
+
+        {activeTab === 'kontak' && (
+          <KontakKamiSection adminSettings={state.adminSettings} />
         )}
 
         {activeTab === 'dkm_portal' && hasDkmPortalAccess(state.session.role) && (() => {
@@ -366,9 +383,11 @@ export default function App() {
       </main>
 
       {/* Social Media Section */}
-      <div className="print:hidden">
-        <SocialMediaSection />
-      </div>
+      {state.adminSettings.showSocialMediaOnHome !== false && (
+        <div className="print:hidden">
+          <SocialMediaSection isDark={isDark} />
+        </div>
+      )}
 
       {/* 3. Footer */}
       <div className="print:hidden">

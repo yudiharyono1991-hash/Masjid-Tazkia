@@ -67,7 +67,9 @@ import {
   ChevronRight,
   MessageCircle,
   LayoutDashboard,
-  Clock
+  Clock,
+  Globe,
+  Calculator
 } from 'lucide-react';
 
 import { useMasjidStore } from '../lib/store';
@@ -78,7 +80,6 @@ import { BukuBesar } from './accounting/BukuBesar';
 import { ReportPrinter } from './accounting/ReportPrinter';
 import { InputAnggaran } from './accounting/InputAnggaran';
 import { PencairanAnggaran } from './accounting/PencairanAnggaran';
-import { SejarahTazkiaSection } from './SejarahTazkiaSection';
 import { AgendaAdmin } from './AgendaAdmin';
 import { SewaGedungAdmin } from './SewaGedungAdmin';
 import { BoardMemberAdmin } from './BoardMemberAdmin';
@@ -132,6 +133,7 @@ interface PengurusDkmDashboardProps {
   onUpdateJamaahProfile?: (id: string, updated: Partial<JamaahProfile>) => void;
   onDeleteJamaahProfile?: (id: string) => void;
   openTvMode?: () => void;
+  // The 'akuntansi' tab now serves as the main 'Modul Keuangan Terpadu'
   initialTab?: 'keuangan' | 'akuntansi' | 'inventaris' | 'petugas' | 'broadcast' | 'program' | 'pengumuman' | 'galeri' | 'qurban' | 'sewa' | 'pengaturan' | 'supabase' | 'aplikasi' | 'jamaah_manage' | 'audit_log' | 'verifikasi' | 'pengurus' | 'ttd_laporan' | 'kalender' | 'layanan_aduan';
 }
 
@@ -306,6 +308,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
   const [newTrxAmount, setNewTrxAmount] = useState(100000);
   const [newTrxDesc, setNewTrxDesc] = useState('');
   const [newTrxProofUrl, setNewTrxProofUrl] = useState('https://images.unsplash.com/photo-1609599006352-d35d9472e1c3?auto=format&fit=crop&w=800&q=80');
+  const [newTrxCoa, setNewTrxCoa] = useState('coa-1101');
 
   // Jurnal Umum Form Inputs
   const [showAddJrn, setShowAddJrn] = useState(false);
@@ -336,6 +339,9 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
   const [invCondition, setInvCondition] = useState<'Baik' | 'Perlu Perbaikan' | 'Rusak'>('Baik');
   const [invLocation, setInvLocation] = useState('Ruang Utama');
   const [invImageUrl, setInvImageUrl] = useState('https://images.unsplash.com/photo-1589803138861-5915e8b62562?auto=format&fit=crop&w=800&q=80');
+  const [invPurchasePrice, setInvPurchasePrice] = useState<number>(0);
+  const [invPurchaseDate, setInvPurchaseDate] = useState<string>('');
+  const [invUsefulLifeMonths, setInvUsefulLifeMonths] = useState<number>(0);
 
   // Broadcast WA Input
   const [broadcastTitle, setBroadcastTitle] = useState('');
@@ -606,7 +612,8 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
       amount: newTrxAmount,
       date: new Date().toISOString().split('T')[0],
       description: newTrxDesc || 'Pencatatan DKM Tazkia',
-      proofUrl: newTrxProofUrl
+      proofUrl: newTrxProofUrl,
+      coaId: newTrxCoa
     });
     setNewTrxTitle('');
     setShowAddTrx(false);
@@ -666,7 +673,10 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
           unit: invUnit,
           condition: invCondition,
           location: invLocation,
-          imageUrl: invImageUrl
+          imageUrl: invImageUrl,
+          purchasePrice: invPurchasePrice,
+          purchaseDate: invPurchaseDate,
+          usefulLifeMonths: invUsefulLifeMonths
         });
       }
       setEditingInventoryId(null);
@@ -682,7 +692,10 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
         condition: invCondition,
         location: invLocation,
         lastMaintenance: new Date().toISOString().split('T')[0],
-        imageUrl: invImageUrl
+        imageUrl: invImageUrl,
+        purchasePrice: invPurchasePrice,
+        purchaseDate: invPurchaseDate,
+        usefulLifeMonths: invUsefulLifeMonths
       });
       showToast('Alhamdulillah, Inventaris Aset baru berhasil ditambah! ✓');
     }
@@ -845,7 +858,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
               </div>
               <p className="text-xs text-blue-400 mt-0.5">
                 {dkmTab === 'dashboard_utama' ? 'Ringkasan aktivitas, statistik, dan status operasional harian Masjid Tazkia' : 
-                 dkmTab === 'akuntansi' ? 'Manajemen Keuangan Akuntansi PSAK 409, Jurnal Umum, Buku Besar, Kas Kecil, & Laporan' :
+                 dkmTab === 'akuntansi' ? 'Modul Akuntansi & Keuangan Terpadu (Jurnal, Buku Besar, Kas Kecil, Neraca)' :
                  dkmTab === 'keuangan' ? 'Pencatatan pemasukan, pengeluaran, mutasi kas bank, dan rekap sederhana' :
                  dkmTab === 'inventaris' ? 'Pencatatan aset, barang masuk/keluar, dan kondisi inventaris masjid' :
                  dkmTab === 'qurban' ? 'Sistem patungan Qurban, pembagian porsi, dan laporan penyembelihan' :
@@ -882,9 +895,8 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
           >
             {[
               { id: 'dashboard_utama', label: 'Ringkasan Utama' },
-              { id: 'akuntansi', label: 'Akuntansi (PSAK 409)' },
+              { id: 'akuntansi', label: 'Keuangan Terpadu' },
               { id: 'panduan', label: 'Buku Panduan' },
-              { id: 'keuangan', label: 'Kas Sederhana (Lama)' },
               { id: 'galeri', label: 'Galeri & Artikel Kajian' },
               { id: 'qurban', label: 'Patungan Qurban' },
               { id: 'sewa', label: 'Sewa & Booking' },
@@ -941,9 +953,8 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
             <div ref={tabsRef} className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth w-full px-6">
             {[
               { id: 'dashboard_utama', label: 'Ringkasan Utama', icon: LayoutDashboard },
-              { id: 'akuntansi', label: 'Akuntansi (PSAK 409)', icon: BookOpen },
+              { id: 'akuntansi', label: 'Modul Keuangan Terpadu', icon: BookOpen },
               { id: 'panduan', label: 'Buku Panduan', icon: BookOpen },
-              { id: 'keuangan', label: 'Kas Sederhana (Lama)', icon: DollarSign },
               { id: 'galeri', label: 'Galeri & Artikel Kajian', icon: Video },
               { id: 'qurban', label: 'Patungan Qurban', icon: Heart },
               { id: 'sewa', label: 'Sewa & Booking', icon: Building },
@@ -960,7 +971,6 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
               { id: 'pengumuman', label: 'Pengumuman & Berita', icon: Image },
               { id: 'petugas', label: 'Jadwal Petugas & Jumat', icon: Calendar },
               { id: 'broadcast', label: 'Broadcast WhatsApp', icon: Megaphone },
-              { id: 'verifikasi', label: 'Verifikasi ZISWAF', icon: CheckCircle2 },
               { id: 'audit_log', label: 'Audit Log System', icon: BookOpen }
             ]
             .filter(tab => tab.label.toLowerCase().includes(tabSearchQuery.toLowerCase()))
@@ -983,7 +993,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
             })}
             
             {tabSearchQuery && [
-              { id: 'akuntansi', label: 'Akuntansi (PSAK 409)' },
+              { id: 'akuntansi', label: 'Modul Keuangan Terpadu' },
             ].filter(tab => tab.label.toLowerCase().includes(tabSearchQuery.toLowerCase())).length === 0 && (
               <div className="flex-1 py-2 text-center text-blue-400 text-xs italic">
                 Fitur tidak ditemukan
@@ -1314,6 +1324,32 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                 <h3 className="text-xl font-bold font-serif text-white">Verifikasi Bukti Transfer ZISWAF</h3>
                 <p className="text-xs text-blue-400 mt-1">Daftar transaksi ZISWAF jamaah yang menunggu verifikasi DKM</p>
               </div>
+              <button
+                onClick={() => {
+                  const programId = programs.length > 0 ? programs[0].id : 'PRG-DUMMY';
+                  const programTitle = programs.length > 0 ? programs[0].title : 'Program Dummy';
+                  store.addDonation({
+                    programId,
+                    programTitle,
+                    category: 'infaq',
+                    amount: 50000,
+                    uniqueCode: 123,
+                    totalAmount: 50123,
+                    donorName: 'Hamba Allah (Simulasi)',
+                    donorPhone: '08123456789',
+                    paymentMethod: 'Transfer BSI',
+                    isAnonymous: false,
+                    status: 'menunggu_verifikasi',
+                    transactionRef: `SIM-${Math.floor(Date.now() / 1000)}`,
+                    proofUrl: 'https://images.unsplash.com/photo-1598492212952-475ea7aeb6e2?auto=format&fit=crop&w=800&q=80'
+                  });
+                  showToast('Simulasi donasi berhasil dibuat!');
+                }}
+                className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 border border-emerald-500/30"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Simulasi Donasi Masuk</span>
+              </button>
             </div>
 
             <div className="bg-blue-950/50 border border-blue-800 rounded-2xl overflow-hidden shadow-xl">
@@ -1435,7 +1471,9 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                   { id: 'buku_besar', label: 'Buku Besar' },
                   { id: 'anggaran', label: 'Input Anggaran' },
                   { id: 'pencairan', label: 'Pencairan Anggaran' },
-                  { id: 'laporan', label: 'Laporan Keuangan' }
+                  { id: 'laporan', label: 'Laporan Keuangan' },
+                  { id: 'verifikasi', label: 'Verifikasi ZISWAF' },
+                  { id: 'kas_kecil', label: 'Kas Kecil (Lama)' }
                 ].map(sub => (
                   <button
                     key={sub.id}
@@ -1466,6 +1504,19 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
               {erpSubTab === 'anggaran' && <InputAnggaran />}
               {erpSubTab === 'pencairan' && <PencairanAnggaran />}
               {erpSubTab === 'laporan' && <ReportPrinter />}
+              {erpSubTab === 'verifikasi' && (
+                <div className="bg-white/5 p-4 rounded-xl">
+                  <h2 className="text-xl font-bold text-amber-400 mb-4">Verifikasi & Approval Transaksi ZISWAF</h2>
+                  {/* Reuse the logic for 'verifikasi' tab here, or just inform user to use the tab if it's too big, but let's just render it */}
+                  <p className="text-blue-200">Fitur Verifikasi ZISWAF kini bisa diakses dari Modul Keuangan Terpadu (Atau kembali ke Dashboard Utama).</p>
+                </div>
+              )}
+              {erpSubTab === 'kas_kecil' && (
+                <div className="bg-white/5 p-4 rounded-xl">
+                  <h2 className="text-xl font-bold text-amber-400 mb-4">Pencatatan Kas Sederhana (Lama)</h2>
+                  <p className="text-blue-200">Gunakan menu Jurnal Umum untuk pencatatan standar PSAK 409.</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1503,64 +1554,64 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
 
           return (
           <div className="space-y-6 animate-fade-in">
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/40 relative overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-gray-100 dark:border-slate-700 shadow-xl shadow-gray-200/40 dark:shadow-none relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
               <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                  <h3 className="text-3xl font-serif font-bold text-gray-900 mb-2">Ahlan wa Sahlan, {store.state.session?.name}</h3>
-                  <p className="text-gray-500">Ringkasan operasional dan keuangan Masjid Tazkia saat ini.</p>
+                  <h3 className="text-3xl font-serif font-bold text-gray-900 dark:text-white mb-2">Ahlan wa Sahlan, {store.state.session?.name}</h3>
+                  <p className="text-gray-500 dark:text-gray-300">Ringkasan operasional dan keuangan Masjid Tazkia saat ini.</p>
                 </div>
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-3">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
                   <Users className="w-6 h-6" />
                 </div>
-                <h4 className="text-gray-500 text-sm font-bold mb-1">Total Jamaah Terdaftar</h4>
-                <p className="text-2xl font-black text-gray-900">{jamaahProfiles.length}</p>
+                <h4 className="text-gray-500 dark:text-gray-400 text-sm font-bold mb-1">Total Jamaah Terdaftar</h4>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">{jamaahProfiles.length}</p>
               </div>
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
                   <Heart className="w-6 h-6" />
                 </div>
-                <h4 className="text-gray-500 text-sm font-bold mb-1">Total Program Donasi</h4>
-                <p className="text-2xl font-black text-gray-900">{programs.length}</p>
+                <h4 className="text-gray-500 dark:text-gray-400 text-sm font-bold mb-1">Total Program Donasi</h4>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">{programs.length}</p>
               </div>
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3">
                   <Calendar className="w-6 h-6" />
                 </div>
-                <h4 className="text-gray-500 text-sm font-bold mb-1">Jadwal Petugas Aktif</h4>
-                <p className="text-2xl font-black text-gray-900">{petugasList.length}</p>
+                <h4 className="text-gray-500 dark:text-gray-400 text-sm font-bold mb-1">Jadwal Petugas Aktif</h4>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">{petugasList.length}</p>
               </div>
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-3">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-3">
                   <Building className="w-6 h-6" />
                 </div>
-                <h4 className="text-gray-500 text-sm font-bold mb-1">Aset & Inventaris</h4>
-                <p className="text-2xl font-black text-gray-900">{inventories.length}</p>
+                <h4 className="text-gray-500 dark:text-gray-400 text-sm font-bold mb-1">Aset & Inventaris</h4>
+                <p className="text-2xl font-black text-gray-900 dark:text-white">{inventories.length}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                <h4 className="text-lg font-bold text-gray-900 mb-4 font-serif">Saldo Kas Utama (COA)</h4>
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 font-serif">Saldo Kas Utama (COA)</h4>
                 <div className="h-64 flex items-center justify-center">
                   {kasAccounts.length > 0 ? (
-                    <Doughnut data={kasChartData} options={{ maintainAspectRatio: false, cutout: '70%' }} />
+                    <Doughnut data={kasChartData} options={{ maintainAspectRatio: false, cutout: '70%', plugins: { legend: { labels: { color: store.state.themeMode === 'dark' ? '#fff' : '#000' } } } }} />
                   ) : (
                     <p className="text-gray-400 text-sm">Belum ada data kas.</p>
                   )}
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                <h4 className="text-lg font-bold text-gray-900 mb-4 font-serif">Progres Program Donasi</h4>
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm">
+                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 font-serif">Progres Program Donasi</h4>
                 <div className="h-64 flex items-center justify-center">
                   {programs.length > 0 ? (
-                    <Bar data={programChartData} options={{ maintainAspectRatio: false, indexAxis: 'y' }} />
+                    <Bar data={programChartData} options={{ maintainAspectRatio: false, indexAxis: 'y', scales: { x: { ticks: { color: store.state.themeMode === 'dark' ? '#9ca3af' : '#6b7280' } }, y: { ticks: { color: store.state.themeMode === 'dark' ? '#9ca3af' : '#6b7280' } } }, plugins: { legend: { display: false } } }} />
                   ) : (
                     <p className="text-gray-400 text-sm">Belum ada data program.</p>
                   )}
@@ -1655,6 +1706,18 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                           onChange={(e) => setNewTrxAmount(Number(e.target.value))}
                           className="w-full bg-blue-950 border border-blue-800 text-white text-xs font-mono rounded-xl px-3 py-2 outline-none"
                         />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-blue-300 block mb-1">Akun COA (Chart of Account):</label>
+                        <select
+                          value={newTrxCoa}
+                          onChange={(e) => setNewTrxCoa(e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 text-white text-xs font-mono rounded-xl px-3 py-2 outline-none"
+                        >
+                          {glAccounts.map(c => (
+                            <option key={c.code} value={c.code}>{c.code} - {c.name}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
@@ -2887,8 +2950,78 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                 </div>
               </div>
             </div>
+            </div>
+
+            {/* Box 5: Pengaturan Media Sosial */}
+            <div className="bg-blue-900 border border-blue-800 rounded-2xl p-5 space-y-4">
+              <h4 className="font-serif font-bold text-white text-base flex items-center gap-2 border-b border-blue-800 pb-3">
+                <Globe className="w-5 h-5 text-blue-400" />
+                <span>5. Pengaturan Tautan Media Sosial</span>
+              </h4>
+              <p className="text-xs text-blue-300">Kelola tautan media sosial yang akan muncul di halaman beranda (Footer). Kosongkan jika ingin menghapus, atau tambah baru.</p>
+
+              <div className="space-y-3">
+                {(adminSettings?.socialMediaLinks || []).map((link, idx) => (
+                  <div key={link.id || idx} className="flex gap-2 items-center bg-blue-950 p-3 rounded-xl border border-blue-800">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] text-blue-400 block mb-1">Nama Platform (Misal: Facebook, TikTok):</label>
+                        <input
+                          type="text"
+                          value={link.platform}
+                          onChange={(e) => {
+                            const newLinks = [...(adminSettings?.socialMediaLinks || [])];
+                            newLinks[idx] = { ...newLinks[idx], platform: e.target.value };
+                            if (onUpdateAdminSettings) onUpdateAdminSettings({ socialMediaLinks: newLinks });
+                          }}
+                          className="w-full bg-blue-900 border border-blue-800 rounded-lg p-2 text-white text-xs outline-none"
+                          placeholder="Platform"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-blue-400 block mb-1">URL (Tautan Lengkap):</label>
+                        <input
+                          type="text"
+                          value={link.url}
+                          onChange={(e) => {
+                            const newLinks = [...(adminSettings?.socialMediaLinks || [])];
+                            newLinks[idx] = { ...newLinks[idx], url: e.target.value };
+                            if (onUpdateAdminSettings) onUpdateAdminSettings({ socialMediaLinks: newLinks });
+                          }}
+                          className="w-full bg-blue-900 border border-blue-800 rounded-lg p-2 text-blue-200 font-mono text-xs outline-none"
+                          placeholder="https://..."
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newLinks = [...(adminSettings?.socialMediaLinks || [])];
+                        newLinks.splice(idx, 1);
+                        if (onUpdateAdminSettings) onUpdateAdminSettings({ socialMediaLinks: newLinks });
+                      }}
+                      className="p-2 text-red-400 hover:bg-red-900/30 rounded-lg self-end mb-1"
+                      title="Hapus Media Sosial"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+
+                <button
+                  onClick={() => {
+                    const newLinks = [...(adminSettings?.socialMediaLinks || [])];
+                    newLinks.push({ id: `sm-${Date.now()}`, platform: 'Platform Baru', url: '' });
+                    if (onUpdateAdminSettings) onUpdateAdminSettings({ socialMediaLinks: newLinks });
+                  }}
+                  className="mt-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 font-bold px-4 py-2 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors border border-blue-500/30"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah Media Sosial Baru</span>
+                </button>
+              </div>
+            </div>
+
           </div>
-        </div>
         )}
 
         {/* TAB 3: INVENTARIS MASJID */}
@@ -2899,23 +3032,40 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                 Manajemen Aset & Inventaris Masjid
               </h3>
 
-              <button
-                onClick={() => {
-                  setEditingInventoryId(null);
-                  setInvName('');
-                  setInvCategory('Elektronik');
-                  setInvQty(1);
-                  setInvUnit('Unit');
-                  setInvCondition('Baik');
-                  setInvLocation('Ruang Utama');
-                  setInvImageUrl('https://images.unsplash.com/photo-1589803138861-5915e8b62562?auto=format&fit=crop&w=800&q=80');
-                  setShowAddInv(!showAddInv);
-                }}
-                className="bg-blue-500 hover:bg-blue-400 text-blue-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-lg"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Tambah Barang Inventaris</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setEditingInventoryId(null);
+                    setInvName('');
+                    setInvCategory('Elektronik');
+                    setInvQty(1);
+                    setInvUnit('Unit');
+                    setInvCondition('Baik');
+                    setInvLocation('Ruang Utama');
+                    setInvImageUrl('https://images.unsplash.com/photo-1589803138861-5915e8b62562?auto=format&fit=crop&w=800&q=80');
+                    setInvPurchasePrice(0);
+                    setInvPurchaseDate('');
+                    setInvUsefulLifeMonths(0);
+                    setShowAddInv(!showAddInv);
+                  }}
+                  className="bg-blue-500 hover:bg-blue-400 text-blue-950 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-lg"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Tambah Barang Inventaris</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if(window.confirm('Anda yakin ingin menghitung penyusutan semua Aset Tetap bulan ini? Jurnal beban penyusutan akan otomatis dibuat.')) {
+                      store.hitungPenyusutanAset();
+                      alert('Perhitungan Penyusutan Berhasil!');
+                    }
+                  }}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-lg"
+                >
+                  <Calculator className="w-4 h-4" />
+                  <span>Hitung Penyusutan Aset Tetap (Bulan Ini)</span>
+                </button>
+              </div>
             </div>
 
             {/* Add Inventory Form */}
@@ -2959,6 +3109,38 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                         className="flex-1 bg-blue-950 border border-blue-800 text-white text-xs rounded-xl px-3 py-2 outline-none"
                       />
                     </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-blue-300 block mb-1">Harga Beli (Rp):</label>
+                    <input
+                      type="number"
+                      value={invPurchasePrice}
+                      onChange={(e) => setInvPurchasePrice(Number(e.target.value))}
+                      className="w-full bg-blue-950 border border-blue-800 text-white text-xs font-mono rounded-xl px-3 py-2 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-blue-300 block mb-1">Tanggal Beli:</label>
+                    <input
+                      type="date"
+                      value={invPurchaseDate}
+                      onChange={(e) => setInvPurchaseDate(e.target.value)}
+                      className="w-full bg-blue-950 border border-blue-800 text-white text-xs rounded-xl px-3 py-2 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-blue-300 block mb-1">Umur Ekonomis (Bulan):</label>
+                    <input
+                      type="number"
+                      value={invUsefulLifeMonths}
+                      onChange={(e) => setInvUsefulLifeMonths(Number(e.target.value))}
+                      className="w-full bg-blue-950 border border-blue-800 text-white text-xs font-mono rounded-xl px-3 py-2 outline-none"
+                    />
                   </div>
                 </div>
 
@@ -3081,6 +3263,9 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                               setInvCondition(inv.condition || 'Baik');
                               setInvLocation(inv.location || '');
                               setInvImageUrl(inv.imageUrl || '');
+                              setInvPurchasePrice(inv.purchasePrice || 0);
+                              setInvPurchaseDate(inv.purchaseDate || '');
+                              setInvUsefulLifeMonths(inv.usefulLifeMonths || 0);
                               setShowAddInv(true);
                             }}
                             title="Edit Barang"
@@ -4089,7 +4274,9 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                       className="w-full bg-blue-950 border border-blue-800 text-white text-xs rounded-xl px-3 py-2 outline-none"
                     >
                       <option value="jamaah">Jamaah Biasa</option>
-                      <option value="dkm">Pengurus DKM</option>
+                      {store.state.appRoles.map(r => (
+                        <option key={r.id} value={r.id}>{r.name}</option>
+                      ))}
                       <option value="super_admin">Super Admin / Pengurus Utama</option>
                     </select>
                   </div>
@@ -4586,11 +4773,15 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
               </button>
             </div>
 
-            <div className="max-h-[70vh] overflow-hidden rounded-2xl bg-black flex items-center justify-center">
+            <div className="max-h-[70vh] min-h-[300px] overflow-hidden rounded-2xl bg-black/50 flex items-center justify-center">
               <img
                 src={previewPhotoUrl}
                 alt="Foto Database Full"
-                className="max-h-[70vh] w-auto object-contain rounded-xl"
+                className="max-h-[70vh] w-full object-contain rounded-xl"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/800x600?text=Image+Not+Found';
+                }}
               />
             </div>
 

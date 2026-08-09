@@ -22,17 +22,20 @@ graph TD
     end
     
     subgraph "Integration & API Layer"
-        C <-->|REST API & GraphQL| D{Supabase API Gateway}
-        D -.->|Webhook (Roadmap)| E[Payment Gateways: Midtrans/Xendit]
-        D -.->|Webhook (Roadmap)| F[Lembaga BAZNAS / BWI]
+        C -->|REST API & GraphQL| D{Supabase API Gateway}
+        D --> C
+        D -.->|Webhook Roadmap| E[Payment Gateways: Midtrans/Xendit]
+        D -.->|Webhook Roadmap| F[Lembaga BAZNAS / BWI]
     end
     
     subgraph "Backend & Database Layer (PostgreSQL)"
-        D <--> G[(Database Utama)]
+        D --> G[(Database Utama)]
+        G --> D
         G --> H[Auth & Keamanan RLS]
         G --> I[Sistem Akuntansi Jurnal]
         G --> J[Manajemen Modul & Role]
-        D <--> K[Cloud Storage: Media & Bukti TF]
+        D --> K[Cloud Storage: Media & Bukti TF]
+        K --> D
     end
 ```
 

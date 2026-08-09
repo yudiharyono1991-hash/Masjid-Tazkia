@@ -65,6 +65,7 @@ export interface FinancialTransaction {
   date: string;
   description: string;
   proofUrl?: string;
+  coaId?: string;
 }
 
 export interface PetugasJadwal {
@@ -124,6 +125,10 @@ export interface InventoryItem {
   location: string;
   lastMaintenance: string;
   imageUrl?: string;
+  purchasePrice?: number;
+  purchaseDate?: string; // YYYY-MM-DD
+  usefulLifeMonths?: number;
+  accumulatedDepreciation?: number;
 }
 
 export interface Announcement {
@@ -272,6 +277,18 @@ export interface AppAdminSettings {
   heroPromoSubtitle?: string;
   heroPromoDescription?: string;
 
+  // Hero Typography & Layout Settings
+  heroTitleFontSize?: 'sm' | 'md' | 'lg' | 'xl'; // sm=3xl, md=5xl, lg=6xl, xl=7xl
+  heroTitleFontFamily?: 'serif' | 'sans' | 'mono';
+  heroTextAlign?: 'left' | 'center';
+
+  // Beranda Section Visibility (checkboxes for DKM to control)
+  showPrayerTimesOnHome?: boolean;
+  showLayananKamiOnHome?: boolean;
+  showProgramCardsOnHome?: boolean;
+  showFridayInfoOnHome?: boolean;
+  showSocialMediaOnHome?: boolean;
+
   // Friday Khutbah & Feature Info Settings
   jumatKhatibName?: string;
   jumatImamName?: string;
@@ -288,6 +305,11 @@ export interface AppAdminSettings {
     url?: string;
     action?: 'donation' | 'calculator' | 'quran' | 'salat' | 'link';
     iconName?: string;
+  }>;
+  socialMediaLinks?: Array<{
+    id: string;
+    platform: string;
+    url: string;
   }>;
 }
 
@@ -453,6 +475,19 @@ export interface GedungBooking {
   name: string;
   whatsapp: string;
   email: string;
+  notes: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+}
+
+export interface KamarBooking {
+  id: string;
+  date: string; // Check-in date
+  checkoutDate: string;
+  name: string;
+  whatsapp: string;
+  email?: string;
+  roomType: 'Standar' | 'VIP' | 'Keluarga';
   notes: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;

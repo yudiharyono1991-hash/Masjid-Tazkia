@@ -32,8 +32,12 @@ import {
   MasjidAgenda,
   AppRole,
   JamaahFeedback,
-  JamaahCalendarNote
+  JamaahCalendarNote,
+  KamarBooking
 } from '../types';
+
+import { sendWhatsAppMessage } from './whatsapp';
+import { formatRupiahFull } from './islamicUtils';
 
 import {
   INITIAL_PROGRAMS,
@@ -53,7 +57,8 @@ import {
   INITIAL_AUDIT_LOGS,
   INITIAL_BOARD_MEMBERS,
   INITIAL_REPORT_SIGNATORIES,
-  INITIAL_AGENDAS
+  INITIAL_AGENDAS,
+  INITIAL_ERP_BUDGETS
 } from './initialData';
 
 const LOCAL_STORAGE_KEY = 'masjid_Tazkia_app_state_v3';
@@ -92,6 +97,7 @@ export interface AppState {
   feedbacks: JamaahFeedback[];
   calendarNotes: JamaahCalendarNote[];
   appRoles: AppRole[];
+  kamarBookings: KamarBooking[];
 }
 
 const defaultState: AppState = {
@@ -120,7 +126,7 @@ const defaultState: AppState = {
   erpCoa: INITIAL_ERP_COA as ERPChartOfAccount[],
   erpJournals: [],
   erpJournalEntries: [],
-  erpBudgets: [],
+  erpBudgets: INITIAL_ERP_BUDGETS,
   erpDisbursements: [],
   erpSignatures: [],
   auditLogs: INITIAL_AUDIT_LOGS,
@@ -139,7 +145,8 @@ const defaultState: AppState = {
   ],
   unreadDonationsCount: 0,
   feedbacks: [],
-  calendarNotes: []
+  calendarNotes: [],
+  kamarBookings: []
 };
 
 export function getStoredState(): AppState {
@@ -187,7 +194,8 @@ export function getStoredState(): AppState {
         appRoles: parsed.appRoles || defaultState.appRoles,
         unreadDonationsCount: parsed.unreadDonationsCount || 0,
         feedbacks: parsed.feedbacks || [],
-        calendarNotes: parsed.calendarNotes || []
+        calendarNotes: parsed.calendarNotes || [],
+        kamarBookings: parsed.kamarBookings || []
       };
     }
   } catch (e) {
@@ -219,11 +227,20 @@ export function saveStoredState(state: AppState) {
 export function useMasjidStore() {
   const [state, setState] = useState<AppState>(getStoredState);
   const isInitialMount = useRef(true);
+  const isGlobalStateLoaded = useRef(false);
 
   // Sync state ke LocalStorage dan Supabase jika berubah (kecuali reload pertama kali)
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
+      return;
+    }
+    // CEGAH OVERWRITE! Jangan push ke Supabase sebelum data global berhasil di-load
+    // agar setelan default di localhost tidak menimpa data production (Cpanel).
+    if (getSupabaseClient(state.supabaseUrl, state.supabaseAnonKey) && !isGlobalStateLoaded.current) {
+      // Kita tetap simpan ke localStorage secara lokal, tapi JANGAN panggil saveStoredState
+      // yang akan melakukan upsert ke Supabase.
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
       return;
     }
     saveStoredState(state);
@@ -233,19 +250,44 @@ export function useMasjidStore() {
   useEffect(() => {
     const fetchGlobalState = async () => {
       const supabase = getSupabaseClient(state.supabaseUrl, state.supabaseAnonKey);
-      if (!supabase) return;
+      if (!supabase) {
+        isGlobalStateLoaded.current = true;
+        return;
+      }
       try {
         const { data, error } = await supabase.from('app_sync_state').select('state_json').eq('id', 1).single();
         if (data && data.state_json) {
-          setState(prev => ({
-            ...prev,
-            ...data.state_json,
+          setState(prev => {
+            const newState = { ...prev, ...data.state_json };
+            
+            // Deep merge adminSettings to preserve nested fields like socialMediaLinks and masjidHeroCarouselUrls
+            if (data.state_json.adminSettings) {
+              const cloudAdmin = data.state_json.adminSettings;
+              const prevAdmin = prev.adminSettings || {};
+              newState.adminSettings = {
+                ...INITIAL_ADMIN_SETTINGS,
+                ...prevAdmin,
+                ...cloudAdmin,
+                // Keep social media links from whichever source has them
+                socialMediaLinks: cloudAdmin.socialMediaLinks || prevAdmin.socialMediaLinks || INITIAL_ADMIN_SETTINGS.socialMediaLinks,
+                // Keep hero carousel URLs - prefer local if it has more items (just uploaded)
+                masjidHeroCarouselUrls: (
+                  (prevAdmin.masjidHeroCarouselUrls || []).length >= (cloudAdmin.masjidHeroCarouselUrls || []).length
+                    ? prevAdmin.masjidHeroCarouselUrls
+                    : cloudAdmin.masjidHeroCarouselUrls
+                ) || prevAdmin.masjidHeroCarouselUrls || cloudAdmin.masjidHeroCarouselUrls || []
+              };
+            }
+            
             // Jaga agar session (login admin) tidak tertimpa oleh data cloud
-            session: prev.session
-          }));
+            newState.session = prev.session;
+            return newState;
+          });
         }
       } catch (err) {
         console.error('Error fetching global state from Supabase', err);
+      } finally {
+        isGlobalStateLoaded.current = true;
       }
     };
     fetchGlobalState();
@@ -482,6 +524,12 @@ export function useMasjidStore() {
 
         newErpJournals = [newErpJournal, ...newErpJournals];
         newErpJournalEntries = [debitEntry, creditEntry, ...newErpJournalEntries];
+
+        // WhatsApp Notification
+        if (created.donorPhone) {
+          const waMessage = `*ALHAMDULILLAH*\nTerima kasih Akhi/Ukhti *${created.donorName}* atas donasi *${created.category.toUpperCase()}* sebesar *${formatRupiahFull(created.amount)}* untuk program *${created.programTitle}*.\n\nSemoga Allah SWT membalas kebaikan Anda dengan pahala yang berlipat ganda dan menjadikan harta yang tersisa penuh berkah. Aamiin.\n\n_Pesan otomatis dari DKM Masjid Tazkia._`;
+          sendWhatsAppMessage(created.donorPhone, waMessage);
+        }
       }
 
       return {
@@ -612,6 +660,12 @@ export function useMasjidStore() {
 
         newErpJournals = [newErpJournal, ...newErpJournals];
         newErpJournalEntries = [debitEntry, creditEntry, ...newErpJournalEntries];
+
+        // WhatsApp Notification
+        if (donation.donorPhone) {
+          const waMessage = `*ALHAMDULILLAH*\nTerima kasih Akhi/Ukhti *${donation.donorName}* atas donasi *${donation.category.toUpperCase()}* sebesar *${formatRupiahFull(donation.amount)}* untuk program *${donation.programTitle}*.\n\nSemoga Allah SWT membalas kebaikan Anda dengan pahala yang berlipat ganda dan menjadikan harta yang tersisa penuh berkah. Aamiin.\n\n_Pesan otomatis dari DKM Masjid Tazkia._`;
+          sendWhatsAppMessage(donation.donorPhone, waMessage);
+        }
       }
 
       return {
@@ -636,6 +690,84 @@ export function useMasjidStore() {
       financials: [newTrx, ...prev.financials]
     }));
   };
+
+  const addKamarBooking = (booking: Omit<KamarBooking, 'id' | 'createdAt'>) => {
+    const newBooking: KamarBooking = {
+      ...booking,
+      id: `KMB-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: new Date().toISOString()
+    };
+    setState(prev => ({ ...prev, kamarBookings: [newBooking, ...prev.kamarBookings] }));
+  };
+
+  const updateKamarBookingStatus = (id: string, status: 'pending' | 'approved' | 'rejected') => {
+    setState(prev => {
+      const booking = prev.kamarBookings.find(b => b.id === id);
+      if (!booking || booking.status === status) return prev; // No change
+
+      const newKamarBookings = prev.kamarBookings.map(b => 
+        b.id === id ? { ...b, status } : b
+      );
+
+      if (status === 'approved') {
+        const amount = booking.roomType === 'VIP' ? 500000 : booking.roomType === 'Keluarga' ? 350000 : 200000;
+        
+        const newFinancial: FinancialTransaction = {
+          id: `FIN-${Math.floor(200 + Math.random() * 800)}`,
+          type: 'masuk',
+          title: `Pendapatan Sewa Kamar - ${booking.name}`,
+          category: 'SEWA ASET',
+          amount: amount,
+          date: new Date().toISOString().split('T')[0],
+          description: `Penerimaan sewa kamar ${booking.roomType} dari ${booking.name}`,
+        };
+        
+        const journalId = `JRN-SEWAKAMAR-${Math.floor(Date.now() / 1000)}`;
+        const newErpJournal: ERPGeneralJournal = {
+          id: journalId,
+          journalNo: `JV-SEWA-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`,
+          date: new Date().toISOString().split('T')[0],
+          description: `Penerimaan Sewa Kamar ${booking.roomType} - ${booking.name}`,
+          reference: booking.id,
+          status: 'Posted',
+          createdBy: 'Sistem Sewa',
+          createdAt: new Date().toISOString()
+        };
+
+        const debitEntry: ERPJournalEntry = {
+          id: `JE-D-${Date.now()}-${Math.floor(Math.random() * 100)}`,
+          journalId,
+          accountId: 'coa-1102', // Kas Bank Operasional
+          debit: amount,
+          credit: 0,
+          description: `Penerimaan ke Kas/Bank`
+        };
+
+        const creditEntry: ERPJournalEntry = {
+          id: `JE-C-${Date.now()}-${Math.floor(Math.random() * 100)}`,
+          journalId,
+          accountId: 'coa-4200', // Pendapatan Sewa & Aset
+          debit: 0,
+          credit: amount,
+          description: `Pengakuan Pendapatan Sewa Kamar`
+        };
+
+        return {
+          ...prev,
+          kamarBookings: newKamarBookings,
+          financials: [newFinancial, ...prev.financials],
+          erpJournals: [newErpJournal, ...(prev.erpJournals || [])],
+          erpJournalEntries: [debitEntry, creditEntry, ...(prev.erpJournalEntries || [])]
+        };
+      }
+
+      return {
+        ...prev,
+        kamarBookings: newKamarBookings
+      };
+    });
+  };
+
 
   const addInventoryItem = (item: Omit<InventoryItem, 'id'>) => {
     const newItem: InventoryItem = {
@@ -945,19 +1077,78 @@ export function useMasjidStore() {
     processedBy: string, 
     note?: string
   ) => {
-    setState(prev => ({
-      ...prev,
-      erpDisbursements: prev.erpDisbursements.map(d => {
+    setState(prev => {
+      let updatedDisbursements = prev.erpDisbursements.map(d => {
         if (d.id !== id) return d;
         if (status === 'Verified') {
           return { ...d, status, verifiedBy: processedBy, verificationDate: new Date().toISOString(), approvalNote: note };
         } else if (status === 'Approved') {
           return { ...d, status, approvedBy: processedBy, approvalDate: new Date().toISOString(), approvalNote: note };
+        } else if (status === 'ApprovedKetua') {
+          return { ...d, status, approvedBy: processedBy, approvalDate: new Date().toISOString(), approvalNote: note };
         } else {
           return { ...d, status, rejectionReason: note };
         }
-      })
-    }));
+      });
+
+      if (status === 'Approved') {
+        const d = prev.erpDisbursements.find(d => d.id === id);
+        if (d) {
+          const newFinancial: FinancialTransaction = {
+            id: `FIN-${Math.floor(200 + Math.random() * 800)}`,
+            type: 'keluar',
+            title: `Pencairan Dana - ${d.purpose}`,
+            category: 'OPERASIONAL',
+            amount: d.amount,
+            date: new Date().toISOString().split('T')[0],
+            description: `Pencairan dana yang disetujui untuk ${d.requestedBy}: ${d.purpose}`,
+          };
+          
+          const journalId = `JRN-OUT-${Math.floor(Date.now() / 1000)}`;
+          const newErpJournal: ERPGeneralJournal = {
+            id: journalId,
+            journalNo: `JV-OUT-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`,
+            date: new Date().toISOString().split('T')[0],
+            description: `Pencairan Dana: ${d.purpose}`,
+            reference: d.id,
+            status: 'Posted',
+            createdBy: processedBy,
+            createdAt: new Date().toISOString()
+          };
+
+          const debitEntry: ERPJournalEntry = {
+            id: `JE-D-${Date.now()}-${Math.floor(Math.random() * 100)}`,
+            journalId,
+            accountId: 'coa-5100', // Beban Operasional / Program
+            debit: d.amount,
+            credit: 0,
+            description: `Pengakuan Beban: ${d.purpose}`
+          };
+
+          const creditEntry: ERPJournalEntry = {
+            id: `JE-C-${Date.now()}-${Math.floor(Math.random() * 100)}`,
+            journalId,
+            accountId: 'coa-1102', // Kas Bank Operasional
+            debit: 0,
+            credit: d.amount,
+            description: `Pengeluaran dari Kas/Bank`
+          };
+
+          return {
+            ...prev,
+            erpDisbursements: updatedDisbursements,
+            financials: [newFinancial, ...prev.financials],
+            erpJournals: [newErpJournal, ...(prev.erpJournals || [])],
+            erpJournalEntries: [debitEntry, creditEntry, ...(prev.erpJournalEntries || [])]
+          };
+        }
+      }
+
+      return {
+        ...prev,
+        erpDisbursements: updatedDisbursements
+      };
+    });
   };
 
   const addPettyCashEntry = (entry: Omit<PettyCashEntry, 'id' | 'remainingBalance'>) => {
@@ -1265,12 +1456,71 @@ export function useMasjidStore() {
   };
 
   const updateGedungBookingStatus = (id: string, status: 'pending' | 'approved' | 'rejected') => {
-    setState(prev => ({
-      ...prev,
-      gedungBookings: prev.gedungBookings.map(b => 
+    setState(prev => {
+      const booking = prev.gedungBookings.find(b => b.id === id);
+      if (!booking || booking.status === status) return prev; // No change
+
+      const newGedungBookings = prev.gedungBookings.map(b => 
         b.id === id ? { ...b, status } : b
-      )
-    }));
+      );
+
+      if (status === 'approved') {
+        const amount = 5000000; // Asumsi biaya sewa gedung default
+        
+        const newFinancial: FinancialTransaction = {
+          id: `FIN-${Math.floor(200 + Math.random() * 800)}`,
+          type: 'masuk',
+          title: `Pendapatan Sewa Gedung - ${booking.name}`,
+          category: 'SEWA ASET',
+          amount: amount,
+          date: new Date().toISOString().split('T')[0],
+          description: `Penerimaan sewa gedung untuk acara ${booking.notes || 'Pernikahan/Acara'} dari ${booking.name}`,
+        };
+        
+        const journalId = `JRN-SEWA-${Math.floor(Date.now() / 1000)}`;
+        const newErpJournal: ERPGeneralJournal = {
+          id: journalId,
+          journalNo: `JV-SEWA-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`,
+          date: new Date().toISOString().split('T')[0],
+          description: `Penerimaan Sewa Gedung - ${booking.name}`,
+          reference: booking.id,
+          status: 'Posted',
+          createdBy: 'Sistem Sewa',
+          createdAt: new Date().toISOString()
+        };
+
+        const debitEntry: ERPJournalEntry = {
+          id: `JE-D-${Date.now()}-${Math.floor(Math.random() * 100)}`,
+          journalId,
+          accountId: 'coa-1102', // Kas Bank Operasional
+          debit: amount,
+          credit: 0,
+          description: `Penerimaan ke Kas/Bank`
+        };
+
+        const creditEntry: ERPJournalEntry = {
+          id: `JE-C-${Date.now()}-${Math.floor(Math.random() * 100)}`,
+          journalId,
+          accountId: 'coa-4200', // Pendapatan Sewa & Aset (Asumsi atau fallback)
+          debit: 0,
+          credit: amount,
+          description: `Pengakuan Pendapatan Sewa Gedung`
+        };
+
+        return {
+          ...prev,
+          gedungBookings: newGedungBookings,
+          financials: [newFinancial, ...prev.financials],
+          erpJournals: [newErpJournal, ...(prev.erpJournals || [])],
+          erpJournalEntries: [debitEntry, creditEntry, ...(prev.erpJournalEntries || [])]
+        };
+      }
+
+      return {
+        ...prev,
+        gedungBookings: newGedungBookings
+      };
+    });
   };
 
   const deleteGedungBooking = (id: string) => {
@@ -1356,8 +1606,120 @@ export function useMasjidStore() {
     }));
   };
 
+  const hitungPenyusutanAset = () => {
+    setState(prev => {
+      // Very basic straight-line depreciation logic for demo
+      // Find asset depreciation accounts
+      const bebanPenyusutanCoa = prev.erpCoa.find(c => c.accountName.toLowerCase().includes('beban penyusutan'));
+      const akumulasiCoa = prev.erpCoa.find(c => c.accountName.toLowerCase().includes('akumulasi penyusutan'));
+      
+      if (!bebanPenyusutanCoa || !akumulasiCoa) return prev; // Cannot depreciate without COA
+
+      let totalDepreciation = 0;
+      const newInventories = (prev.inventories || []).map(item => {
+        if (item.category === 'Aset Tetap' && item.value > 0) {
+          // Assume 5 years useful life (60 months) -> 1/60 per month
+          const monthlyDep = Math.round(item.value / 60);
+          totalDepreciation += monthlyDep;
+          return { ...item, value: Math.max(0, item.value - monthlyDep) };
+        }
+        return item;
+      });
+
+      if (totalDepreciation === 0) return prev; // Nothing to depreciate
+
+      const journalId = `JRN-DEP-${Math.floor(Date.now() / 1000)}`;
+      const newErpJournal: ERPGeneralJournal = {
+        id: journalId,
+        journalNo: `JV-DEP-${new Date().toISOString().split('T')[0].replace(/-/g, '')}`,
+        date: new Date().toISOString().split('T')[0],
+        description: `Penyusutan Aset Tetap Bulan ${new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}`,
+        reference: 'SYS-DEP',
+        status: 'Posted',
+        createdBy: 'System',
+        createdAt: new Date().toISOString()
+      };
+
+      const debitEntry: ERPJournalEntry = {
+        id: `JE-D-${Date.now()}`,
+        journalId,
+        accountId: bebanPenyusutanCoa.id,
+        debit: totalDepreciation,
+        credit: 0,
+        description: `Beban Penyusutan Aset`
+      };
+
+      const creditEntry: ERPJournalEntry = {
+        id: `JE-C-${Date.now()}`,
+        journalId,
+        accountId: akumulasiCoa.id,
+        debit: 0,
+        credit: totalDepreciation,
+        description: `Akumulasi Penyusutan Aset`
+      };
+
+      return {
+        ...prev,
+        inventories: newInventories,
+        erpJournals: [newErpJournal, ...(prev.erpJournals || [])],
+        erpJournalEntries: [debitEntry, creditEntry, ...(prev.erpJournalEntries || [])]
+      };
+    });
+  };
+
+  const tutupBuku = (tipe: 'bulanan' | 'tahunan') => {
+    setState(prev => {
+      const retainedEarningsCoa = prev.erpCoa.find(c => c.accountName.toLowerCase().includes('laba ditahan') || c.accountName.toLowerCase().includes('saldo dana'));
+      if (!retainedEarningsCoa) return prev;
+
+      // Calculate total revenue and expense
+      let totalRevenue = 0;
+      let totalExpense = 0;
+      
+      prev.erpJournalEntries.forEach(entry => {
+        const coa = prev.erpCoa.find(c => c.id === entry.accountId);
+        if (coa && coa.category === 'Pendapatan') {
+          totalRevenue += (entry.credit - entry.debit);
+        } else if (coa && coa.category === 'Beban') {
+          totalExpense += (entry.debit - entry.credit);
+        }
+      });
+
+      const netIncome = totalRevenue - totalExpense;
+
+      const journalId = `JRN-CLOSE-${Math.floor(Date.now() / 1000)}`;
+      const newErpJournal: ERPGeneralJournal = {
+        id: journalId,
+        journalNo: `JV-CLS-${new Date().toISOString().split('T')[0].replace(/-/g, '')}`,
+        date: new Date().toISOString().split('T')[0],
+        description: `Jurnal Penutup ${tipe === 'tahunan' ? 'Tahun' : 'Bulan'} ${new Date().getFullYear()}`,
+        reference: 'SYS-CLOSE',
+        status: 'Posted',
+        createdBy: 'System',
+        createdAt: new Date().toISOString()
+      };
+
+      const entryRetainedEarnings: ERPJournalEntry = {
+        id: `JE-CLOSE-${Date.now()}`,
+        journalId,
+        accountId: retainedEarningsCoa.id,
+        debit: netIncome < 0 ? Math.abs(netIncome) : 0,
+        credit: netIncome >= 0 ? netIncome : 0,
+        description: `Pemindahan Saldo (Surplus/Defisit)`
+      };
+
+      return {
+        ...prev,
+        erpJournals: [newErpJournal, ...(prev.erpJournals || [])],
+        erpJournalEntries: [entryRetainedEarnings, ...(prev.erpJournalEntries || [])]
+      };
+    });
+  };
+
   return {
     state,
+    tutupBuku,
+    hitungPenyusutanAset,
     setAppRoles,
     addDonation,
     clearUnreadDonations,
@@ -1366,6 +1728,8 @@ export function useMasjidStore() {
     addInventoryItem,
     updateInventoryItem,
     deleteInventoryItem,
+    addKamarBooking,
+    updateKamarBookingStatus,
     addAnnouncement,
     updateAnnouncement,
     deleteAnnouncement,

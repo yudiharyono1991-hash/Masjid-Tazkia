@@ -2,16 +2,17 @@
 
 Dokumen ini berisi daftar fitur, peningkatan, dan perbaikan (backlog) yang telah diprioritaskan untuk pengembangan Sistem Ekosistem Digital Masjid Tazkia.
 
-## 🚀 Sprint Berjalan (Current / To-Do)
-- [ ] **Penyempurnaan Integrasi Supabase Database (Tahap 1):** Migrasi data master (users, profile) dari `localStorage` ke PostgreSQL.
-- [ ] **Auth & Role Enforcement:** Menyempurnakan pembatasan halaman berdasarkan role dengan proteksi rute di React (React Router / Private Route) agar Admin tidak bisa melihat laporan keuangan spesifik Bendahara.
-- [ ] **Integrasi Notifikasi Donasi Jamaah:** Menambahkan pengingat target donasi bulanan (recurring donation) di Portal Jamaah agar mendapat notifikasi 3 hari sebelum tanggal tagihan.
+## 🚀 Sprint Berjalan (Selesai & Sisa To-Do)
+- [x] **Penyempurnaan Integrasi Supabase Database (Tahap 1):** Mekanisme sinkronisasi data master dan relasional via `app_sync_state` JSONB untuk *persistence* lintas perangkat, serta implementasi Supabase Storage untuk media dengan `DO BLOCK` idempotent policies.
+- [x] **Auth & Role Enforcement:** Memisahkan modul-modul (terutama Modul Keuangan Terpadu) dan memberi proteksi berdasarkan otoritas role secara ketat di DKM Dashboard.
+- [x] **System-Wide UI/UX & Dark Mode:** Restrukturisasi menu navigasi admin, penghapusan elemen E2E *debugging*, dan implementasi kompatibilitas mode gelap yang tidak menyilaukan.
+- [ ] **Integrasi Notifikasi Donasi Jamaah:** Menambahkan pengingat target donasi bulanan (recurring donation) di Portal Jamaah.
 
 ## 📈 Prioritas Menengah (Next Release)
-- [ ] **Migrasi Transaksi ke Supabase (Tahap 2):** Memindahkan data transaksi Jurnal Umum dan Buku Besar ke database agar aman dan dapat diaudit (Audit Trail).
+- [ ] **Migrasi Total ke Tabel Relasional (Tahap 2):** Memecah JSONB `app_sync_state` menjadi tabel murni relasional secara menyeluruh (seperti `inventories`, `erp_journals`, `erp_ledger`, dll) untuk performa analitik yang lebih skalabel.
+- [ ] **Otomatisasi Penyusutan (Cron Job):** Mengganti kalkulasi manual penyusutan aset (tombol) menjadi *cron job scheduler* server-side yang berjalan otomatis setiap akhir bulan.
 - [ ] **Export & Import Data (Excel/CSV):** Mengembangkan fitur agar bendahara dapat mengunduh laporan keuangan, neraca, dan jurnal ke dalam format Excel standar akuntansi.
-- [ ] **Manajemen Artikel/Berita Dinamis:** Membuat sistem CMS (Content Management System) lengkap dengan Rich Text Editor (WYSIWYG) untuk tim publikasi menambahkan berita/kajian.
-- [ ] **Fitur PWA (Progressive Web App):** Menambahkan `manifest.json` dan *Service Worker* agar aplikasi dapat di-install di layar utama (Home Screen) smartphone layaknya aplikasi native, serta memiliki cache *offline* yang lebih kuat.
+- [ ] **Manajemen Artikel/Berita Dinamis:** Membuat sistem CMS (Content Management System) lengkap dengan Rich Text Editor (WYSIWYG) untuk tim publikasi.
 
 ## 🔮 Prioritas Rendah & Inovasi Jangka Panjang (Future Epics)
 - [ ] **WhatsApp Gateway Integration (Kuitansi Digital):** Menyambungkan webhook donasi dengan layanan API WhatsApp untuk mengirim bukti penerimaan ziswaf secara otomatis ke no HP jamaah.

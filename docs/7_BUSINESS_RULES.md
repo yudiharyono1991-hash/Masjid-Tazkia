@@ -22,3 +22,7 @@ Sistem ini menggunakan pembatasan akses ketat (Strict Role Enforcement) untuk me
 ## Alur Verifikasi Akun/Masjid
 - Pihak DKM yang baru mendaftarkan cabang/masjid baru harus mengunggah scan SK Pengurus dan Surat Domisili Masjid.
 - Tim Admin Pusat (Tazkia HQ) akan memverifikasi dokumen tersebut sebelum akun DKM cabang dapat menggunakan modul donasi QRIS untuk mencegah penipuan.
+
+## Akuntansi & Manajemen Aset (Penyusutan)
+- **Metode Penyusutan:** Sistem menggunakan metode **Garis Lurus (Straight-Line)**. Aset Tetap diasumsikan memiliki masa manfaat standar (misal 5 tahun / 60 bulan).
+- **Penjurnalan Otomatis:** Saat Bendahara memicu fungsi "Hitung Penyusutan Aset", nilai sisa barang di modul Inventaris akan dikurangi, dan sistem secara otomatis mengkreditkan "Akumulasi Penyusutan" serta mendebit "Beban Penyusutan" di Jurnal Umum.

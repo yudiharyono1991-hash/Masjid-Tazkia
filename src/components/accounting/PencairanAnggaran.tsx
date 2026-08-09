@@ -12,7 +12,11 @@ export function PencairanAnggaran() {
   const getToday = () => { const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" })); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
   const [startDate, setStartDate] = useState(getFirstDayOfMonth());
-  const [endDate, setEndDate] = useState(getToday());
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
 
   // Staf Form State
   const [selectedBudgetId, setSelectedBudgetId] = useState('');

@@ -51,6 +51,7 @@ interface ProgramCardsSectionProps {
   openCatalogPdf?: () => void;
   isDark?: boolean;
   adminSettings?: AppAdminSettings;
+  hideHeader?: boolean;
 }
 
 export const ProgramCardsSection: React.FC<ProgramCardsSectionProps> = ({
@@ -65,7 +66,8 @@ export const ProgramCardsSection: React.FC<ProgramCardsSectionProps> = ({
   openCalculator,
   openCatalogPdf,
   isDark = false,
-  adminSettings
+  adminSettings,
+  hideHeader = false
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('semua');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -186,6 +188,9 @@ export const ProgramCardsSection: React.FC<ProgramCardsSectionProps> = ({
           color: isDark ? '#94a3b8' : '#64748b',
           padding: 10,
           callback: function(value: any) {
+            if (value >= 1000000000) {
+              return 'Rp ' + (value / 1000000000) + ' M';
+            }
             if (value >= 1000000) {
               return 'Rp ' + (value / 1000000) + ' Jt';
             }
@@ -197,58 +202,17 @@ export const ProgramCardsSection: React.FC<ProgramCardsSectionProps> = ({
   };
 
   return (
-    <section className={`py-16 border-b transition-colors ${isDark ? "bg-blue-950 text-blue-100 border-blue-800" : "bg-stone-50 text-blue-900 border-blue-200"}`}>
+    <section id="ziswaf-section" className={`py-16 border-b transition-colors ${isDark ? "bg-blue-950 text-blue-100 border-blue-800" : "bg-stone-50 text-blue-900 border-blue-200"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
-        {/* Hero Title & Headline */}
-        <div className={`text-center max-w-4xl mx-auto space-y-4 sm:space-y-6 pb-8 border-b transition-colors ${isDark ? "border-blue-800/50" : "border-blue-200"}`}>
-          <div className={`inline-block px-3 py-1 bg-amber-500/20 border border-amber-400/50 text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] rounded-full shadow-sm ${isDark ? "text-amber-300" : "text-amber-600"}`}>
-            Ekosistem Digital Masjid Tazkia
+        {/* Program Cards Start Directly Below Hero */}
+        {!hideHeader && (
+          <div className="text-center pt-8 pb-4">
+            <h2 className={`text-2xl sm:text-3xl font-serif transition-colors ${isDark ? "text-white" : "text-blue-950"}`}>
+              Daftar Program
+            </h2>
           </div>
-
-          <h1 className={`text-2xl sm:text-5xl lg:text-6xl font-serif leading-snug sm:leading-[1.15] tracking-tight drop-shadow-lg transition-colors ${isDark ? "text-white" : "text-blue-950"}`}>
-            {adminSettings?.heroPromoTitle ? (
-              <span dangerouslySetInnerHTML={{ __html: adminSettings.heroPromoTitle.replace(/&/g, '&amp;') }} />
-            ) : (
-              <>Pusat Peradaban Islam &amp; Kesejahteraan Umat</>
-            )}
-            <span className={`block font-serif italic font-semibold mt-2 text-xl sm:text-4xl lg:text-5xl ${isDark ? "text-amber-300" : "text-amber-500"}`}>
-              {adminSettings?.heroPromoSubtitle || "Melalui Optimalisasi ZISWAF, Dakwah & Zikir"}
-            </span>
-          </h1>
-
-          <p className={`text-xs sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-sans px-2 transition-colors ${isDark ? "text-blue-100" : "text-blue-700"}`}>
-            {adminSettings?.heroPromoDescription || "Salurkan Zakat, Infaq, Shadaqah, dan Wakaf Anda secara transparan di Masjid Tazkia untuk dakwah, pendidikan pesantren, dan pemberdayaan ekonomi umat."}
-            <span className={`block mt-1.5 font-bold font-mono text-[10px] sm:text-xs tracking-wider ${isDark ? "text-amber-300" : "text-amber-600"}`}>
-              #ZISWAFMasjidTazkiaSentul
-            </span>
-          </p>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-4 pt-2">
-            <button
-              onClick={() => openDonationModal()}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-5 py-3 sm:px-7 sm:py-3.5 rounded-xl text-xs sm:text-sm font-mono uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer border border-blue-400/40 w-full sm:w-auto"
-            >
-              <HeartHandshake className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>Daftar Program / Donasi</span>
-              <ArrowRight className="w-4 h-4 ml-1 shrink-0" />
-            </button>
-
-            <button
-              onClick={openCalculator}
-              className="bg-blue-950/90 hover:bg-blue-900 text-amber-300 border border-amber-500/40 font-bold px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl text-xs sm:text-sm font-mono uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md w-full sm:w-auto"
-            >
-              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Hitung Zakat</span>
-            </button>
-          </div>
-        </div>
-        <div className="text-center pt-8 pb-4">
-          <h2 className={`text-2xl sm:text-3xl font-serif transition-colors ${isDark ? "text-white" : "text-blue-950"}`}>
-            Daftar Program
-          </h2>
-        </div>
+        )}
 
         {/* ZISWAF Statistics Chart */}
         <div className={`p-6 rounded-2xl border shadow-sm transition-colors mb-8 ${isDark ? "bg-blue-900/50 border-blue-800" : "bg-white border-blue-200"}`}>
