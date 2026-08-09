@@ -2669,6 +2669,114 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
 
                   </div>
 
+                  <div className="space-y-4 pt-4 border-t border-blue-800/50 mt-4">
+                    <h5 className="font-bold text-blue-200 text-xs uppercase tracking-wider">Pengaturan Konten Tengah TV Display</h5>
+                    
+                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                      <h6 className="text-amber-400 font-semibold text-xs border-b border-blue-800/50 pb-2">Slide 2: Pesan / Hadis Harian</h6>
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Judul Label:</label>
+                        <input
+                          type="text"
+                          value={adminSettings?.tvSlide1Title || 'HADIS SHAHIH HARI INI'}
+                          onChange={(e) => handleTextSettingChange('tvSlide1Title', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Utama (Arab/Besar):</label>
+                        <input
+                          type="text"
+                          value={adminSettings?.tvSlide1Arabic || 'مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ'}
+                          onChange={(e) => handleTextSettingChange('tvSlide1Arabic', e.target.value)}
+                          dir="rtl"
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-serif text-sm outline-none text-right"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Terjemahan / Arti:</label>
+                        <textarea
+                          value={adminSettings?.tvSlide1Indo || '"Sedekah itu tidak akan pernah mengurangi harta sedikit pun, melainkan Allah akan menambah kemuliaan."'}
+                          onChange={(e) => handleTextSettingChange('tvSlide1Indo', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-sans text-xs outline-none min-h-[60px]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Sumber (Riwayat):</label>
+                        <input
+                          type="text"
+                          value={adminSettings?.tvSlide1Source || '(HR. Muslim no. 2588)'}
+                          onChange={(e) => handleTextSettingChange('tvSlide1Source', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-amber-300 font-mono text-xs outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                      <h6 className="text-amber-400 font-semibold text-xs border-b border-blue-800/50 pb-2">Slide 3: Program / Donasi Spesial</h6>
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Judul Label:</label>
+                        <input
+                          type="text"
+                          value={adminSettings?.tvSlide2Title || 'PROGRAM WAKAF UTAMA'}
+                          onChange={(e) => handleTextSettingChange('tvSlide2Title', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Nama Program:</label>
+                        <input
+                          type="text"
+                          value={adminSettings?.tvSlide2Heading || 'Wakaf Tunai Sound System & Akustik Ruang Shalat Utama'}
+                          onChange={(e) => handleTextSettingChange('tvSlide2Heading', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-serif text-sm outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Deskripsi Singkat:</label>
+                        <textarea
+                          value={adminSettings?.tvSlide2Desc || "Dukung pengadaan tata suara jernih kristal untuk kekhusyu'an ibadah jamaah Masjid Tazkia."}
+                          onChange={(e) => handleTextSettingChange('tvSlide2Desc', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-sans text-xs outline-none min-h-[60px]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Status / Target (Teks Kuning):</label>
+                        <input
+                          type="text"
+                          value={adminSettings?.tvSlide2Target || 'Terkumpul: Rp 8.25M / Target: Rp 15M'}
+                          onChange={(e) => handleTextSettingChange('tvSlide2Target', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-amber-300 font-mono text-xs outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                        <h6 className="text-amber-400 font-semibold text-xs">Slide 4: Video CCTV / YouTube Live</h6>
+                        <button
+                          onClick={() => handleToggleSetting('tvEnableVideoSlide')}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableVideoSlide ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableVideoSlide ? 'left-7' : 'left-1'}`} />
+                        </button>
+                      </div>
+                      {adminSettings?.tvEnableVideoSlide && (
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-1 text-xs">URL YouTube Video (Harap gunakan link 'Embed' YouTube / link CCTV iFrame-compatible):</label>
+                          <input
+                            type="text"
+                            value={adminSettings?.tvVideoUrl || ''}
+                            onChange={(e) => handleTextSettingChange('tvVideoUrl', e.target.value)}
+                            placeholder="Contoh: https://www.youtube.com/embed/XXXXXXX?autoplay=1&mute=1"
+                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                          />
+                          <p className="text-[10px] text-blue-400 mt-1">Tambahkan <code className="text-amber-300 bg-blue-950 px-1 rounded">?autoplay=1&mute=1</code> di akhir URL agar video memutar otomatis tanpa suara dan tidak mengganggu murottal.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <div>
                     <label className="text-blue-300 font-semibold block mb-1">
                       Nomor Rekening BSI (ZISWAF):

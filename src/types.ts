@@ -288,6 +288,16 @@ export interface AppAdminSettings {
   eidPrayerTime?: string;
   iftarNotificationDurationMinutes?: number;
   iftarRunningText?: string;
+  tvSlide1Title?: string;
+  tvSlide1Arabic?: string;
+  tvSlide1Indo?: string;
+  tvSlide1Source?: string;
+  tvSlide2Title?: string;
+  tvSlide2Heading?: string;
+  tvSlide2Desc?: string;
+  tvSlide2Target?: string;
+  tvVideoUrl?: string;
+  tvEnableVideoSlide?: boolean;
   masjidLogoUrl?: string;
   masjidHeroPhotoUrl?: string;
   masjidHeroCarouselUrls?: string[];

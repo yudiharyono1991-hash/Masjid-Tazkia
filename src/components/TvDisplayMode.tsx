@@ -163,11 +163,12 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
 
   // Auto rotate slides every 8 seconds
   useEffect(() => {
+    const slideCount = adminSettings?.tvEnableVideoSlide && adminSettings?.tvVideoUrl ? 4 : 3;
     const slideTimer = setInterval(() => {
-      setCurrentSlideIndex(prev => (prev + 1) % 3);
+      setCurrentSlideIndex(prev => (prev + 1) % slideCount);
     }, 8000);
     return () => clearInterval(slideTimer);
-  }, []);
+  }, [adminSettings?.tvEnableVideoSlide, adminSettings?.tvVideoUrl]);
 
   const timeStr = time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\./g, ':');
   const dateStr = time.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -337,32 +338,49 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
             {currentSlideIndex === 1 && (
               <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
                 <span className="bg-blue-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
-                  HADIS SHAHIH HARI INI
+                  {adminSettings?.tvSlide1Title || 'HADIS SHAHIH HARI INI'}
                 </span>
                 <p className="text-2xl sm:text-4xl font-serif text-amber-300 leading-relaxed font-arabic" dir="rtl">
-                  مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ
+                  {adminSettings?.tvSlide1Arabic || 'مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ'}
                 </p>
                 <p className="text-sm sm:text-xl text-blue-200 max-w-3xl mx-auto font-serif italic">
-                  "Sedekah itu tidak akan pernah mengurangi harta sedikit pun, melainkan Allah akan menambah kemuliaan."
+                  {adminSettings?.tvSlide1Indo || '"Sedekah itu tidak akan pernah mengurangi harta sedikit pun, melainkan Allah akan menambah kemuliaan."'}
                 </p>
-                <p className="text-xs text-amber-400 font-mono">(HR. Muslim no. 2588)</p>
+                <p className="text-xs text-amber-400 font-mono">{adminSettings?.tvSlide1Source || '(HR. Muslim no. 2588)'}</p>
               </div>
             )}
 
             {currentSlideIndex === 2 && (
               <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
                 <span className="bg-amber-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
-                  PROGRAM WAKAF UTAMA
+                  {adminSettings?.tvSlide2Title || 'PROGRAM WAKAF UTAMA'}
                 </span>
                 <h2 className="text-xl sm:text-4xl font-serif font-bold text-white">
-                  Wakaf Tunai Sound System & Akustik Ruang Shalat Utama
+                  {adminSettings?.tvSlide2Heading || 'Wakaf Tunai Sound System & Akustik Ruang Shalat Utama'}
                 </h2>
                 <p className="text-sm sm:text-base text-blue-300 max-w-2xl mx-auto">
-                  Dukung pengadaan tata suara jernih kristal untuk kekhusyu'an ibadah jamaah Masjid Tazkia.
+                  {adminSettings?.tvSlide2Desc || "Dukung pengadaan tata suara jernih kristal untuk kekhusyu'an ibadah jamaah Masjid Tazkia."}
                 </p>
                 <p className="text-sm sm:text-xl text-amber-400 font-mono font-bold">
-                  Terkumpul: Rp 8.25M / Target: Rp 15M
+                  {adminSettings?.tvSlide2Target || 'Terkumpul: Rp 8.25M / Target: Rp 15M'}
                 </p>
+              </div>
+            )}
+
+            {currentSlideIndex === 3 && adminSettings?.tvEnableVideoSlide && adminSettings?.tvVideoUrl && (
+              <div className="w-full max-w-5xl mx-auto h-[40vh] sm:h-[50vh] bg-black border-2 border-amber-500/40 rounded-3xl overflow-hidden shadow-2xl animate-fade-in relative group">
+                <iframe 
+                  src={adminSettings.tvVideoUrl} 
+                  title="Live View"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full object-cover pointer-events-none"
+                  sandbox="allow-scripts allow-same-origin allow-presentation"
+                ></iframe>
+                <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-2 animate-pulse">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  LIVE
+                </div>
               </div>
             )}
           </>
