@@ -80,6 +80,8 @@ import { BukuBesar } from './accounting/BukuBesar';
 import { ReportPrinter } from './accounting/ReportPrinter';
 import { InputAnggaran } from './accounting/InputAnggaran';
 import { PencairanAnggaran } from './accounting/PencairanAnggaran';
+import { KasKecil } from './accounting/KasKecil';
+import { VerifikasiZiswaf } from './accounting/VerifikasiZiswaf';
 import { AgendaAdmin } from './AgendaAdmin';
 import { SewaGedungAdmin } from './SewaGedungAdmin';
 import { BoardMemberAdmin } from './BoardMemberAdmin';
@@ -185,7 +187,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
   openTvMode
 }) => {
   const store = useMasjidStore();
-  const [dkmTab, setDkmTab] = useState<'dashboard_utama' | 'keuangan' | 'akuntansi' | 'inventaris' | 'petugas' | 'broadcast' | 'program' | 'pengumuman' | 'galeri' | 'qurban' | 'sewa' | 'pengaturan' | 'supabase' | 'aplikasi' | 'jamaah_manage' | 'audit_log' | 'verifikasi' | 'pengurus' | 'ttd_laporan' | 'kalender' | 'layanan_aduan' | 'panduan'>(() => {
+  const [dkmTab, setDkmTab] = useState<'dashboard_utama' | 'keuangan' | 'akuntansi' | 'inventaris' | 'petugas' | 'broadcast' | 'program' | 'pengumuman' | 'galeri' | 'qurban' | 'sewa' | 'pengaturan' | 'supabase' | 'aplikasi' | 'jamaah_manage' | 'audit_log' | 'verifikasi' | 'pengurus' | 'ttd_laporan' | 'kalender' | 'layanan_aduan' | 'panduan' | 'tv_display'>(() => {
     // 1. Try URL first
     try {
       const urlHash = window.location.hash;
@@ -207,7 +209,10 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
     if (currentHashBase) {
       window.history.replaceState(null, '', `${currentHashBase}?tab=${dkmTab}`);
     }
+    // Fix Scroll Persistence: auto scroll to top when tab changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [dkmTab, store.state.session?.role]);
+
 
   const MENU_CATEGORIES = [
     {
@@ -267,6 +272,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
       tabs: [
         { id: 'aplikasi', label: 'Pengaturan Aplikasi', icon: Settings },
         { id: 'pengaturan', label: 'Pengaturan Dasar', icon: Settings },
+        { id: 'tv_display', label: 'Display TV & Notifikasi', icon: Tv },
         { id: 'supabase', label: 'Konfigurasi Supabase', icon: Database },
         { id: 'audit_log', label: 'Audit Log System', icon: BookOpen },
         { id: 'panduan', label: 'Buku Panduan', icon: BookOpen },
@@ -292,6 +298,11 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
   const [finSubTab, setFinSubTab] = useState<'mutasi' | 'jurnal' | 'bukubesar' | 'kaskecil' | 'psak109'>('mutasi');
   const [erpSubTab, setErpSubTab] = useState<'coa' | 'jurnal_umum' | 'buku_besar' | 'anggaran' | 'pencairan' | 'laporan'>('coa');
   const [tabSearchQuery, setTabSearchQuery] = useState('');
+
+  // Also add scroll reset for erpSubTab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [erpSubTab]);
 
   const tabsRef = useRef<HTMLDivElement>(null);
   const erpTabsRef = useRef<HTMLDivElement>(null);
@@ -1013,7 +1024,13 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
               return (
                 <button
                   key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
+                  onClick={() => {
+                    setActiveCategory(category.id);
+                    const isCurrentTabInCategory = category.tabs.some(t => t.id === dkmTab);
+                    if (!isCurrentTabInCategory && category.tabs.length > 0) {
+                      setDkmTab(category.tabs[0].id as any);
+                    }
+                  }}
                   className={`shrink-0 py-2 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                     activeCategory === category.id
                       ? 'bg-amber-500 text-blue-950 shadow-md shadow-amber-500/20'
@@ -1577,19 +1594,8 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
               {erpSubTab === 'anggaran' && <InputAnggaran />}
               {erpSubTab === 'pencairan' && <PencairanAnggaran />}
               {erpSubTab === 'laporan' && <ReportPrinter />}
-              {erpSubTab === 'verifikasi' && (
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <h2 className="text-xl font-bold text-amber-400 mb-4">Verifikasi & Approval Transaksi ZISWAF</h2>
-                  {/* Reuse the logic for 'verifikasi' tab here, or just inform user to use the tab if it's too big, but let's just render it */}
-                  <p className="text-blue-200">Fitur Verifikasi ZISWAF kini bisa diakses dari Modul Keuangan Terpadu (Atau kembali ke Dashboard Utama).</p>
-                </div>
-              )}
-              {erpSubTab === 'kas_kecil' && (
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <h2 className="text-xl font-bold text-amber-400 mb-4">Pencatatan Kas Sederhana (Lama)</h2>
-                  <p className="text-blue-200">Gunakan menu Jurnal Umum untuk pencatatan standar PSAK 409.</p>
-                </div>
-              )}
+              {erpSubTab === 'verifikasi' && <VerifikasiZiswaf />}
+              {erpSubTab === 'kas_kecil' && <KasKecil />}
             </div>
           </div>
         )}
@@ -2638,430 +2644,21 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                         className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
                       />
                     </div>
-                  </div>
-
-                  <div className="space-y-4 pt-4 border-t border-blue-800/50 mt-4">
-                    <h5 className="font-bold text-blue-200 text-xs uppercase tracking-wider">Pengaturan Mode Khusus (Jumat, Hari Raya & Buka Puasa)</h5>
-                    
-                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-blue-300 font-semibold text-sm">Aktifkan Mode Shalat Jumat</label>
-                        <button
-                          onClick={() => handleToggleSetting('enableJumatMode')}
-                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.enableJumatMode ?? true ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.enableJumatMode ?? true ? 'left-7' : 'left-1'}`} />
-                        </button>
-                      </div>
-                      {(adminSettings?.enableJumatMode ?? true) && (
-                        <div>
-                          <label className="text-blue-300 font-semibold block mb-1 text-xs">Durasi Khutbah Jumat (Menit):</label>
-                          <input
-                            type="number"
-                            value={adminSettings?.jumatKhutbahDurationMinutes || 40}
-                            onChange={(e) => handleTextSettingChange('jumatKhutbahDurationMinutes', Number(e.target.value))}
-                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 font-mono text-amber-300 text-xs outline-none"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-blue-300 font-semibold text-sm">Aktifkan Mode Idul Fitri</label>
-                        <button
-                          onClick={() => handleToggleSetting('enableIdulFitriMode')}
-                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.enableIdulFitriMode ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.enableIdulFitriMode ? 'left-7' : 'left-1'}`} />
-                        </button>
-                      </div>
-                      {adminSettings?.enableIdulFitriMode && (
-                        <div>
-                          <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Layar Idul Fitri:</label>
-                          <input
-                            type="text"
-                            value={adminSettings?.idulFitriRunningText || 'SELAMAT HARI RAYA IDUL FITRI 1 SYAWAL. MOHON MAAF LAHIR DAN BATIN.'}
-                            onChange={(e) => handleTextSettingChange('idulFitriRunningText', e.target.value)}
-                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between pt-3 border-t border-blue-800/50">
-                        <label className="text-blue-300 font-semibold text-sm">Aktifkan Mode Idul Adha</label>
-                        <button
-                          onClick={() => handleToggleSetting('enableIdulAdhaMode')}
-                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.enableIdulAdhaMode ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.enableIdulAdhaMode ? 'left-7' : 'left-1'}`} />
-                        </button>
-                      </div>
-                      {adminSettings?.enableIdulAdhaMode && (
-                        <div>
-                          <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Layar Idul Adha:</label>
-                          <input
-                            type="text"
-                            value={adminSettings?.idulAdhaRunningText || 'SELAMAT HARI RAYA IDUL ADHA. SEMOGA AMAL IBADAH QURBAN KITA DITERIMA ALLAH SWT.'}
-                            onChange={(e) => handleTextSettingChange('idulAdhaRunningText', e.target.value)}
-                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                          />
-                        </div>
-                      )}
-
-                      {(adminSettings?.enableIdulFitriMode || adminSettings?.enableIdulAdhaMode) && (
-                        <div className="pt-2">
-                          <label className="text-blue-300 font-semibold block mb-1 text-xs">Jam Pelaksanaan Shalat Ied (HH:MM):</label>
-                          <input
-                            type="time"
-                            value={adminSettings?.eidPrayerTime || '07:00'}
-                            onChange={(e) => handleTextSettingChange('eidPrayerTime', e.target.value)}
-                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Durasi Tampil Notifikasi Buka Puasa (Menit):</label>
-                        <input
-                          type="number"
-                          value={adminSettings?.iftarNotificationDurationMinutes || 10}
-                          onChange={(e) => handleTextSettingChange('iftarNotificationDurationMinutes', Number(e.target.value))}
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 font-mono text-amber-300 text-xs outline-none"
-                          title="Berapa lama teks Buka Puasa tampil saat Maghrib tiba"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Berjalan Saat Buka Puasa (Maghrib):</label>
-                        <input
-                          type="text"
-                          value={adminSettings?.iftarRunningText || 'SELAMAT BERBUKA PUASA UNTUK WILAYAH SENTUL DAN SEKITARNYA.'}
-                          onChange={(e) => handleTextSettingChange('iftarRunningText', e.target.value)}
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Kalibrasi Tanggal Hijriah (Hari):</label>
-                        <p className="text-[10px] text-blue-400 mb-2">Gunakan angka minus (misal: -1) atau plus (misal: 1) jika tanggal Hijriah lokal berbeda dengan kalender global.</p>
-                        <input
-                          type="number"
-                          value={adminSettings?.hijriOffsetDays || 0}
-                          onChange={(e) => handleTextSettingChange('hijriOffsetDays', parseInt(e.target.value) || 0)}
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                        />
-                      </div>
-                    </div>
-
-                  </div>
-
-                  <div className="space-y-4 pt-4 border-t border-blue-800/50 mt-4">
-                    <h5 className="font-bold text-blue-200 text-xs uppercase tracking-wider">Pengaturan Konten Tengah TV Display</h5>
-                    
-                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
-                        <h6 className="text-amber-400 font-semibold text-xs">Slide 1: Informasi Khutbah Jumat</h6>
-                        <button
-                          onClick={() => handleToggleSetting('tvEnableSlideJumat')}
-                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableSlideJumat !== false ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableSlideJumat !== false ? 'left-7' : 'left-1'}`} />
-                        </button>
-                      </div>
-                      <p className="text-xs text-blue-300">Menampilkan jadwal petugas Jumat dan Info Khatib. Diambil secara otomatis dari database petugas mingguan.</p>
-                    </div>
-
-                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
-                        <h6 className="text-amber-400 font-semibold text-xs">Slide 2: Pesan / Hadis Harian</h6>
-                        <button
-                          onClick={() => handleToggleSetting('tvEnableSlideHadis')}
-                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableSlideHadis !== false ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableSlideHadis !== false ? 'left-7' : 'left-1'}`} />
-                        </button>
-                      </div>
-                      {adminSettings?.tvEnableSlideHadis !== false && (
-                        <div className="space-y-3 mt-3">
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Judul Label:</label>
-                        <input
-                          type="text"
-                          value={adminSettings?.tvSlide1Title || 'HADIS SHAHIH HARI INI'}
-                          onChange={(e) => handleTextSettingChange('tvSlide1Title', e.target.value)}
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Utama (Arab/Besar):</label>
-                        <input
-                          type="text"
-                          value={adminSettings?.tvSlide1Arabic || 'مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ'}
-                          onChange={(e) => handleTextSettingChange('tvSlide1Arabic', e.target.value)}
-                          dir="rtl"
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-serif text-sm outline-none text-right"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Terjemahan / Arti:</label>
-                        <textarea
-                          value={adminSettings?.tvSlide1Indo || '"Sedekah itu tidak akan pernah mengurangi harta sedikit pun, melainkan Allah akan menambah kemuliaan."'}
-                          onChange={(e) => handleTextSettingChange('tvSlide1Indo', e.target.value)}
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-sans text-xs outline-none min-h-[60px]"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Sumber (Riwayat):</label>
-                        <input
-                          type="text"
-                          value={adminSettings?.tvSlide1Source || '(HR. Muslim no. 2588)'}
-                          onChange={(e) => handleTextSettingChange('tvSlide1Source', e.target.value)}
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-amber-300 font-mono text-xs outline-none"
-                        />
-                      </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
-                        <h6 className="text-amber-400 font-semibold text-xs">Slide 3: Program / Donasi Spesial</h6>
-                        <button
-                          onClick={() => handleToggleSetting('tvEnableSlideWakaf')}
-                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableSlideWakaf !== false ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableSlideWakaf !== false ? 'left-7' : 'left-1'}`} />
-                        </button>
-                      </div>
-                      {adminSettings?.tvEnableSlideWakaf !== false && (
-                        <div className="space-y-3 mt-3">
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Judul Label:</label>
-                        <input
-                          type="text"
-                          value={adminSettings?.tvSlide2Title || 'PROGRAM WAKAF UTAMA'}
-                          onChange={(e) => handleTextSettingChange('tvSlide2Title', e.target.value)}
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Nama Program:</label>
-                        <input
-                          type="text"
-                          value={adminSettings?.tvSlide2Heading || 'Wakaf Tunai Sound System & Akustik Ruang Shalat Utama'}
-                          onChange={(e) => handleTextSettingChange('tvSlide2Heading', e.target.value)}
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-serif text-sm outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Deskripsi Singkat:</label>
-                        <textarea
-                          value={adminSettings?.tvSlide2Desc || "Dukung pengadaan tata suara jernih kristal untuk kekhusyu'an ibadah jamaah Masjid Tazkia."}
-                          onChange={(e) => handleTextSettingChange('tvSlide2Desc', e.target.value)}
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-sans text-xs outline-none min-h-[60px]"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Status / Target (Teks Kuning):</label>
-                        <input
-                          type="text"
-                          value={adminSettings?.tvSlide2Target || 'Terkumpul: Rp 8.25M / Target: Rp 15M'}
-                          onChange={(e) => handleTextSettingChange('tvSlide2Target', e.target.value)}
-                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-amber-300 font-mono text-xs outline-none"
-                        />
-                      </div>
-                      </div>
-                      )}
-                    </div>
-
-                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
-                        <h6 className="text-amber-400 font-semibold text-xs">Slide 4: Video CCTV / YouTube Live</h6>
-                        <button
-                          onClick={() => handleToggleSetting('tvEnableVideoSlide')}
-                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableVideoSlide ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableVideoSlide ? 'left-7' : 'left-1'}`} />
-                        </button>
-                      </div>
-                      {adminSettings?.tvEnableVideoSlide && (
-                        <div className="space-y-4">
-                          <div>
-                            <label className="text-blue-300 font-semibold block mb-2 text-xs">Pilih Sumber Video:</label>
-                            <div className="flex flex-col sm:flex-row gap-3">
-                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvVideoSourceType !== 'camera' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
-                                <input 
-                                  type="radio" 
-                                  name="videoSource" 
-                                  checked={adminSettings?.tvVideoSourceType !== 'camera'}
-                                  onChange={() => handleTextSettingChange('tvVideoSourceType', 'url')}
-                                  className="text-amber-500"
-                                />
-                                <div className="text-xs">
-                                  <div className="font-bold text-blue-200">Internet (URL)</div>
-                                  <div className="text-blue-400 text-[10px]">YouTube Live, HLS, IP Camera web</div>
-                                </div>
-                              </label>
-                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvVideoSourceType === 'camera' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
-                                <input 
-                                  type="radio" 
-                                  name="videoSource" 
-                                  checked={adminSettings?.tvVideoSourceType === 'camera'}
-                                  onChange={() => handleTextSettingChange('tvVideoSourceType', 'camera')}
-                                  className="text-amber-500"
-                                />
-                                <div className="text-xs">
-                                  <div className="font-bold text-blue-200">Kabel Fisik CCTV</div>
-                                  <div className="text-blue-400 text-[10px]">Capture Card USB / Kamera Web</div>
-                                </div>
-                              </label>
-                            </div>
-                          </div>
-
-                          {adminSettings?.tvVideoSourceType !== 'camera' ? (
-                            <div>
-                              <label className="text-blue-300 font-semibold block mb-1 text-xs">URL YouTube Video (Harap gunakan link 'Embed' YouTube / link CCTV iFrame-compatible):</label>
-                              <input
-                                type="text"
-                                value={adminSettings?.tvVideoUrl || ''}
-                                onChange={(e) => handleTextSettingChange('tvVideoUrl', e.target.value)}
-                                placeholder="Contoh: https://www.youtube.com/embed/XXXXXXX?autoplay=1&mute=1"
-                                className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                              />
-                              <p className="text-[10px] text-blue-400 mt-1">Tambahkan <code className="text-amber-300 bg-blue-950 px-1 rounded">?autoplay=1&mute=1</code> di akhir URL agar video memutar otomatis tanpa suara dan tidak mengganggu murottal.</p>
-                            </div>
-                          ) : (
-                            <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl">
-                              <p className="text-xs text-amber-300 font-medium">
-                                ⚠️ Pastikan kabel Capture Card / Mesin DVR CCTV sudah dicolokkan ke USB komputer yang memutar TV Display ini.
-                                Browser akan meminta izin kamera (Allow Camera) saat TV Display dimuat ulang.
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
-                        <h6 className="text-amber-400 font-semibold text-xs">Slide 5: Media Kustom 1 (Poster / Video)</h6>
-                        <button
-                          onClick={() => handleToggleSetting('tvCustomSlide1Enabled')}
-                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvCustomSlide1Enabled ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvCustomSlide1Enabled ? 'left-7' : 'left-1'}`} />
-                        </button>
-                      </div>
-                      {adminSettings?.tvCustomSlide1Enabled && (
-                        <div className="space-y-4">
-                          <div>
-                            <label className="text-blue-300 font-semibold block mb-2 text-xs">Jenis Media:</label>
-                            <div className="flex flex-col sm:flex-row gap-3">
-                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide1Type !== 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
-                                <input 
-                                  type="radio" 
-                                  name="customSlide1Type" 
-                                  checked={adminSettings?.tvCustomSlide1Type !== 'video'}
-                                  onChange={() => handleTextSettingChange('tvCustomSlide1Type', 'image')}
-                                  className="text-amber-500"
-                                />
-                                <div className="text-xs">
-                                  <div className="font-bold text-blue-200">Foto / Poster</div>
-                                  <div className="text-blue-400 text-[10px]">Link URL Gambar JPG/PNG</div>
-                                </div>
-                              </label>
-                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide1Type === 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
-                                <input 
-                                  type="radio" 
-                                  name="customSlide1Type" 
-                                  checked={adminSettings?.tvCustomSlide1Type === 'video'}
-                                  onChange={() => handleTextSettingChange('tvCustomSlide1Type', 'video')}
-                                  className="text-amber-500"
-                                />
-                                <div className="text-xs">
-                                  <div className="font-bold text-blue-200">Video Internet</div>
-                                  <div className="text-blue-400 text-[10px]">YouTube / HLS / MP4</div>
-                                </div>
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="text-blue-300 font-semibold block mb-1 text-xs">URL Media (Link Gambar atau Link Embed Video):</label>
-                            <input
-                              type="text"
-                              value={adminSettings?.tvCustomSlide1Url || ''}
-                              onChange={(e) => handleTextSettingChange('tvCustomSlide1Url', e.target.value)}
-                              placeholder="Masukkan link URL..."
-                              className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
-                      <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
-                        <h6 className="text-amber-400 font-semibold text-xs">Slide 6: Media Kustom 2 (Poster / Video)</h6>
-                        <button
-                          onClick={() => handleToggleSetting('tvCustomSlide2Enabled')}
-                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvCustomSlide2Enabled ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
-                        >
-                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvCustomSlide2Enabled ? 'left-7' : 'left-1'}`} />
-                        </button>
-                      </div>
-                      {adminSettings?.tvCustomSlide2Enabled && (
-                        <div className="space-y-4">
-                          <div>
-                            <label className="text-blue-300 font-semibold block mb-2 text-xs">Jenis Media:</label>
-                            <div className="flex flex-col sm:flex-row gap-3">
-                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide2Type !== 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
-                                <input 
-                                  type="radio" 
-                                  name="customSlide2Type" 
-                                  checked={adminSettings?.tvCustomSlide2Type !== 'video'}
-                                  onChange={() => handleTextSettingChange('tvCustomSlide2Type', 'image')}
-                                  className="text-amber-500"
-                                />
-                                <div className="text-xs">
-                                  <div className="font-bold text-blue-200">Foto / Poster</div>
-                                  <div className="text-blue-400 text-[10px]">Link URL Gambar JPG/PNG</div>
-                                </div>
-                              </label>
-                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide2Type === 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
-                                <input 
-                                  type="radio" 
-                                  name="customSlide2Type" 
-                                  checked={adminSettings?.tvCustomSlide2Type === 'video'}
-                                  onChange={() => handleTextSettingChange('tvCustomSlide2Type', 'video')}
-                                  className="text-amber-500"
-                                />
-                                <div className="text-xs">
-                                  <div className="font-bold text-blue-200">Video Internet</div>
-                                  <div className="text-blue-400 text-[10px]">YouTube / HLS / MP4</div>
-                                </div>
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="text-blue-300 font-semibold block mb-1 text-xs">URL Media (Link Gambar atau Link Embed Video):</label>
-                            <input
-                              type="text"
-                              value={adminSettings?.tvCustomSlide2Url || ''}
-                              onChange={(e) => handleTextSettingChange('tvCustomSlide2Url', e.target.value)}
-                              placeholder="Masukkan link URL..."
-                              className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                            />
-                          </div>
-                        </div>
-                      )}
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">
+                        Teks Berjalan Utama (Default / Pengumuman Umum):
+                      </label>
+                      <input
+                        type="text"
+                        value={adminSettings?.defaultRunningText || '• HARAP MEMATIKAN ATAU MENGHENINGKAN NADA DERING PONSEL SAAT BERADA DI RUANG SHALAT UTAMA. • KAJIAN SUBUH BERKAH SETIAP HARI SABTU BERSAMA KH. RIDWAN KAMIL, LC. • SALURKAN ZISWAF ANDA MELALUI PORTAL DIGITAL MASJID TAZKIA ATAU SEKRETARIAT DKM.'}
+                        onChange={(e) => handleTextSettingChange('defaultRunningText', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                      />
+                      <p className="text-[10px] text-blue-400 mt-1">Teks ini akan terus berjalan di bawah layar jika tidak sedang waktu shalat.</p>
                     </div>
                   </div>
 
-                  <div>
+                                    <div>
                     <label className="text-blue-300 font-semibold block mb-1">
                       Nomor Rekening BSI (ZISWAF):
                     </label>
@@ -3870,10 +3467,10 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                 Penjadwalan Imam, Muadzin, & Khatib Jumat
               </h3>
               <button
-                onClick={() => setDkmTab('pengaturan')}
+                onClick={() => setDkmTab('tv_display')}
                 className="bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 font-bold px-4 py-2 rounded-xl text-xs border border-amber-500/30 flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
               >
-                <Settings className="w-4 h-4" /> <span>Pengaturan Khutbah Jumat Lengkap</span>
+                <Tv className="w-4 h-4" /> <span>Pengaturan TV Display & Khutbah</span>
               </button>
             </div>
 
@@ -5269,6 +4866,478 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
         )}
 
         {/* TAB: KONFIGURASI SUPABASE */}
+        
+        {/* TAB: DISPLAY TV */}
+        {dkmTab === 'tv_display' && (
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold font-serif text-white flex items-center gap-2">
+              <Tv className="w-6 h-6 text-amber-500" />
+              Pengaturan Display TV & Notifikasi Khusus
+            </h3>
+
+            <div className="bg-gradient-to-r from-blue-900 via-[#0e1d38] to-blue-900 border-2 border-blue-800 rounded-2xl p-6 shadow-xl">
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h5 className="font-bold text-blue-200 text-xs uppercase tracking-wider">Pengaturan Mode Khusus (Jumat, Hari Raya & Buka Puasa)</h5>
+                  
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-blue-300 font-semibold text-sm">Aktifkan Mode Shalat Jumat</label>
+                      <button
+                        onClick={() => handleToggleSetting('enableJumatMode')}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.enableJumatMode ?? true ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.enableJumatMode ?? true ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    {(adminSettings?.enableJumatMode ?? true) && (
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Durasi Khutbah Jumat (Menit):</label>
+                        <input
+                          type="number"
+                          value={adminSettings?.jumatKhutbahDurationMinutes || 40}
+                          onChange={(e) => handleTextSettingChange('jumatKhutbahDurationMinutes', Number(e.target.value))}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 font-mono text-amber-300 text-xs outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-blue-300 font-semibold text-sm">Aktifkan Mode Idul Fitri</label>
+                      <button
+                        onClick={() => handleToggleSetting('enableIdulFitriMode')}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.enableIdulFitriMode ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.enableIdulFitriMode ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    {adminSettings?.enableIdulFitriMode && (
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Layar Idul Fitri:</label>
+                        <input
+                          type="text"
+                          value={adminSettings?.idulFitriRunningText || 'SELAMAT HARI RAYA IDUL FITRI 1 SYAWAL. MOHON MAAF LAHIR DAN BATIN.'}
+                          onChange={(e) => handleTextSettingChange('idulFitriRunningText', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-3 border-t border-blue-800/50">
+                      <label className="text-blue-300 font-semibold text-sm">Aktifkan Mode Idul Adha</label>
+                      <button
+                        onClick={() => handleToggleSetting('enableIdulAdhaMode')}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.enableIdulAdhaMode ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.enableIdulAdhaMode ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    {adminSettings?.enableIdulAdhaMode && (
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Layar Idul Adha:</label>
+                        <input
+                          type="text"
+                          value={adminSettings?.idulAdhaRunningText || 'SELAMAT HARI RAYA IDUL ADHA. SEMOGA AMAL IBADAH QURBAN KITA DITERIMA ALLAH SWT.'}
+                          onChange={(e) => handleTextSettingChange('idulAdhaRunningText', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                        />
+                      </div>
+                    )}
+
+                    {(adminSettings?.enableIdulFitriMode || adminSettings?.enableIdulAdhaMode) && (
+                      <div className="pt-2">
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Jam Pelaksanaan Shalat Ied (HH:MM):</label>
+                        <input
+                          type="time"
+                          value={adminSettings?.eidPrayerTime || '07:00'}
+                          onChange={(e) => handleTextSettingChange('eidPrayerTime', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* IMSAK MODE (NEW) */}
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-blue-300 font-semibold text-sm">Aktifkan Mode Imsak</label>
+                      <button
+                        onClick={() => handleToggleSetting('enableImsakMode')}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.enableImsakMode ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.enableImsakMode ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    {adminSettings?.enableImsakMode && (
+                      <>
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-1 text-xs">Durasi Tampil Notifikasi Imsak (Menit Sebelum Subuh):</label>
+                          <input
+                            type="number"
+                            value={adminSettings?.imsakNotificationDurationMinutes || 10}
+                            onChange={(e) => handleTextSettingChange('imsakNotificationDurationMinutes', Number(e.target.value))}
+                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 font-mono text-amber-300 text-xs outline-none"
+                            title="Berapa lama teks Imsak tampil sebelum masuk waktu Subuh"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Berjalan Saat Imsak:</label>
+                          <input
+                            type="text"
+                            value={adminSettings?.imsakRunningText || 'WAKTU IMSYAK TELAH TIBA. SELAMAT MENUNAIKAN IBADAH PUASA.'}
+                            onChange={(e) => handleTextSettingChange('imsakRunningText', e.target.value)}
+                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Durasi Tampil Notifikasi Buka Puasa (Menit):</label>
+                      <input
+                        type="number"
+                        value={adminSettings?.iftarNotificationDurationMinutes || 10}
+                        onChange={(e) => handleTextSettingChange('iftarNotificationDurationMinutes', Number(e.target.value))}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 font-mono text-amber-300 text-xs outline-none"
+                        title="Berapa lama teks Buka Puasa tampil saat Maghrib tiba"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Berjalan Saat Buka Puasa (Maghrib):</label>
+                      <input
+                        type="text"
+                        value={adminSettings?.iftarRunningText || 'SELAMAT BERBUKA PUASA UNTUK WILAYAH SENTUL DAN SEKITARNYA.'}
+                        onChange={(e) => handleTextSettingChange('iftarRunningText', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Kalibrasi Tanggal Hijriah (Hari):</label>
+                      <p className="text-[10px] text-blue-400 mb-2">Gunakan angka minus (misal: -1) atau plus (misal: 1) jika tanggal Hijriah lokal berbeda dengan kalender global.</p>
+                      <input
+                        type="number"
+                        value={adminSettings?.hijriOffsetDays || 0}
+                        onChange={(e) => handleTextSettingChange('hijriOffsetDays', parseInt(e.target.value) || 0)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                      />
+                    </div>
+                  </div>
+
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-blue-800/50 mt-4">
+                  <h5 className="font-bold text-blue-200 text-xs uppercase tracking-wider">Pengaturan Konten Tengah TV Display</h5>
+                  
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                      <h6 className="text-amber-400 font-semibold text-xs">Slide 1: Informasi Khutbah Jumat</h6>
+                      <button
+                        onClick={() => handleToggleSetting('tvEnableSlideJumat')}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableSlideJumat !== false ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableSlideJumat !== false ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    <p className="text-xs text-blue-300">Menampilkan jadwal petugas Jumat dan Info Khatib. Diambil secara otomatis dari database petugas mingguan.</p>
+                  </div>
+
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                      <h6 className="text-amber-400 font-semibold text-xs">Slide 2: Pesan / Hadis Harian</h6>
+                      <button
+                        onClick={() => handleToggleSetting('tvEnableSlideHadis')}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableSlideHadis !== false ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableSlideHadis !== false ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    {adminSettings?.tvEnableSlideHadis !== false && (
+                      <div className="space-y-3 mt-3">
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Judul Label:</label>
+                      <input
+                        type="text"
+                        value={adminSettings?.tvSlide1Title || 'HADIS SHAHIH HARI INI'}
+                        onChange={(e) => handleTextSettingChange('tvSlide1Title', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Utama (Arab/Besar):</label>
+                      <input
+                        type="text"
+                        value={adminSettings?.tvSlide1Arabic || 'مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ'}
+                        onChange={(e) => handleTextSettingChange('tvSlide1Arabic', e.target.value)}
+                        dir="rtl"
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-serif text-sm outline-none text-right"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Terjemahan / Arti:</label>
+                      <textarea
+                        value={adminSettings?.tvSlide1Indo || '"Sedekah itu tidak akan pernah mengurangi harta sedikit pun, melainkan Allah akan menambah kemuliaan."'}
+                        onChange={(e) => handleTextSettingChange('tvSlide1Indo', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-sans text-xs outline-none min-h-[60px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Sumber (Riwayat):</label>
+                      <input
+                        type="text"
+                        value={adminSettings?.tvSlide1Source || '(HR. Muslim no. 2588)'}
+                        onChange={(e) => handleTextSettingChange('tvSlide1Source', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-amber-300 font-mono text-xs outline-none"
+                      />
+                    </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                      <h6 className="text-amber-400 font-semibold text-xs">Slide 3: Program / Donasi Spesial</h6>
+                      <button
+                        onClick={() => handleToggleSetting('tvEnableSlideWakaf')}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableSlideWakaf !== false ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableSlideWakaf !== false ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    {adminSettings?.tvEnableSlideWakaf !== false && (
+                      <div className="space-y-3 mt-3">
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Judul Label:</label>
+                      <input
+                        type="text"
+                        value={adminSettings?.tvSlide2Title || 'PROGRAM WAKAF UTAMA'}
+                        onChange={(e) => handleTextSettingChange('tvSlide2Title', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Nama Program:</label>
+                      <input
+                        type="text"
+                        value={adminSettings?.tvSlide2Heading || 'Wakaf Tunai Sound System & Akustik Ruang Shalat Utama'}
+                        onChange={(e) => handleTextSettingChange('tvSlide2Heading', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-serif text-sm outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Deskripsi Singkat:</label>
+                      <textarea
+                        value={adminSettings?.tvSlide2Desc || "Dukung pengadaan tata suara jernih kristal untuk kekhusyu'an ibadah jamaah Masjid Tazkia."}
+                        onChange={(e) => handleTextSettingChange('tvSlide2Desc', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-sans text-xs outline-none min-h-[60px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-blue-300 font-semibold block mb-1 text-xs">Status / Target (Teks Kuning):</label>
+                      <input
+                        type="text"
+                        value={adminSettings?.tvSlide2Target || 'Terkumpul: Rp 8.25M / Target: Rp 15M'}
+                        onChange={(e) => handleTextSettingChange('tvSlide2Target', e.target.value)}
+                        className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-amber-300 font-mono text-xs outline-none"
+                      />
+                    </div>
+                    </div>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                      <h6 className="text-amber-400 font-semibold text-xs">Slide 4: Video CCTV / YouTube Live</h6>
+                      <button
+                        onClick={() => handleToggleSetting('tvEnableVideoSlide')}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvEnableVideoSlide ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvEnableVideoSlide ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    {adminSettings?.tvEnableVideoSlide && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-2 text-xs">Pilih Sumber Video:</label>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvVideoSourceType !== 'camera' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                              <input 
+                                type="radio" 
+                                name="videoSource" 
+                                checked={adminSettings?.tvVideoSourceType !== 'camera'}
+                                onChange={() => handleTextSettingChange('tvVideoSourceType', 'url')}
+                                className="text-amber-500"
+                              />
+                              <div className="text-xs">
+                                <div className="font-bold text-blue-200">Internet (URL)</div>
+                                <div className="text-blue-400 text-[10px]">YouTube Live, HLS, IP Camera web</div>
+                              </div>
+                            </label>
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvVideoSourceType === 'camera' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                              <input 
+                                type="radio" 
+                                name="videoSource" 
+                                checked={adminSettings?.tvVideoSourceType === 'camera'}
+                                onChange={() => handleTextSettingChange('tvVideoSourceType', 'camera')}
+                                className="text-amber-500"
+                              />
+                              <div className="text-xs">
+                                <div className="font-bold text-blue-200">Kabel Fisik CCTV</div>
+                                <div className="text-blue-400 text-[10px]">Capture Card USB / Kamera Web</div>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+
+                        {adminSettings?.tvVideoSourceType !== 'camera' ? (
+                          <div>
+                            <label className="text-blue-300 font-semibold block mb-1 text-xs">URL YouTube Video (Harap gunakan link 'Embed' YouTube / link CCTV iFrame-compatible):</label>
+                            <input
+                              type="text"
+                              value={adminSettings?.tvVideoUrl || ''}
+                              onChange={(e) => handleTextSettingChange('tvVideoUrl', e.target.value)}
+                              placeholder="Contoh: https://www.youtube.com/embed/XXXXXXX?autoplay=1&mute=1"
+                              className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                            />
+                            <p className="text-[10px] text-blue-400 mt-1">Tambahkan <code className="text-amber-300 bg-blue-950 px-1 rounded">?autoplay=1&mute=1</code> di akhir URL agar video memutar otomatis tanpa suara dan tidak mengganggu murottal.</p>
+                          </div>
+                        ) : (
+                          <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl">
+                            <p className="text-xs text-amber-300 font-medium">
+                              ⚠️ Pastikan kabel Capture Card / Mesin DVR CCTV sudah dicolokkan ke USB komputer yang memutar TV Display ini.
+                              Browser akan meminta izin kamera (Allow Camera) saat TV Display dimuat ulang.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                      <h6 className="text-amber-400 font-semibold text-xs">Slide 5: Media Kustom 1 (Poster / Video)</h6>
+                      <button
+                        onClick={() => handleToggleSetting('tvCustomSlide1Enabled')}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvCustomSlide1Enabled ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvCustomSlide1Enabled ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    {adminSettings?.tvCustomSlide1Enabled && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-2 text-xs">Jenis Media:</label>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide1Type !== 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                              <input 
+                                type="radio" 
+                                name="customSlide1Type" 
+                                checked={adminSettings?.tvCustomSlide1Type !== 'video'}
+                                onChange={() => handleTextSettingChange('tvCustomSlide1Type', 'image')}
+                                className="text-amber-500"
+                              />
+                              <div className="text-xs">
+                                <div className="font-bold text-blue-200">Foto / Poster</div>
+                                <div className="text-blue-400 text-[10px]">Link URL Gambar JPG/PNG</div>
+                              </div>
+                            </label>
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide1Type === 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                              <input 
+                                type="radio" 
+                                name="customSlide1Type" 
+                                checked={adminSettings?.tvCustomSlide1Type === 'video'}
+                                onChange={() => handleTextSettingChange('tvCustomSlide1Type', 'video')}
+                                className="text-amber-500"
+                              />
+                              <div className="text-xs">
+                                <div className="font-bold text-blue-200">Video Internet</div>
+                                <div className="text-blue-400 text-[10px]">YouTube / HLS / MP4</div>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-1 text-xs">URL Media (Link Gambar atau Link Embed Video):</label>
+                          <input
+                            type="text"
+                            value={adminSettings?.tvCustomSlide1Url || ''}
+                            onChange={(e) => handleTextSettingChange('tvCustomSlide1Url', e.target.value)}
+                            placeholder="Masukkan link URL..."
+                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                    <div className="flex items-center justify-between border-b border-blue-800/50 pb-2">
+                      <h6 className="text-amber-400 font-semibold text-xs">Slide 6: Media Kustom 2 (Poster / Video)</h6>
+                      <button
+                        onClick={() => handleToggleSetting('tvCustomSlide2Enabled')}
+                        className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.tvCustomSlide2Enabled ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.tvCustomSlide2Enabled ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                    {adminSettings?.tvCustomSlide2Enabled && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-2 text-xs">Jenis Media:</label>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide2Type !== 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                              <input 
+                                type="radio" 
+                                name="customSlide2Type" 
+                                checked={adminSettings?.tvCustomSlide2Type !== 'video'}
+                                onChange={() => handleTextSettingChange('tvCustomSlide2Type', 'image')}
+                                className="text-amber-500"
+                              />
+                              <div className="text-xs">
+                                <div className="font-bold text-blue-200">Foto / Poster</div>
+                                <div className="text-blue-400 text-[10px]">Link URL Gambar JPG/PNG</div>
+                              </div>
+                            </label>
+                            <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvCustomSlide2Type === 'video' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                              <input 
+                                type="radio" 
+                                name="customSlide2Type" 
+                                checked={adminSettings?.tvCustomSlide2Type === 'video'}
+                                onChange={() => handleTextSettingChange('tvCustomSlide2Type', 'video')}
+                                className="text-amber-500"
+                              />
+                              <div className="text-xs">
+                                <div className="font-bold text-blue-200">Video Internet</div>
+                                <div className="text-blue-400 text-[10px]">YouTube / HLS / MP4</div>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-1 text-xs">URL Media (Link Gambar atau Link Embed Video):</label>
+                          <input
+                            type="text"
+                            value={adminSettings?.tvCustomSlide2Url || ''}
+                            onChange={(e) => handleTextSettingChange('tvCustomSlide2Url', e.target.value)}
+                            placeholder="Masukkan link URL..."
+                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {dkmTab === 'supabase' && (
           <div className="animate-fadeIn space-y-6">
             <div className="bg-blue-900 border border-blue-800 p-6 rounded-2xl shadow-lg text-white">
@@ -5281,17 +5350,15 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                   <p className="text-blue-300 text-sm">Konfigurasi koneksi ke server backend Supabase PostgreSQL</p>
                 </div>
               </div>
-
               <div className="bg-blue-950 p-4 rounded-xl border border-blue-800/50 mb-6">
                 <div className="flex items-center gap-2 mb-2">
                   <ShieldCheck className="w-5 h-5 text-emerald-400" />
                   <span className="font-bold text-emerald-400 text-sm">Terkoneksi via Environment Variables (.env)</span>
                 </div>
                 <p className="text-blue-200 text-xs leading-relaxed">
-                  Untuk standar keamanan tertinggi (Enterprise Grade), aplikasi Masjid Tazkia mengamankan kunci rahasia Supabase Anda di tingkat <strong>Environment Build (sistem .env dan Netlify)</strong>, bukan di *browser* atau aplikasi secara langsung.
+                  Untuk standar keamanan tertinggi (Enterprise Grade), aplikasi Masjid Tazkia mengamankan kunci rahasia Supabase Anda di tingkat <strong>Environment Build (sistem .env dan Netlify)</strong>, bukan di browser atau aplikasi secara langsung.
                 </p>
               </div>
-
               <div className="space-y-4 text-sm text-blue-200">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-4 border-b border-blue-800/50">
                   <div className="font-bold text-blue-300">URL Proyek</div>
@@ -5299,7 +5366,6 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                     {import.meta.env.VITE_SUPABASE_URL || 'Memuat...'}
                   </div>
                 </div>
-                
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="font-bold text-blue-300">Anon Key / Public API</div>
                   <div className="sm:col-span-2 font-mono text-xs break-all bg-blue-950 px-3 py-2 rounded border border-blue-800 text-slate-400">
@@ -5307,9 +5373,8 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                   </div>
                 </div>
               </div>
-              
               <div className="mt-8 bg-amber-900/20 border border-amber-500/30 p-4 rounded-xl text-amber-200 text-xs leading-relaxed">
-                <strong>Catatan Pengurus:</strong> Jika Anda perlu mengubah kredensial database ini suatu saat nanti (misalnya pindah server), silakan ubah pengaturan <strong>Environment Variables</strong> di dashboard <strong>Netlify</strong> Anda secara langsung. Hal ini secara efektif akan mencegah peretas (*hacker*) mengetahui kunci API *database* Anda melalui celah aplikasi *front-end*.
+                <strong>Catatan Pengurus:</strong> Jika Anda perlu mengubah kredensial database ini suatu saat nanti (misalnya pindah server), silakan ubah pengaturan <strong>Environment Variables</strong> di dashboard <strong>Netlify</strong> Anda secara langsung.
               </div>
             </div>
           </div>

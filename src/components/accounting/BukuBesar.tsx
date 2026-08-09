@@ -15,6 +15,9 @@ export function BukuBesar() {
   const [startDate, setStartDate] = useState(getFirstDayOfMonth());
   const [endDate, setEndDate] = useState(getToday());
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   const handleExport = () => {
     // If an account is selected, export only that account's ledger
     const accountsToExport = selectedAccountId 
@@ -59,6 +62,8 @@ export function BukuBesar() {
           journalDate: journal?.date,
           journalNo: journal?.journalNo,
           journalDesc: journal?.description,
+          journalCreatedAt: journal?.createdAt,
+          journalCreatedBy: journal?.createdBy,
           runningBalance
         };
       });
@@ -85,6 +90,8 @@ export function BukuBesar() {
           journalDate: journal?.date,
           journalNo: journal?.journalNo,
           journalDesc: journal?.description,
+          journalCreatedAt: journal?.createdAt,
+          journalCreatedBy: journal?.createdBy,
           accountCode: coa?.accountCode || entry.accountCode,
           accountName: coa?.accountName || entry.accountName,
           runningBalance: 0
@@ -119,7 +126,7 @@ export function BukuBesar() {
               placeholder="Ketik kode atau nama..."
               value={coaSearch}
               onChange={e => setCoaSearch(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+              className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white"
               style={{ color: '#111827', backgroundColor: '#ffffff' }}
             />
           </div>
@@ -128,7 +135,7 @@ export function BukuBesar() {
             <select 
               value={selectedAccountId} 
               onChange={e => setSelectedAccountId(e.target.value)} 
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+              className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white"
               style={{ color: '#111827', backgroundColor: '#ffffff' }}
             >
               <option value="" style={{ color: '#111827', backgroundColor: '#ffffff' }}>-- Semua Akun (Semua Mutasi Transaksi) --</option>
@@ -167,16 +174,36 @@ export function BukuBesar() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {ledgerEntries.map((e, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  <td className="p-4">{e.journalDate}</td>
-                  <td className="p-4 font-mono text-xs text-blue-600">{e.journalNo}</td>
-                  <td className="p-4">{e.description || e.journalDesc}</td>
-                  <td className="p-4 text-right font-mono">{e.debit > 0 ? e.debit.toLocaleString() : '-'}</td>
-                  <td className="p-4 text-right font-mono">{e.credit > 0 ? e.credit.toLocaleString() : '-'}</td>
-                  <td className="p-4 text-right font-mono font-semibold">{e.runningBalance.toLocaleString()}</td>
-                </tr>
-              ))}
+              {(() => {
+                const totalPages = Math.ceil(ledgerEntries.length / itemsPerPage) || 1;
+                const paginatedEntries = ledgerEntries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                if (currentPage > totalPages) setCurrentPage(1);
+                
+                return paginatedEntries.map((e, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50 text-slate-800">
+                    <td className="p-4">
+                      <div className="font-semibold text-gray-800">
+                        {e.journalDate ? new Date(e.journalDate).toLocaleDateString('id-ID') : '-'}
+                      </div>
+                      {e.journalCreatedAt && (
+                        <div className="text-[10px] text-gray-400 font-medium">
+                          {new Date(e.journalCreatedAt).toLocaleTimeString('id-ID')}
+                        </div>
+                      )}
+                      {e.journalCreatedBy && (
+                        <div className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded inline-block mt-1">
+                          Input: {e.journalCreatedBy}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-4 font-mono text-xs text-blue-600">{e.journalNo}</td>
+                    <td className="p-4">{e.description || e.journalDesc}</td>
+                    <td className="p-4 text-right font-mono">{e.debit > 0 ? e.debit.toLocaleString() : '-'}</td>
+                    <td className="p-4 text-right font-mono">{e.credit > 0 ? e.credit.toLocaleString() : '-'}</td>
+                    <td className="p-4 text-right font-mono font-semibold">{e.runningBalance.toLocaleString()}</td>
+                  </tr>
+                ));
+              })()}
               {ledgerEntries.length === 0 && (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-gray-400">Belum ada mutasi pada akun ini.</td>
@@ -184,6 +211,20 @@ export function BukuBesar() {
               )}
             </tbody>
           </table>
+          {/* Pagination Controls */}
+          {(() => {
+            const totalPages = Math.ceil(ledgerEntries.length / itemsPerPage) || 1;
+            if (totalPages <= 1) return null;
+            return (
+              <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-white">
+                <span className="text-sm text-gray-500">Halaman {currentPage} dari {totalPages}</span>
+                <div className="flex gap-2">
+                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1 text-sm border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50">Sebelumnya</button>
+                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-1 text-sm border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50">Selanjutnya</button>
+                </div>
+              </div>
+            );
+          })()}
           </div>
         </div>
       ) : (
@@ -213,21 +254,41 @@ export function BukuBesar() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {ledgerEntries.map((e, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
-                  <td className="p-4">{e.journalDate}</td>
-                  <td className="p-4 font-mono text-xs text-blue-600">{e.journalNo}</td>
-                  <td className="p-4">
-                    <span className="font-semibold text-xs bg-blue-50 text-blue-800 px-2 py-0.5 rounded mr-1">
-                      {e.accountCode}
-                    </span>
-                    {e.accountName}
-                  </td>
-                  <td className="p-4">{e.description || e.journalDesc}</td>
-                  <td className="p-4 text-right font-mono">{e.debit > 0 ? e.debit.toLocaleString() : '-'}</td>
-                  <td className="p-4 text-right font-mono">{e.credit > 0 ? e.credit.toLocaleString() : '-'}</td>
-                </tr>
-              ))}
+              {(() => {
+                const totalPages = Math.ceil(ledgerEntries.length / itemsPerPage) || 1;
+                const paginatedEntries = ledgerEntries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                if (currentPage > totalPages) setCurrentPage(1);
+
+                return paginatedEntries.map((e, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50 text-slate-800">
+                    <td className="p-4">
+                      <div className="font-semibold text-gray-800">
+                        {e.journalDate ? new Date(e.journalDate).toLocaleDateString('id-ID') : '-'}
+                      </div>
+                      {e.journalCreatedAt && (
+                        <div className="text-[10px] text-gray-400 font-medium">
+                          {new Date(e.journalCreatedAt).toLocaleTimeString('id-ID')}
+                        </div>
+                      )}
+                      {e.journalCreatedBy && (
+                        <div className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded inline-block mt-1">
+                          Input: {e.journalCreatedBy}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-4 font-mono text-xs text-blue-600">{e.journalNo}</td>
+                    <td className="p-4">
+                      <span className="font-semibold text-xs bg-blue-50 text-blue-800 px-2 py-0.5 rounded mr-1">
+                        {e.accountCode}
+                      </span>
+                      {e.accountName}
+                    </td>
+                    <td className="p-4">{e.description || e.journalDesc}</td>
+                    <td className="p-4 text-right font-mono">{e.debit > 0 ? e.debit.toLocaleString() : '-'}</td>
+                    <td className="p-4 text-right font-mono">{e.credit > 0 ? e.credit.toLocaleString() : '-'}</td>
+                  </tr>
+                ));
+              })()}
               {ledgerEntries.length === 0 && (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-gray-400">Belum ada data jurnal transaksi.</td>
@@ -235,6 +296,20 @@ export function BukuBesar() {
               )}
             </tbody>
           </table>
+          {/* Pagination Controls */}
+          {(() => {
+            const totalPages = Math.ceil(ledgerEntries.length / itemsPerPage) || 1;
+            if (totalPages <= 1) return null;
+            return (
+              <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-white">
+                <span className="text-sm text-gray-500">Halaman {currentPage} dari {totalPages}</span>
+                <div className="flex gap-2">
+                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-3 py-1 text-sm border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50">Sebelumnya</button>
+                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-3 py-1 text-sm border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50">Selanjutnya</button>
+                </div>
+              </div>
+            );
+          })()}
           </div>
         </div>
       )}

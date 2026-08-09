@@ -14,7 +14,8 @@ import {
   BoardMember,
   ReportSignatory,
   MasjidAgenda,
-  ERPBudgetEntry
+  ERPBudgetEntry,
+  AppAdminSettings
 } from '../types';
 
 export const INITIAL_PROGRAMS: Program[] = [

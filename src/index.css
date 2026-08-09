@@ -56,14 +56,14 @@
 
   /* Marquee Animation */
   @keyframes marquee {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(-50%); }
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
   }
 
   .animate-marquee {
     display: inline-block;
     white-space: nowrap;
-    animation: marquee 25s linear infinite;
+    animation: marquee 45s linear infinite;
   }
 
   /* Custom Scrollbar */
@@ -109,21 +109,22 @@
     overflow: visible !important;
   }
 
-  body * {
-    visibility: hidden;
-  }
-  
-  .print-area, .print-area * {
-    visibility: visible;
-  }
-  
+  /* Remove visibility hidden hack, rely on print:hidden classes */
   .print-area {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  table {
     width: 100% !important;
+  }
+
+  tr, .avoid-break {
+    page-break-inside: avoid;
   }
 
   /* Specific overrides to ensure navigation and toolbars disappear */

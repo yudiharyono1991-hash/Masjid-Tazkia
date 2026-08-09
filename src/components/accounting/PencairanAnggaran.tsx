@@ -404,7 +404,7 @@ export function PencairanAnggaran() {
                                 value={rejectionReason}
                                 onChange={e => setRejectionReason(e.target.value)}
                                 placeholder="Alasan penolakan..." 
-                                className="px-2 py-1.5 text-xs border border-gray-300 rounded outline-none"
+                                className="px-2 py-1.5 text-xs border border-gray-300 rounded outline-none text-gray-900 bg-white"
                               />
                               <div className="flex gap-2">
                                 <button onClick={() => submitReject(d.id)} className="flex-1 bg-red-600 text-white text-xs font-bold py-1.5 rounded">Tolak</button>

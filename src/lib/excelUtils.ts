@@ -14,6 +14,20 @@ export const exportCoaToExcel = (accounts: ERPChartOfAccount[]) => {
   XLSX.writeFile(wb, 'COA_Masjid_Tazkia.xlsx');
 };
 
+export const downloadCoaTemplate = () => {
+  const templateData = [{
+    'Kode Akun': '1101',
+    'Nama Akun': 'Kas Masjid (Contoh)',
+    'Tipe Akun': 'Asset',
+    'Saldo Normal': 'Debit',
+    'Status Aktif': 'Ya'
+  }];
+  const ws = XLSX.utils.json_to_sheet(templateData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template COA');
+  XLSX.writeFile(wb, 'Template_Import_COA.xlsx');
+};
+
 export const exportBukuBesarToExcel = (
   accounts: ERPChartOfAccount[],
   journals: ERPGeneralJournal[],

@@ -77,6 +77,37 @@ export const ReportSignatoryAdmin: React.FC = () => {
         )}
       </div>
 
+      <div className="bg-blue-900/50 border border-blue-800/50 p-5 rounded-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="text-sm font-semibold text-blue-300 block mb-2">Lokasi Cetak Laporan (Otomatis + Tanggal Cetak)</label>
+            <input
+              type="text"
+              value={store.state.adminSettings?.reportPrintLocation || 'Sentul City, Bogor'}
+              onChange={(e) => store.updateAdminSettings({ reportPrintLocation: e.target.value })}
+              placeholder="Contoh: Sentul City, Bogor"
+              className="w-full bg-blue-950 border border-blue-800 text-white text-sm rounded-xl px-4 py-2 outline-none focus:border-blue-500 transition-colors"
+            />
+            <p className="text-xs text-blue-400 mt-2">
+              Contoh hasil: <strong>{(store.state.adminSettings?.reportPrintLocation || 'Sentul City, Bogor')}, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-blue-300 block mb-2">Tembusan Laporan (Opsional)</label>
+            <textarea
+              value={store.state.adminSettings?.reportTembusan || ''}
+              onChange={(e) => store.updateAdminSettings({ reportTembusan: e.target.value })}
+              placeholder="Contoh:&#10;1. Ketua Dewan Pembina&#10;2. Arsip"
+              rows={3}
+              className="w-full bg-blue-950 border border-blue-800 text-white text-sm rounded-xl px-4 py-2 outline-none focus:border-blue-500 transition-colors resize-none"
+            />
+            <p className="text-xs text-blue-400 mt-2">
+              Teks ini akan muncul di pojok kiri bawah laporan. Kosongkan jika tidak ada.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-blue-900 border-2 border-blue-500/40 p-6 rounded-2xl space-y-5 shadow-2xl animate-fadeIn">
           <div className="flex items-center justify-between border-b border-blue-800 pb-3">

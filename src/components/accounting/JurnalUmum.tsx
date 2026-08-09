@@ -9,7 +9,17 @@ export function JurnalUmum() {
   const { state, addErpJournal, deleteErpJournal, updateErpJournal, addErpJournalEntry } = useMasjidStore();
   const [isAdding, setIsAdding] = useState(false);
   const [editingJournalId, setEditingJournalId] = useState<string | null>(null);
-  const [visibleCount, setVisibleCount] = useState(50);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
+  const generateUniqueId = (prefix: string) => {
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    const timeStr = d.getTime().toString().slice(-4);
+    const randomStr = Math.floor(10 + Math.random() * 90).toString();
+    return `${prefix}-${dateStr}-${timeStr}${randomStr}`;
+  };
+
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' | 'warn' } | null>(null);
   const showToast = (text: string, type: 'success' | 'error' | 'warn' = 'success') => {
     setToastMsg({ text, type });
@@ -24,7 +34,7 @@ export function JurnalUmum() {
   const [endDate, setEndDate] = useState(getToday());
 
   const [journalData, setJournalData] = useState<Partial<ERPGeneralJournal>>({
-    journalNo: `JU-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`,
+    journalNo: generateUniqueId('JU'),
     date: new Date().toISOString().split('T')[0],
     description: '',
     reference: '',
@@ -65,6 +75,7 @@ export function JurnalUmum() {
       description: journalData.description || '',
       reference: journalData.reference || '',
       status: 'Posted',
+      createdBy: state.session?.name || 'Sistem',
       createdAt: new Date().toISOString()
     };
 
@@ -99,7 +110,7 @@ export function JurnalUmum() {
     setEditingJournalId(null);
     setEntries([{ accountId: '', debit: 0, credit: 0, description: '' }, { accountId: '', debit: 0, credit: 0, description: '' }]);
     setJournalData({
-      journalNo: `JU-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`,
+      journalNo: generateUniqueId('JU'),
       date: new Date().toISOString().split('T')[0],
       description: '',
       reference: '',
@@ -132,7 +143,7 @@ export function JurnalUmum() {
     setEditingJournalId(null);
     setEntries([{ accountId: '', debit: 0, credit: 0, description: '' }, { accountId: '', debit: 0, credit: 0, description: '' }]);
     setJournalData({
-      journalNo: `JU-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`,
+      journalNo: generateUniqueId('JU'),
       date: new Date().toISOString().split('T')[0],
       description: '',
       reference: '',
@@ -281,10 +292,16 @@ export function JurnalUmum() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {state.erpJournals
-              .filter(j => j.date >= startDate && j.date <= endDate)
-              .slice(0, visibleCount)
-              .map(journal => {
+            {(() => {
+              const filteredJournals = state.erpJournals.filter(j => j.date >= startDate && j.date <= endDate);
+              const totalPages = Math.ceil(filteredJournals.length / itemsPerPage) || 1;
+              const paginatedJournals = filteredJournals.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+              
+              if (currentPage > totalPages) setCurrentPage(1); // Auto reset if out of bounds
+              
+              return (
+                <>
+                  {paginatedJournals.map(journal => {
               const journalEntries = state.erpJournalEntries.filter(e => e.journalId === journal.id);
               const totalDebit = journalEntries.reduce((s, e) => s + e.debit, 0);
               
@@ -292,9 +309,19 @@ export function JurnalUmum() {
                 <React.Fragment key={journal.id}>
                   <tr className="bg-gray-50/50 text-slate-900">
                     <td className="p-4 align-top w-1/4">
-                      <div className="font-semibold">{journal.date}</div>
-                      <div className="font-mono text-xs text-blue-600">{journal.journalNo}</div>
-                      <div className="text-xs text-gray-400 mt-1">Ref: {journal.reference || '-'}</div>
+                      <div className="font-semibold text-gray-800">
+                        {new Date(journal.date).toLocaleDateString('id-ID')}
+                      </div>
+                      {journal.createdAt && (
+                        <div className="text-[10px] text-gray-400 font-medium">
+                          {new Date(journal.createdAt).toLocaleTimeString('id-ID')}
+                        </div>
+                      )}
+                      <div className="font-mono text-xs text-blue-600 mt-1">{journal.journalNo}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">Ref: {journal.reference || '-'}</div>
+                      <div className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded inline-block mt-1">
+                        Input: {journal.createdBy || '-'}
+                      </div>
                     </td>
                     <td className="p-4 align-top font-medium text-gray-700">
                       {journal.description}
@@ -345,19 +372,45 @@ export function JurnalUmum() {
                 <td colSpan={5} className="p-8 text-center text-gray-400">Belum ada transaksi Jurnal Umum.</td>
               </tr>
             )}
+            {/* PAGINATION LOGIC UI */}
+            {(() => {
+              const filteredJournals = state.erpJournals.filter(j => j.date >= startDate && j.date <= endDate);
+              const totalPages = Math.ceil(filteredJournals.length / itemsPerPage) || 1;
+              if (totalPages <= 1) return null;
+              
+              return (
+                <tr className="bg-white">
+                  <td colSpan={5} className="p-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">
+                        Halaman {currentPage} dari {totalPages}
+                      </span>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                          className="px-3 py-1 text-sm border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          Sebelumnya
+                        </button>
+                        <button 
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-1 text-sm border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          Selanjutnya
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })()}
+                </>
+              );
+            })()}
           </tbody>
         </table>
-        
-        {visibleCount < state.erpJournals.length && (
-          <div className="p-4 text-center border-t border-gray-100 bg-gray-50">
-            <button 
-              onClick={() => setVisibleCount(prev => prev + 50)}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50"
-            >
-              Tampilkan Lebih Banyak ({state.erpJournals.length - visibleCount} lagi)
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

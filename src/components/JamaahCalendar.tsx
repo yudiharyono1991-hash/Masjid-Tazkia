@@ -21,7 +21,8 @@ const DAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
 export const JamaahCalendar: React.FC<JamaahCalendarProps> = ({ notes, onAddNote, onRemoveNote, jamaahId }) => {
-  const { adminSettings } = useMasjidStore();
+  const { state } = useMasjidStore();
+  const adminSettings = state.adminSettings;
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showNoteForm, setShowNoteForm] = useState(false);

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { CITIES_DATA, CityPrayerTime, SURAHS_LIST } from '../lib/islamicUtils';
 import { Announcement, PetugasJadwal, AppAdminSettings } from '../types';
 import { Tv, X, Volume2, VolumeX, Play, Pause, Calendar, MapPin, Sparkles, Home, Maximize } from 'lucide-react';
+import { getImageFromStorage } from '../lib/imageStorage';
 
 const QARI_LIST = [
   { id: 'alafasy', name: 'Mishary Rashid Alafasy', baseUrl: 'https://server8.mp3quran.net/afs/' },
@@ -25,6 +26,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
   const [time, setTime] = useState<Date>(new Date());
   const [selectedCity] = useState<CityPrayerTime>(CITIES_DATA[0]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
+  const [logoUrl, setLogoUrl] = useState<string>('');
   const [selectedQari, setSelectedQari] = useState<string>(QARI_LIST[0].baseUrl);
   const [selectedSurah, setSelectedSurah] = useState<number>(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -33,6 +35,25 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
   const [mediaVolume, setMediaVolume] = useState<number>(70);
   const [isMediaMuted, setIsMediaMuted] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const loadLogo = async () => {
+      try {
+        const storedLogo = adminSettings?.masjidLogoUrl;
+        const saved = await getImageFromStorage('tazkia_logo_masjid');
+        if (storedLogo && storedLogo !== '/logo.png') {
+          setLogoUrl(storedLogo);
+        } else if (saved) {
+          setLogoUrl(saved);
+        } else {
+          setLogoUrl('/logo.png');
+        }
+      } catch (e) {
+        setLogoUrl(adminSettings?.masjidLogoUrl || '/logo.png');
+      }
+    };
+    loadLogo();
+  }, [adminSettings?.masjidLogoUrl]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -142,7 +163,13 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
       let prayerMinutes = prayer.time;
       let diffMinutes = currentMinutes - prayerMinutes;
 
-      // Handle Iftar pre-notification
+      // Handle Imsak pre-notification (Before Subuh)
+      const imsakDur = adminSettings?.enableImsakMode ? (adminSettings?.imsakNotificationDurationMinutes || 10) : 0;
+      if (prayer.name === 'SUBUH' && diffMinutes >= -imsakDur && diffMinutes < 0) {
+        return { phase: 'IMSAK_WAIT', prayerName: 'SUBUH' };
+      }
+
+      // Handle Iftar pre-notification (Before Maghrib)
       if (prayer.name === 'MAGHRIB' && diffMinutes >= -iftarDur && diffMinutes < 0) {
         return { phase: 'IFTAR_WAIT', prayerName: 'MAGHRIB' }; // Custom state just for displaying iftar text in normal mode
       }
@@ -190,10 +217,10 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|live\/)|youtu\.be\/)([^"&?\/\s]{11})/;
     const match = url.match(ytRegex);
     if (match && match[1]) {
-      // Use enablejsapi=1 to allow postMessage volume control
-      // We use mute=0 initially, and syncYouTubeVolume will take over via postMessage.
-      // Do NOT put React state like isMediaMuted in this URL, or it will reload the iframe when volume changes!
-      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=0&controls=0&enablejsapi=1`;
+      // mute=1 is REQUIRED for autoplay on mobile (iOS Safari & Android Chrome policy)
+      // playsinline=1 prevents fullscreen on iOS
+      // enablejsapi=1 allows postMessage volume control
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&controls=1&enablejsapi=1&playsinline=1&rel=0`;
     }
     return url;
   };
@@ -280,11 +307,16 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
   if (prayerPhase.phase === 'SHOLAT' || prayerPhase.phase === 'KHUTBAH') {
     return (
       <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center cursor-none select-none">
-         <p className="text-[#111] text-xs font-bold uppercase tracking-widest">
-           {prayerPhase.phase === 'SHOLAT' 
-             ? (adminSettings?.sholatRunningText || 'SHALAT BERJAMAAH SEDANG BERLANGSUNG') 
-             : 'KHUTBAH SEDANG BERLANGSUNG. HARAP TENANG.'}
-         </p>
+         <div className="flex flex-col items-center justify-center space-y-4">
+           <p className="text-gray-500 text-3xl sm:text-5xl font-bold uppercase tracking-widest text-center animate-pulse">
+             {prayerPhase.phase === 'SHOLAT' 
+               ? (adminSettings?.sholatRunningText || 'SHALAT BERJAMAAH SEDANG BERLANGSUNG') 
+               : 'KHUTBAH SEDANG BERLANGSUNG'}
+           </p>
+           {prayerPhase.phase === 'KHUTBAH' && (
+             <p className="text-gray-600 text-xl sm:text-2xl font-medium tracking-wide">HARAP TENANG DAN FOKUS PADA KHATIB</p>
+           )}
+         </div>
          {/* Hidden exit button so admin can still escape if stuck */}
          <button onClick={onExit} className="absolute bottom-4 right-4 w-10 h-10 opacity-0 cursor-pointer" title="Keluar" />
       </div>
@@ -297,9 +329,21 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
       <div className="flex flex-col lg:flex-row items-center justify-between border-b border-amber-500/30 pb-4 bg-blue-900/60 p-4 rounded-2xl gap-4 lg:gap-0">
         <div className="flex items-center justify-between w-full lg:w-auto gap-4">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-amber-500/20 border border-amber-400 text-amber-400 flex items-center justify-center shadow-lg">
-              <Tv className="w-6 h-6 sm:w-8 sm:h-8" />
-            </div>
+            {logoUrl ? (
+              <img 
+                src={logoUrl} 
+                alt="Logo Masjid" 
+                className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 object-contain drop-shadow-md" 
+                onError={(e) => { 
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/logo.png'; 
+                }}
+              />
+            ) : (
+              <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-amber-500/20 border border-amber-400 text-amber-400 flex items-center justify-center shadow-lg">
+                <Tv className="w-6 h-6 sm:w-8 sm:h-8" />
+              </div>
+            )}
             <div>
               <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-white tracking-wide leading-tight">
                 Masjid Tazkia
@@ -471,7 +515,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
 
       {/* Center Dynamic Content */}
       <div className="my-auto py-8">
-        {prayerPhase.phase === 'NORMAL' || prayerPhase.phase === 'IFTAR_WAIT' ? (
+        {prayerPhase.phase === 'NORMAL' || prayerPhase.phase === 'IFTAR_WAIT' || prayerPhase.phase === 'IMSAK_WAIT' ? (
           <>
             {currentSlideIndex === 0 && (
               <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
@@ -544,11 +588,11 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
                   <iframe 
                     src={getSmartVideoUrl(adminSettings.tvVideoUrl)} 
                     title="Live View"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                     onLoad={syncYouTubeVolume}
-                    className="w-full h-full object-cover pointer-events-none"
-                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                    className="w-full h-full"
+                    style={{ border: 'none' }}
                   ></iframe>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-blue-500">
@@ -572,11 +616,11 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
                   <iframe 
                     src={getSmartVideoUrl(adminSettings.tvCustomSlide1Url)} 
                     title="Video"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                     onLoad={syncYouTubeVolume}
-                    className="w-full h-full object-cover pointer-events-none"
-                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                    className="w-full h-full"
+                    style={{ border: 'none' }}
                   ></iframe>
                 )}
               </div>
@@ -590,11 +634,11 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
                   <iframe 
                     src={getSmartVideoUrl(adminSettings.tvCustomSlide2Url)} 
                     title="Video"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                     onLoad={syncYouTubeVolume}
-                    className="w-full h-full object-cover pointer-events-none"
-                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                    className="w-full h-full"
+                    style={{ border: 'none' }}
                   ></iframe>
                 )}
               </div>
@@ -655,16 +699,16 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
             ) : prayerPhase.phase === 'IQAMAH' ? (
               <span className="text-lg sm:text-2xl font-bold text-amber-400 uppercase">{adminSettings?.iqamahRunningText || 'WAKTU SHOLAT BERJAMAAH AKAN SEGERA DIMULAI. HARAP NONAKTIFKAN PONSEL ANDA.'}</span>
             ) : prayerPhase.phase === 'IFTAR_WAIT' ? (
-              <span className="text-lg sm:text-2xl font-bold text-green-400 uppercase">{adminSettings?.iftarRunningText || 'SELAMAT BERBUKA PUASA UNTUK WILAYAH SENTUL DAN SEKITARNYA.'}</span>
+              <span className="text-lg sm:text-2xl font-bold text-amber-400 uppercase">{adminSettings?.iftarRunningText || 'SELAMAT BERBUKA PUASA UNTUK WILAYAH SENTUL DAN SEKITARNYA.'}</span>
+            ) : prayerPhase.phase === 'IMSAK_WAIT' ? (
+              <span className="text-lg sm:text-2xl font-bold text-amber-400 uppercase">{adminSettings?.imsakRunningText || 'WAKTU IMSYAK TELAH TIBA. SELAMAT MENUNAIKAN IBADAH PUASA.'}</span>
             ) : adminSettings?.enableIdulFitriMode ? (
               <span className="text-lg sm:text-2xl font-bold text-amber-400 uppercase">{adminSettings?.idulFitriRunningText || 'SELAMAT HARI RAYA IDUL FITRI 1 SYAWAL. MOHON MAAF LAHIR DAN BATIN.'}</span>
             ) : adminSettings?.enableIdulAdhaMode ? (
               <span className="text-lg sm:text-2xl font-bold text-amber-400 uppercase">{adminSettings?.idulAdhaRunningText || 'SELAMAT HARI RAYA IDUL ADHA. SEMOGA AMAL IBADAH QURBAN KITA DITERIMA ALLAH SWT.'}</span>
             ) : (
-              <div className="text-xs text-amber-300">
-                <span>• Harap mematikan atau mengheningkan nada dering ponsel saat berada di ruang shalat utama. </span>
-                <span>• Kajian Subuh Berkah setiap hari Sabtu bersama KH. Ridwan Kamil, Lc. </span>
-                <span>• Salurkan ZISWAF Anda melalui Portal Digital Masjid Tazkia atau Sekertariat DKM.</span>
+              <div className="text-lg sm:text-2xl font-bold text-white uppercase tracking-wide">
+                <span>{adminSettings?.defaultRunningText || '• HARAP MEMATIKAN ATAU MENGHENINGKAN NADA DERING PONSEL SAAT BERADA DI RUANG SHALAT UTAMA. • KAJIAN SUBUH BERKAH SETIAP HARI SABTU BERSAMA KH. RIDWAN KAMIL, LC. • SALURKAN ZISWAF ANDA MELALUI PORTAL DIGITAL MASJID TAZKIA ATAU SEKRETARIAT DKM.'}</span>
               </div>
             )}
           </div>

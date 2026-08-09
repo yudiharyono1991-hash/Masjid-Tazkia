@@ -252,6 +252,8 @@ export interface PettyCashEntry {
   remainingBalance: number;
   receiptProof?: string;
   proofUrl?: string;
+  createdBy?: string;
+  createdAt?: string;
 }
 
 export interface HeroSlideConfig {
@@ -277,9 +279,12 @@ export interface AppAdminSettings {
   adzanDurationMinutes?: number;
   adzanRunningText?: string;
   iqamahRunningText?: string;
+  defaultRunningText?: string;
   sholatDurationMinutes?: number;
   sholatRunningText?: string;
   hijriOffsetDays?: number;
+  reportPrintLocation?: string;
+  reportTembusan?: string;
   enableJumatMode?: boolean;
   jumatKhutbahDurationMinutes?: number;
   enableIdulFitriMode?: boolean;
@@ -292,6 +297,9 @@ export interface AppAdminSettings {
   tvEnableSlideWakaf?: boolean;
   iftarNotificationDurationMinutes?: number;
   iftarRunningText?: string;
+  enableImsakMode?: boolean;
+  imsakNotificationDurationMinutes?: number;
+  imsakRunningText?: string;
   tvSlide1Title?: string;
   tvSlide1Arabic?: string;
   tvSlide1Indo?: string;

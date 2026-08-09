@@ -113,7 +113,7 @@ export function RoleManagerAdmin() {
                 type="text" 
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 bg-white"
                 placeholder="Misal: Staf Keuangan, Humas, dll"
               />
             </div>
@@ -122,7 +122,7 @@ export function RoleManagerAdmin() {
               <select
                 value={formData.type}
                 onChange={e => setFormData({ ...formData, type: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 bg-white"
               >
                 <option value="pengurus_dkm">Pengurus DKM (Level Atas)</option>
                 <option value="admin_masjid">Staf / Admin Masjid</option>

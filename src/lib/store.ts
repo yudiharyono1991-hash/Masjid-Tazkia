@@ -110,7 +110,7 @@ const defaultState: AppState = {
   journalEntries: [],
   glAccounts: INITIAL_GL_ACCOUNTS,
   pettyCash: [],
-  adminSettings: INITIAL_ADMIN_SETTINGS,
+  adminSettings: INITIAL_ADMIN_SETTINGS as AppAdminSettings,
   galleryItems: INITIAL_GALLERY,
   qurbanGroups: INITIAL_QURBAN_GROUPS,
   colorPalette: 'emerald_green',
@@ -158,37 +158,32 @@ export function getStoredState(): AppState {
         ...defaultState,
         ...parsed,
         // Ensure initial fallback lists if empty
-        programs: parsed.programs?.length ? parsed.programs : INITIAL_PROGRAMS,
-        donations: (parsed.donations && parsed.donations.length > 0) ? parsed.donations : INITIAL_DONATIONS,
+        programs: parsed.programs !== undefined ? parsed.programs : INITIAL_PROGRAMS,
+        donations: parsed.donations !== undefined ? parsed.donations : INITIAL_DONATIONS,
         financials: parsed.financials || [],
-        petugas: parsed.petugas?.length ? parsed.petugas : INITIAL_PETUGAS,
-        inventories: parsed.inventories?.length ? parsed.inventories : INITIAL_INVENTORY,
-        announcements: parsed.announcements?.length ? parsed.announcements : INITIAL_ANNOUNCEMENTS,
+        petugas: parsed.petugas !== undefined ? parsed.petugas : INITIAL_PETUGAS,
+        inventories: parsed.inventories !== undefined ? parsed.inventories : INITIAL_INVENTORY,
+        announcements: parsed.announcements !== undefined ? parsed.announcements : INITIAL_ANNOUNCEMENTS,
         journalEntries: parsed.journalEntries || [],
-        glAccounts: parsed.glAccounts?.length ? parsed.glAccounts : INITIAL_GL_ACCOUNTS,
+        glAccounts: parsed.glAccounts !== undefined ? parsed.glAccounts : INITIAL_GL_ACCOUNTS,
         pettyCash: parsed.pettyCash || [],
         adminSettings: parsed.adminSettings ? { 
           ...INITIAL_ADMIN_SETTINGS, 
           ...parsed.adminSettings,
           masjidLogoUrl: parsed.adminSettings.masjidLogoUrl?.startsWith('<') ? parsed.adminSettings.masjidLogoUrl.substring(1) : parsed.adminSettings.masjidLogoUrl
         } : INITIAL_ADMIN_SETTINGS,
-        galleryItems: parsed.galleryItems?.length ? parsed.galleryItems : INITIAL_GALLERY,
-        qurbanGroups: parsed.qurbanGroups?.length ? parsed.qurbanGroups : INITIAL_QURBAN_GROUPS,
-        erpCoa: (function() {
-          const storedCoa = parsed.erpCoa || [];
-          if (storedCoa.length === 0) return INITIAL_ERP_COA;
-          const newCoaItems = INITIAL_ERP_COA.filter(initialItem => !storedCoa.some((storedItem: any) => storedItem.id === initialItem.id));
-          return [...storedCoa, ...newCoaItems];
-        })(),
+        galleryItems: parsed.galleryItems !== undefined ? parsed.galleryItems : INITIAL_GALLERY,
+        qurbanGroups: parsed.qurbanGroups !== undefined ? parsed.qurbanGroups : INITIAL_QURBAN_GROUPS,
+        erpCoa: parsed.erpCoa !== undefined ? parsed.erpCoa : INITIAL_ERP_COA,
         erpJournals: parsed.erpJournals || [],
         erpJournalEntries: parsed.erpJournalEntries || [],
         erpBudgets: parsed.erpBudgets || [],
         erpDisbursements: parsed.erpDisbursements || [],
         erpSignatures: parsed.erpSignatures || [],
-        auditLogs: (parsed.auditLogs && parsed.auditLogs.length > 0) ? parsed.auditLogs : INITIAL_AUDIT_LOGS,
-        jamaahProfiles: (parsed.jamaahProfiles && parsed.jamaahProfiles.length > 0) ? parsed.jamaahProfiles : INITIAL_JAMAAH_PROFILES,
-        boardMembers: parsed.boardMembers?.length ? parsed.boardMembers : INITIAL_BOARD_MEMBERS,
-        reportSignatories: (parsed.reportSignatories && parsed.reportSignatories.length > 0) ? parsed.reportSignatories : INITIAL_REPORT_SIGNATORIES,
+        auditLogs: parsed.auditLogs !== undefined ? parsed.auditLogs : INITIAL_AUDIT_LOGS,
+        jamaahProfiles: parsed.jamaahProfiles !== undefined ? parsed.jamaahProfiles : INITIAL_JAMAAH_PROFILES,
+        boardMembers: parsed.boardMembers !== undefined ? parsed.boardMembers : INITIAL_BOARD_MEMBERS,
+        reportSignatories: parsed.reportSignatories !== undefined ? parsed.reportSignatories : INITIAL_REPORT_SIGNATORIES,
         gedungBookings: parsed.gedungBookings || [],
         agendas: parsed.agendas || INITIAL_AGENDAS,
         appRoles: parsed.appRoles || defaultState.appRoles,
@@ -247,6 +242,8 @@ export function useMasjidStore() {
   }, [state]);
 
   // Download global state dari Supabase saat aplikasi dibuka
+  // Cloud adalah SUMBER KEBENARAN UTAMA (source of truth)
+  // Jika ada data di Supabase, data tersebut MENGGANTIKAN data lokal sepenuhnya
   useEffect(() => {
     const fetchGlobalState = async () => {
       const supabase = getSupabaseClient(state.supabaseUrl, state.supabaseAnonKey);
@@ -258,29 +255,26 @@ export function useMasjidStore() {
         const { data, error } = await supabase.from('app_sync_state').select('state_json').eq('id', 1).single();
         if (data && data.state_json) {
           setState(prev => {
-            const newState = { ...prev, ...data.state_json };
-            
-            // Deep merge adminSettings to preserve nested fields like socialMediaLinks and masjidHeroCarouselUrls
-            if (data.state_json.adminSettings) {
-              const cloudAdmin = data.state_json.adminSettings;
-              const prevAdmin = prev.adminSettings || {};
+            // Cloud wins completely - spread cloud data over defaults
+            const cloudState = data.state_json;
+            const newState: AppState = {
+              ...defaultState,
+              ...cloudState,
+            };
+
+            // Merge adminSettings: Cloud is source of truth, but fill missing keys from defaults
+            if (cloudState.adminSettings) {
               newState.adminSettings = {
                 ...INITIAL_ADMIN_SETTINGS,
-                ...prevAdmin,
-                ...cloudAdmin,
-                // Keep social media links from whichever source has them
-                socialMediaLinks: cloudAdmin.socialMediaLinks || prevAdmin.socialMediaLinks || INITIAL_ADMIN_SETTINGS.socialMediaLinks,
-                // Keep hero carousel URLs - prefer local if it has more items (just uploaded)
-                masjidHeroCarouselUrls: (
-                  (prevAdmin.masjidHeroCarouselUrls || []).length >= (cloudAdmin.masjidHeroCarouselUrls || []).length
-                    ? prevAdmin.masjidHeroCarouselUrls
-                    : cloudAdmin.masjidHeroCarouselUrls
-                ) || prevAdmin.masjidHeroCarouselUrls || cloudAdmin.masjidHeroCarouselUrls || []
+                ...cloudState.adminSettings,
               };
             }
-            
-            // Jaga agar session (login admin) tidak tertimpa oleh data cloud
+
+            // Preserve local session (login status)
             newState.session = prev.session;
+            // Preserve local Supabase credentials  
+            newState.supabaseUrl = prev.supabaseUrl || cloudState.supabaseUrl;
+            newState.supabaseAnonKey = prev.supabaseAnonKey || cloudState.supabaseAnonKey;
             return newState;
           });
         }

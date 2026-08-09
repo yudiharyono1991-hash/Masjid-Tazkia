@@ -4,7 +4,7 @@ import { Download, Printer } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export function ReportPrinter() {
-  const { state, addErpCoa, updateErpSignature } = useMasjidStore();
+  const { state, addErpCoa, updateErpSignature, tutupBuku } = useMasjidStore();
   const printRef = useRef<HTMLDivElement>(null);
   const [reportType, setReportType] = useState('Neraca');
   
@@ -177,7 +177,7 @@ export function ReportPrinter() {
             <div className="flex gap-2">
               <button onClick={() => {
                 if(window.confirm('Anda yakin ingin melakukan Tutup Buku Bulanan? Jurnal Surplus/Defisit akan otomatis dibuat.')) {
-                  useMasjidStore.getState().tutupBuku('bulanan');
+                  tutupBuku('bulanan');
                   alert('Tutup Buku Bulanan Berhasil!');
                 }
               }} className="px-3 py-2 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600">
@@ -185,7 +185,7 @@ export function ReportPrinter() {
               </button>
               <button onClick={() => {
                 if(window.confirm('Anda yakin ingin melakukan Tutup Buku Tahunan? Saldo Pendapatan & Beban akan direset (dipindah ke Laba Ditahan).')) {
-                  useMasjidStore.getState().tutupBuku('tahunan');
+                  tutupBuku('tahunan');
                   alert('Tutup Buku Tahunan Berhasil!');
                 }
               }} className="px-3 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700">
@@ -212,9 +212,9 @@ export function ReportPrinter() {
               e.currentTarget.src = '/logo.png';
             }} 
           />
-          <h1 className="text-xl sm:text-2xl font-bold text-blue-900 tracking-widest uppercase">MASJID TAZKIA</h1>
-          <p className="text-xs sm:text-base text-gray-600 font-medium">Jl. Ir. H. Djuanda No. 78 Sentul City, Bogor</p>
-          <h2 className="text-base sm:text-lg font-bold mt-4 uppercase underline">
+          <h1 className="text-lg sm:text-xl font-bold text-blue-900 tracking-wider font-serif">MASJID TAZKIA</h1>
+          <p className="text-xs sm:text-sm text-gray-600 font-medium">Jl. Ir. H. Djuanda No. 78 Sentul City, Bogor</p>
+          <h2 className="text-sm sm:text-base font-bold mt-4 underline">
             {reportType === 'Neraca' && 'Laporan Posisi Keuangan (Neraca)'}
             {reportType === 'LabaRugi' && 'Laporan Aktivitas (Laba Rugi)'}
             {reportType === 'Realisasi' && `Laporan Realisasi Anggaran Tahun ${selectedYear}`}
@@ -222,7 +222,7 @@ export function ReportPrinter() {
           <p className="text-sm text-gray-500 mt-1">
             Periode: {reportType === 'Realisasi' ? `Tahun ${selectedYear}` : `${new Date(startDate).toLocaleDateString('id-ID')} s/d ${new Date(endDate).toLocaleDateString('id-ID')}`}
           </p>
-          <p className="text-xs text-blue-800 font-medium mt-1 italic">
+          <p className="text-xs text-blue-800 font-medium mt-1 italic print:hidden">
             Dicetak pada: {today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} M / {new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(today)}
             <br />
             Dicetak oleh: {state.session?.name || state.session?.email || 'Administrator'}
@@ -356,15 +356,34 @@ export function ReportPrinter() {
           </div>
         )}
 
-        <div className="mt-20 pt-8 border-t-2 border-gray-200">
+        <div className="mt-20 pt-8 border-t-2 border-gray-200 avoid-break">
+          <div className="flex justify-end items-end mb-8 text-sm">
+            <div className="font-medium">
+              {state.adminSettings?.reportPrintLocation || 'Sentul City, Bogor'}, {today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </div>
+          </div>
           <div className="grid grid-cols-4 gap-4 text-center text-sm">
             {hierarchy.map((h, i) => (
               <div key={i} className="flex flex-col items-center">
-                <span className="mb-16 font-medium text-gray-600">{h.role}</span>
+                <span className="mb-20 font-medium text-gray-600">{h.role}</span>
                 <span className="font-bold underline uppercase">{h.name}</span>
                 <span className="text-xs text-gray-500">{h.title}</span>
               </div>
             ))}
+          </div>
+          
+          <div className="mt-8 flex justify-between items-end text-[10px] sm:text-xs text-gray-600">
+            <div className="text-left">
+              {state.adminSettings?.reportTembusan && (
+                <div className="mb-4 text-xs sm:text-sm">
+                  <span className="font-bold underline mb-1 block text-gray-800">Tembusan:</span>
+                  <pre className="font-sans whitespace-pre-wrap leading-relaxed">{state.adminSettings.reportTembusan}</pre>
+                </div>
+              )}
+              <span className="italic">
+                Dicetak oleh: {state.session?.name || state.session?.email || 'Administrator'}
+              </span>
+            </div>
           </div>
         </div>
       </div>

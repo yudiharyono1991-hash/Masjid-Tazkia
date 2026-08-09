@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useMasjidStore } from '../../lib/store';
 import { ERPChartOfAccount } from '../../types';
 import { Download, Upload, Plus, Edit2, Trash2 } from 'lucide-react';
-import { exportCoaToExcel, importCoaFromExcel } from '../../lib/excelUtils';
+import { exportCoaToExcel, importCoaFromExcel, downloadCoaTemplate } from '../../lib/excelUtils';
 
 export function ChartOfAccounts() {
   const { state, addErpCoa, setErpCoa, updateErpCoa, deleteErpCoa } = useMasjidStore();
@@ -133,6 +133,9 @@ export function ChartOfAccounts() {
             <button onClick={handleExport} className="px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-100">
               <Download className="w-4 h-4" /> Ekspor
             </button>
+            <button onClick={downloadCoaTemplate} className="px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-100" title="Unduh Template Excel">
+              Template
+            </button>
             <label className="px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-100 cursor-pointer">
               <Upload className="w-4 h-4" /> Impor
               <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleImport} />
@@ -151,7 +154,7 @@ export function ChartOfAccounts() {
             <input 
               value={formData.accountCode} 
               onChange={e => setFormData({ ...formData, accountCode: e.target.value })} 
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm" 
+              className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white" 
               placeholder="e.g. 1101" 
             />
           </div>
@@ -160,7 +163,7 @@ export function ChartOfAccounts() {
             <input 
               value={formData.accountName} 
               onChange={e => setFormData({ ...formData, accountName: e.target.value })} 
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm" 
+              className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white" 
               placeholder="e.g. Kas Masjid" 
             />
           </div>
@@ -170,7 +173,7 @@ export function ChartOfAccounts() {
               <select 
                 value={formData.accountType} 
                 onChange={e => setFormData({ ...formData, accountType: e.target.value as any })} 
-                className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm"
+                className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white"
               >
                 <option value="Asset">Asset</option>
                 <option value="Liability">Liability</option>
@@ -181,7 +184,7 @@ export function ChartOfAccounts() {
               <select 
                 value={formData.normalBalance} 
                 onChange={e => setFormData({ ...formData, normalBalance: e.target.value as any })} 
-                className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm"
+                className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white"
               >
                 <option value="Debit">Debit</option>
                 <option value="Credit">Credit</option>
@@ -193,7 +196,7 @@ export function ChartOfAccounts() {
             <input 
               value={formData.groupName || ''} 
               onChange={e => setFormData({ ...formData, groupName: e.target.value })} 
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm" 
+              className="w-full p-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white" 
               placeholder="e.g. Aset Lancar" 
             />
           </div>
@@ -229,7 +232,7 @@ export function ChartOfAccounts() {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {paginatedCoa.map(acc => (
-              <tr key={acc.id} className="hover:bg-gray-50">
+              <tr key={acc.id} className="hover:bg-gray-50 text-slate-800">
                 <td className="p-4 font-mono text-blue-600">{acc.accountCode}</td>
                 <td className="p-4 font-medium text-gray-800">{acc.accountName}</td>
                 <td className="p-4 text-gray-600">{acc.accountType}</td>

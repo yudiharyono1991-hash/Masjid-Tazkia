@@ -1,13 +1,15 @@
-import { useMasjidStore } from '../lib/store';
+import { getStoredState, saveStoredState } from '../lib/store';
+import { ERPChartOfAccount } from '../types';
 
 export const seedTestData = async () => {
-  const store = useMasjidStore.getState();
+  const state = getStoredState();
   
   // 1. Seed 5 ZISWAF Donations (Some anonymous, some registered)
+  const newDonations = [];
   for (let i = 1; i <= 5; i++) {
     const isAnon = i % 2 === 0;
     const cat = ['zakat', 'infaq', 'wakaf', 'shadaqah', 'infaq'][i-1] as any;
-    store.addDonation({
+    newDonations.push({
       id: `DON-TEST-${Date.now()}-${i}`,
       programId: `PROG-${i}`,
       programTitle: `Program Kebaikan ${i}`,
@@ -28,11 +30,11 @@ export const seedTestData = async () => {
   }
 
   // 2. Seed 5 Booking Gedung
+  const newGedungBookings = [];
   for (let i = 1; i <= 5; i++) {
     const date = new Date();
     date.setDate(date.getDate() + i + 10);
-    // In case addGedungBooking is missing, we use a manual setState injection
-    const booking = {
+    newGedungBookings.push({
       id: `GED-TEST-${Date.now()}-${i}`,
       date: date.toISOString(),
       name: `Penyewa Gedung ${i}`,
@@ -41,84 +43,82 @@ export const seedTestData = async () => {
       notes: `Acara pernikahan ${i}`,
       status: 'pending' as const,
       createdAt: new Date().toISOString()
-    };
-    useMasjidStore.setState((prev: any) => ({
-      ...prev,
-      gedungBookings: [booking, ...(prev.gedungBookings || [])]
-    }));
+    });
   }
 
   // 3. Seed 5 Booking Kamar
+  const newKamarBookings = [];
   for (let i = 1; i <= 5; i++) {
     const date = new Date();
     date.setDate(date.getDate() + i + 5);
     const checkout = new Date(date);
     checkout.setDate(checkout.getDate() + 2);
     
-    if (store.addKamarBooking) {
-      store.addKamarBooking({
-        id: `KAM-TEST-${Date.now()}-${i}`,
-        date: date.toISOString(),
-        checkoutDate: checkout.toISOString(),
-        name: `Tamu Kamar ${i}`,
-        whatsapp: '0898765432' + i,
-        email: `tamu${i}@test.com`,
-        roomType: ['Standar', 'VIP', 'Keluarga', 'Standar', 'VIP'][i-1] as any,
-        notes: `Kunjungan rombongan ${i}`,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      });
-    }
+    newKamarBookings.push({
+      id: `KAM-TEST-${Date.now()}-${i}`,
+      date: date.toISOString(),
+      checkoutDate: checkout.toISOString(),
+      name: `Tamu Kamar ${i}`,
+      whatsapp: '0898765432' + i,
+      email: `tamu${i}@test.com`,
+      roomType: ['Standar', 'VIP', 'Keluarga', 'Standar', 'VIP'][i-1] as any,
+      notes: `Kunjungan rombongan ${i}`,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
   }
 
   // 4. Seed ERP COA and Budgets if not exists
-  const existingBudgets = store.erpBudgets || [];
+  const existingBudgets = state.erpBudgets || [];
+  let newCoa: ERPChartOfAccount[] = [];
+  let newBudgets = [...existingBudgets];
   if (!existingBudgets.find(b => b.id === 'BDG-001')) {
-    useMasjidStore.setState((prev: any) => {
-      // Add missing COA if needed
-      const hasCoa = prev.erpCoa.find((c: any) => c.id === 'coa-5100');
-      const newCoa = hasCoa ? [] : [{
+    const hasCoa = state.erpCoa.find((c: any) => c.id === 'coa-5100');
+    if (!hasCoa) {
+      newCoa.push({
         id: 'coa-5100',
         accountCode: '5100',
         accountName: 'Beban Operasional',
-        category: 'Beban',
+        accountType: 'Expense',
         normalBalance: 'Debit',
         isActive: true,
         createdAt: new Date().toISOString()
-      }];
+      });
+    }
 
-      const newBudget = {
-        id: 'BDG-001',
-        period: `${new Date().getFullYear()}`,
-        accountId: 'coa-5100',
-        amount: 5000000,
-        realized: 0,
-        notes: 'Anggaran Operasional (E2E Test)',
-        createdAt: new Date().toISOString()
-      };
-
-      return {
-        ...prev,
-        erpCoa: [...prev.erpCoa, ...newCoa],
-        erpBudgets: [...prev.erpBudgets, newBudget]
-      };
+    newBudgets.push({
+      id: 'BDG-001',
+      year: new Date().getFullYear(),
+      accountId: 'coa-5100',
+      amount: 5000000,
+      description: 'Anggaran Operasional (E2E Test)',
+      createdAt: new Date().toISOString()
     });
   }
 
   // 5. Seed 5 Pengajuan Pencairan (Disbursement)
+  const newDisbursements = [];
   for (let i = 1; i <= 5; i++) {
-    if (store.addErpDisbursement) {
-      store.addErpDisbursement({
-        id: `DIS-TEST-${Date.now()}-${i}`,
-        budgetId: 'BDG-001',
-        amount: 50000 * i,
-        purpose: `Pembelian keperluan operasional ${i}`,
-        requestDate: new Date().toISOString(),
-        requestedBy: `Staff Operasional ${i}`,
-        status: 'Pending'
-      });
-    }
+    newDisbursements.push({
+      id: `DIS-TEST-${Date.now()}-${i}`,
+      budgetId: 'BDG-001',
+      amount: 50000 * i,
+      purpose: `Pembelian keperluan operasional ${i}`,
+      requestDate: new Date().toISOString(),
+      requestedBy: `Staff Operasional ${i}`,
+      status: 'Pending'
+    });
   }
+
+  saveStoredState({
+    ...state,
+    donations: [...newDonations, ...(state.donations || [])],
+    gedungBookings: [...newGedungBookings, ...(state.gedungBookings || [])],
+    kamarBookings: [...newKamarBookings, ...(state.kamarBookings || [])],
+    erpCoa: [...state.erpCoa, ...newCoa],
+    erpBudgets: newBudgets,
+    erpDisbursements: [...newDisbursements, ...(state.erpDisbursements || [])]
+  });
 
   // Done!
   console.log("End-to-end Test Data Seeded!");
