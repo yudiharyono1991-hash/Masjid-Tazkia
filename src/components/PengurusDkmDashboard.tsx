@@ -2563,6 +2563,112 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                     </div>
                   </div>
 
+                  <div className="space-y-4 pt-4 border-t border-blue-800/50 mt-4">
+                    <h5 className="font-bold text-blue-200 text-xs uppercase tracking-wider">Pengaturan Mode Khusus (Jumat, Hari Raya & Buka Puasa)</h5>
+                    
+                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-blue-300 font-semibold text-sm">Aktifkan Mode Shalat Jumat</label>
+                        <button
+                          onClick={() => handleToggleSetting('enableJumatMode')}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.enableJumatMode ?? true ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.enableJumatMode ?? true ? 'left-7' : 'left-1'}`} />
+                        </button>
+                      </div>
+                      {(adminSettings?.enableJumatMode ?? true) && (
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-1 text-xs">Durasi Khutbah Jumat (Menit):</label>
+                          <input
+                            type="number"
+                            value={adminSettings?.jumatKhutbahDurationMinutes || 40}
+                            onChange={(e) => handleTextSettingChange('jumatKhutbahDurationMinutes', Number(e.target.value))}
+                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 font-mono text-amber-300 text-xs outline-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-blue-300 font-semibold text-sm">Aktifkan Mode Idul Fitri</label>
+                        <button
+                          onClick={() => handleToggleSetting('enableIdulFitriMode')}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.enableIdulFitriMode ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.enableIdulFitriMode ? 'left-7' : 'left-1'}`} />
+                        </button>
+                      </div>
+                      {adminSettings?.enableIdulFitriMode && (
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Layar Idul Fitri:</label>
+                          <input
+                            type="text"
+                            value={adminSettings?.idulFitriRunningText || 'SELAMAT HARI RAYA IDUL FITRI 1 SYAWAL. MOHON MAAF LAHIR DAN BATIN.'}
+                            onChange={(e) => handleTextSettingChange('idulFitriRunningText', e.target.value)}
+                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between pt-3 border-t border-blue-800/50">
+                        <label className="text-blue-300 font-semibold text-sm">Aktifkan Mode Idul Adha</label>
+                        <button
+                          onClick={() => handleToggleSetting('enableIdulAdhaMode')}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${adminSettings?.enableIdulAdhaMode ? 'bg-amber-500' : 'bg-blue-950 border border-blue-800'}`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${adminSettings?.enableIdulAdhaMode ? 'left-7' : 'left-1'}`} />
+                        </button>
+                      </div>
+                      {adminSettings?.enableIdulAdhaMode && (
+                        <div>
+                          <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Layar Idul Adha:</label>
+                          <input
+                            type="text"
+                            value={adminSettings?.idulAdhaRunningText || 'SELAMAT HARI RAYA IDUL ADHA. SEMOGA AMAL IBADAH QURBAN KITA DITERIMA ALLAH SWT.'}
+                            onChange={(e) => handleTextSettingChange('idulAdhaRunningText', e.target.value)}
+                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                          />
+                        </div>
+                      )}
+
+                      {(adminSettings?.enableIdulFitriMode || adminSettings?.enableIdulAdhaMode) && (
+                        <div className="pt-2">
+                          <label className="text-blue-300 font-semibold block mb-1 text-xs">Jam Pelaksanaan Shalat Ied (HH:MM):</label>
+                          <input
+                            type="time"
+                            value={adminSettings?.eidPrayerTime || '07:00'}
+                            onChange={(e) => handleTextSettingChange('eidPrayerTime', e.target.value)}
+                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-blue-900/40 p-4 rounded-xl border border-blue-800/50 space-y-3">
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Durasi Tampil Notifikasi Buka Puasa (Menit):</label>
+                        <input
+                          type="number"
+                          value={adminSettings?.iftarNotificationDurationMinutes || 10}
+                          onChange={(e) => handleTextSettingChange('iftarNotificationDurationMinutes', Number(e.target.value))}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 font-mono text-amber-300 text-xs outline-none"
+                          title="Berapa lama teks Buka Puasa tampil saat Maghrib tiba"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-blue-300 font-semibold block mb-1 text-xs">Teks Berjalan Saat Buka Puasa (Maghrib):</label>
+                        <input
+                          type="text"
+                          value={adminSettings?.iftarRunningText || 'SELAMAT BERBUKA PUASA UNTUK WILAYAH SENTUL DAN SEKITARNYA.'}
+                          onChange={(e) => handleTextSettingChange('iftarRunningText', e.target.value)}
+                          className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                        />
+                      </div>
+                    </div>
+
+                  </div>
+
                   <div>
                     <label className="text-blue-300 font-semibold block mb-1">
                       Nomor Rekening BSI (ZISWAF):

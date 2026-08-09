@@ -77,29 +77,71 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     const adzanDur = adminSettings?.adzanDurationMinutes || 4;
     const iqamahDur = adminSettings?.iqamahCountdownMinutes || 10;
     const sholatDur = adminSettings?.sholatDurationMinutes || 15;
+    
+    // Khutbah settings
+    const jumatMode = adminSettings?.enableJumatMode ?? true;
+    const khutbahDur = adminSettings?.jumatKhutbahDurationMinutes || 40;
+    
+    // Iftar
+    const iftarDur = adminSettings?.iftarNotificationDurationMinutes || 10;
 
     const prayers = [
       { name: 'SUBUH', time: parseTime(selectedCity.fajr) },
-      { name: time.getDay() === 5 ? 'JUMAT' : 'DZUHUR', time: parseTime(selectedCity.dhuhr) },
+      { name: time.getDay() === 5 ? (jumatMode ? 'JUMAT' : 'DZUHUR') : 'DZUHUR', time: parseTime(selectedCity.dhuhr) },
       { name: 'ASHAR', time: parseTime(selectedCity.asr) },
       { name: 'MAGHRIB', time: parseTime(selectedCity.maghrib) },
       { name: 'ISYA', time: parseTime(selectedCity.isha) }
     ];
 
+    // Check Eid first because it has priority if enabled
+    if (adminSettings?.enableIdulFitriMode || adminSettings?.enableIdulAdhaMode) {
+      const eidTime = parseTime(adminSettings?.eidPrayerTime || '07:00');
+      const diffEid = currentMinutes - eidTime;
+      const eidName = adminSettings?.enableIdulFitriMode ? 'SHALAT IDUL FITRI' : 'SHALAT IDUL ADHA';
+      
+      if (diffEid >= -5 && diffEid < 0) {
+         // 5 minutes countdown to Eid
+         const targetSeconds = eidTime * 60;
+         return { phase: 'IQAMAH', prayerName: eidName, remainingSeconds: targetSeconds - currentSeconds };
+      } else if (diffEid >= 0 && diffEid < sholatDur) {
+         return { phase: 'SHOLAT', prayerName: eidName };
+      } else if (diffEid >= sholatDur && diffEid < sholatDur + khutbahDur) {
+         return { phase: 'KHUTBAH', prayerName: eidName + ' (KHUTBAH)' };
+      }
+    }
+
     for (const prayer of prayers) {
       let prayerMinutes = prayer.time;
       let diffMinutes = currentMinutes - prayerMinutes;
-      let diffSeconds = currentSeconds - (prayerMinutes * 60);
 
-      // Simple handling for same day
+      // Handle Iftar pre-notification
+      if (prayer.name === 'MAGHRIB' && diffMinutes >= -iftarDur && diffMinutes < 0) {
+        return { phase: 'IFTAR_WAIT', prayerName: 'MAGHRIB' }; // Custom state just for displaying iftar text in normal mode
+      }
+
       if (diffMinutes >= 0) {
-        if (diffMinutes < adzanDur) {
-           return { phase: 'ADZAN', prayerName: prayer.name };
-        } else if (diffMinutes < adzanDur + iqamahDur) {
-           const targetSeconds = (prayerMinutes + adzanDur + iqamahDur) * 60;
-           return { phase: 'IQAMAH', prayerName: prayer.name, remainingSeconds: targetSeconds - currentSeconds };
-        } else if (diffMinutes < adzanDur + iqamahDur + sholatDur) {
-           return { phase: 'SHOLAT', prayerName: prayer.name };
+        if (prayer.name === 'JUMAT') {
+          // Jumat sequence: Adzan -> Khutbah -> Iqamah -> Sholat
+          if (diffMinutes < adzanDur) {
+            return { phase: 'ADZAN', prayerName: prayer.name };
+          } else if (diffMinutes < adzanDur + khutbahDur) {
+            return { phase: 'KHUTBAH', prayerName: prayer.name };
+          } else if (diffMinutes < adzanDur + khutbahDur + iqamahDur) {
+            const targetSeconds = (prayerMinutes + adzanDur + khutbahDur + iqamahDur) * 60;
+            return { phase: 'IQAMAH', prayerName: prayer.name, remainingSeconds: targetSeconds - currentSeconds };
+          } else if (diffMinutes < adzanDur + khutbahDur + iqamahDur + sholatDur) {
+            return { phase: 'SHOLAT', prayerName: prayer.name };
+          }
+        } else {
+          // Normal sequence: Adzan -> Iqamah -> Sholat
+          if (diffMinutes < adzanDur) {
+             return { phase: 'ADZAN', prayerName: prayer.name };
+          } else if (diffMinutes < adzanDur + iqamahDur) {
+             const targetSeconds = (prayerMinutes + adzanDur + iqamahDur) * 60;
+             return { phase: 'IQAMAH', prayerName: prayer.name, remainingSeconds: targetSeconds - currentSeconds };
+          } else if (diffMinutes < adzanDur + iqamahDur + sholatDur) {
+             return { phase: 'SHOLAT', prayerName: prayer.name };
+          }
         }
       }
     }
@@ -148,10 +190,14 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
 
   const nextFriday = petugasList.find(p => p.khatibJumat);
 
-  if (prayerPhase.phase === 'SHOLAT') {
+  if (prayerPhase.phase === 'SHOLAT' || prayerPhase.phase === 'KHUTBAH') {
     return (
       <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center cursor-none select-none">
-         <p className="text-[#111] text-xs font-bold uppercase tracking-widest">{adminSettings?.sholatRunningText || 'SHALAT BERJAMAAH SEDANG BERLANGSUNG'}</p>
+         <p className="text-[#111] text-xs font-bold uppercase tracking-widest">
+           {prayerPhase.phase === 'SHOLAT' 
+             ? (adminSettings?.sholatRunningText || 'SHALAT BERJAMAAH SEDANG BERLANGSUNG') 
+             : 'KHUTBAH SEDANG BERLANGSUNG. HARAP TENANG.'}
+         </p>
          {/* Hidden exit button so admin can still escape if stuck */}
          <button onClick={onExit} className="absolute bottom-4 right-4 w-10 h-10 opacity-0 cursor-pointer" title="Keluar" />
       </div>
@@ -261,7 +307,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
 
       {/* Center Dynamic Content */}
       <div className="my-auto py-8">
-        {prayerPhase.phase === 'NORMAL' ? (
+        {prayerPhase.phase === 'NORMAL' || prayerPhase.phase === 'IFTAR_WAIT' ? (
           <>
             {currentSlideIndex === 0 && (
               <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
@@ -374,6 +420,12 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
               <span className="text-lg sm:text-2xl font-bold text-red-400 uppercase">{adminSettings?.adzanRunningText || 'SAAT INI WAKTU ADZAN. HARAP TENANG DAN LURUSKAN SHAF.'}</span>
             ) : prayerPhase.phase === 'IQAMAH' ? (
               <span className="text-lg sm:text-2xl font-bold text-amber-400 uppercase">{adminSettings?.iqamahRunningText || 'WAKTU SHOLAT BERJAMAAH AKAN SEGERA DIMULAI. HARAP NONAKTIFKAN PONSEL ANDA.'}</span>
+            ) : prayerPhase.phase === 'IFTAR_WAIT' ? (
+              <span className="text-lg sm:text-2xl font-bold text-green-400 uppercase">{adminSettings?.iftarRunningText || 'SELAMAT BERBUKA PUASA UNTUK WILAYAH SENTUL DAN SEKITARNYA.'}</span>
+            ) : adminSettings?.enableIdulFitriMode ? (
+              <span className="text-lg sm:text-2xl font-bold text-amber-400 uppercase">{adminSettings?.idulFitriRunningText || 'SELAMAT HARI RAYA IDUL FITRI 1 SYAWAL. MOHON MAAF LAHIR DAN BATIN.'}</span>
+            ) : adminSettings?.enableIdulAdhaMode ? (
+              <span className="text-lg sm:text-2xl font-bold text-amber-400 uppercase">{adminSettings?.idulAdhaRunningText || 'SELAMAT HARI RAYA IDUL ADHA. SEMOGA AMAL IBADAH QURBAN KITA DITERIMA ALLAH SWT.'}</span>
             ) : (
               <div className="text-xs text-amber-300">
                 <span>• Harap mematikan atau mengheningkan nada dering ponsel saat berada di ruang shalat utama. </span>

@@ -279,6 +279,15 @@ export interface AppAdminSettings {
   iqamahRunningText?: string;
   sholatDurationMinutes?: number;
   sholatRunningText?: string;
+  enableJumatMode?: boolean;
+  jumatKhutbahDurationMinutes?: number;
+  enableIdulFitriMode?: boolean;
+  idulFitriRunningText?: string;
+  enableIdulAdhaMode?: boolean;
+  idulAdhaRunningText?: string;
+  eidPrayerTime?: string;
+  iftarNotificationDurationMinutes?: number;
+  iftarRunningText?: string;
   masjidLogoUrl?: string;
   masjidHeroPhotoUrl?: string;
   masjidHeroCarouselUrls?: string[];
