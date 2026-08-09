@@ -4,24 +4,28 @@ import { Calendar, UserCheck, Mic, Clock, Sparkles, BookOpen, Share2, CheckCircl
 
 interface FridayAgendaSectionProps {
   petugasList: PetugasJadwal[];
+  adminSettings?: any;
   isDark?: boolean;
 }
 
 export const FridayAgendaSection: React.FC<FridayAgendaSectionProps> = ({
   petugasList = [],
+  adminSettings,
   isDark = false
 }) => {
-  // Find current active Friday agenda or fallback to first item
-  const currentFriday = petugasList.find(p => p.khatibJumat && p.dayName.toLowerCase().includes('jumat')) || petugasList[0] || {
-    id: 'jumat-default',
-    date: '2026-07-31',
-    dayName: 'Jumat Ini',
-    khatibJumat: 'Prof. Dr. KH. Nasaruddin Umar, MA',
-    imamJumat: 'Ustadz H. M. Zainuddin, Sq',
-    muadzinJumat: 'Ustadz Bilal Al-Habsyi',
-    bilalJumat: 'Ustadz Ridwan Syah, S.Pd.I',
-    topikJumat: 'Keberkahan Rezeki dalam Zakat, Wakaf Produktif & Spirit Qurban',
-    timeJumat: '11:45 WIB - Selesai',
+  // Find current active Friday agenda or fallback to admin settings / default
+  const dbFriday = petugasList.find(p => p.khatibJumat && p.dayName.toLowerCase().includes('jumat')) || petugasList[0];
+  
+  const currentFriday = {
+    id: dbFriday?.id || 'jumat-default',
+    date: adminSettings?.jumatDate || dbFriday?.date || '2026-07-31',
+    dayName: dbFriday?.dayName || 'Jumat Ini',
+    khatibJumat: adminSettings?.jumatKhatibName || dbFriday?.khatibJumat || 'Prof. Dr. KH. Nasaruddin Umar, MA',
+    imamJumat: adminSettings?.jumatImamName || dbFriday?.imamJumat || 'Ustadz H. M. Zainuddin, Sq',
+    muadzinJumat: adminSettings?.jumatMuadzinName || dbFriday?.muadzinJumat || 'Ustadz Bilal Al-Habsyi',
+    bilalJumat: dbFriday?.bilalJumat || 'Ustadz Ridwan Syah, S.Pd.I',
+    topikJumat: adminSettings?.jumatTopicTitle || dbFriday?.topikJumat || 'Keberkahan Rezeki dalam Zakat, Wakaf Produktif & Spirit Qurban',
+    timeJumat: adminSettings?.jumatTimeInfo || '11:45 WIB - Selesai',
     notesJumat: 'Jamaah diimbau hadir lebih awal, mengambil wudhu dari rumah, dan menjaga kerapian shaf shalat.'
   };
 

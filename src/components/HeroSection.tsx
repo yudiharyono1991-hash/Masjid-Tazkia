@@ -73,11 +73,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   
   const slides = customHeroUrls.length > 0 
     ? customHeroUrls.map((url, idx) => {
+        const config = state.adminSettings.masjidHeroSlidesConfig?.find(c => c.url === url);
         return {
           imageUrl: url,
-          title: state.adminSettings.heroPromoTitle || defaultSlides[idx % defaultSlides.length]?.title || defaultSlides[0].title,
-          subtitle: state.adminSettings.heroPromoSubtitle || defaultSlides[idx % defaultSlides.length]?.subtitle || defaultSlides[0].subtitle,
-          description: state.adminSettings.heroPromoDescription || defaultSlides[idx % defaultSlides.length]?.description || defaultSlides[0].description,
+          title: config?.title || state.adminSettings.heroPromoTitle || defaultSlides[idx % defaultSlides.length]?.title || defaultSlides[0].title,
+          subtitle: config?.subtitle || state.adminSettings.heroPromoSubtitle || defaultSlides[idx % defaultSlides.length]?.subtitle || defaultSlides[0].subtitle,
+          description: config?.description || state.adminSettings.heroPromoDescription || defaultSlides[idx % defaultSlides.length]?.description || defaultSlides[0].description,
           buttonText: 'Salurkan Wakaf ❯'
         };
       })

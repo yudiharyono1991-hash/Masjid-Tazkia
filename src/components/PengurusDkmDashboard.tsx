@@ -2704,17 +2704,30 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                     📋 Parameter Petugas & Khutbah Jumat
                   </span>
 
-                  <div>
-                    <label className="text-xs text-blue-300 font-semibold block mb-1">
-                      Topik / Tema Khutbah Jumat:
-                    </label>
-                    <input
-                      type="text"
-                      value={adminSettings?.jumatTopicTitle || ''}
-                      onChange={(e) => handleTextSettingChange('jumatTopicTitle', e.target.value)}
-                      placeholder="Contoh: Memperkokoh Ukhuwah & Transparansi..."
-                      className="w-full bg-blue-900 border border-blue-800 rounded-xl p-2.5 text-amber-300 font-serif text-xs outline-none"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-blue-300 font-semibold block mb-1">
+                        Tanggal Khutbah:
+                      </label>
+                      <input
+                        type="date"
+                        value={adminSettings?.jumatDate || ''}
+                        onChange={(e) => handleTextSettingChange('jumatDate', e.target.value)}
+                        className="w-full bg-blue-900 border border-blue-800 rounded-xl p-2.5 text-white text-xs outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-blue-300 font-semibold block mb-1">
+                        Topik / Tema Khutbah Jumat:
+                      </label>
+                      <input
+                        type="text"
+                        value={adminSettings?.jumatTopicTitle || ''}
+                        onChange={(e) => handleTextSettingChange('jumatTopicTitle', e.target.value)}
+                        placeholder="Contoh: Memperkokoh Ukhuwah..."
+                        className="w-full bg-blue-900 border border-blue-800 rounded-xl p-2.5 text-amber-300 font-serif text-xs outline-none"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">

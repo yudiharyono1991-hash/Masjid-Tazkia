@@ -254,6 +254,13 @@ export interface PettyCashEntry {
   proofUrl?: string;
 }
 
+export interface HeroSlideConfig {
+  url: string;
+  title?: string;
+  subtitle?: string;
+  description?: string;
+}
+
 export interface AppAdminSettings {
   showAiAssistant: boolean;
   showTvSignageOption: boolean;
@@ -271,6 +278,7 @@ export interface AppAdminSettings {
   masjidHeroPhotoUrl?: string;
   masjidHeroCarouselUrls?: string[];
   qrisCodeImageUrl?: string;
+  masjidHeroSlidesConfig?: HeroSlideConfig[];
 
   // Promo Text Settings
   heroPromoTitle?: string;
@@ -290,6 +298,7 @@ export interface AppAdminSettings {
   showSocialMediaOnHome?: boolean;
 
   // Friday Khutbah & Feature Info Settings
+  jumatDate?: string;
   jumatKhatibName?: string;
   jumatImamName?: string;
   jumatMuadzinName?: string;

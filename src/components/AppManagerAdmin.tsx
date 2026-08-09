@@ -290,24 +290,83 @@ export const AppManagerAdmin: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {heroImages.map((img, idx) => {
                 const isVideo = img.url.match(/\.(mp4|webm|ogg)$/i) || img.name.match(/\.(mp4|webm|ogg)$/i);
+                const slideConfig = state.adminSettings?.masjidHeroSlidesConfig?.find(c => c.url === img.url) || {};
                 
                 return (
-                  <div key={idx} className="relative group rounded-xl overflow-hidden border border-black/10 aspect-video bg-gray-100">
-                    {isVideo ? (
-                      <video src={img.url} className="w-full h-full object-cover" controls muted />
-                    ) : (
-                      <img src={img.url} alt={`Hero ${idx + 1}`} className="w-full h-full object-cover" />
-                    )}
-                    <div className="absolute inset-0 bg-black/40 sm:bg-black/60 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 pointer-events-none sm:pointer-events-auto">
-                      <button 
-                        onClick={() => handleDeleteHero(img.name, img.url)}
-                        className="p-2.5 sm:p-2 bg-red-600/90 sm:bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors pointer-events-auto shadow-lg"
-                      >
-                        <Trash2 className="w-6 h-6 sm:w-5 sm:h-5" />
-                      </button>
+                  <div key={idx} className="bg-blue-900/40 rounded-xl overflow-hidden border border-blue-700/50 flex flex-col">
+                    <div className="relative group aspect-video bg-gray-900 shrink-0">
+                      {isVideo ? (
+                        <video src={img.url} className="w-full h-full object-cover" controls muted />
+                      ) : (
+                        <img src={img.url} alt={`Hero ${idx + 1}`} className="w-full h-full object-cover" />
+                      )}
+                      <div className="absolute inset-0 bg-black/40 sm:bg-black/60 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 pointer-events-none sm:pointer-events-auto">
+                        <button 
+                          onClick={() => handleDeleteHero(img.name, img.url)}
+                          className="p-2.5 sm:p-2 bg-red-600/90 sm:bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors pointer-events-auto shadow-lg"
+                        >
+                          <Trash2 className="w-6 h-6 sm:w-5 sm:h-5" />
+                        </button>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/80 text-white text-[10px] font-mono truncate">
+                        {img.name}
+                      </div>
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/80 text-white text-[10px] font-mono truncate">
-                      {img.name}
+                    
+                    {/* Input Teks Khusus Slide Ini */}
+                    <div className="p-3 space-y-2 grow flex flex-col">
+                      <p className="text-[10px] text-blue-300 font-bold mb-1">Teks Spesifik (Opsional):</p>
+                      <input
+                        type="text"
+                        placeholder="Judul Khusus"
+                        value={slideConfig.title || ''}
+                        onChange={(e) => {
+                          const currentConfigs = state.adminSettings.masjidHeroSlidesConfig || [];
+                          const existingIdx = currentConfigs.findIndex(c => c.url === img.url);
+                          let newConfigs = [...currentConfigs];
+                          if (existingIdx >= 0) {
+                            newConfigs[existingIdx] = { ...newConfigs[existingIdx], title: e.target.value };
+                          } else {
+                            newConfigs.push({ url: img.url, title: e.target.value });
+                          }
+                          updateAdminSettings({ masjidHeroSlidesConfig: newConfigs });
+                        }}
+                        className="w-full bg-blue-950/50 border border-blue-800 rounded px-2 py-1.5 text-white text-xs outline-none focus:border-amber-400 placeholder:text-blue-500/50"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Subjudul Khusus"
+                        value={slideConfig.subtitle || ''}
+                        onChange={(e) => {
+                          const currentConfigs = state.adminSettings.masjidHeroSlidesConfig || [];
+                          const existingIdx = currentConfigs.findIndex(c => c.url === img.url);
+                          let newConfigs = [...currentConfigs];
+                          if (existingIdx >= 0) {
+                            newConfigs[existingIdx] = { ...newConfigs[existingIdx], subtitle: e.target.value };
+                          } else {
+                            newConfigs.push({ url: img.url, subtitle: e.target.value });
+                          }
+                          updateAdminSettings({ masjidHeroSlidesConfig: newConfigs });
+                        }}
+                        className="w-full bg-blue-950/50 border border-blue-800 rounded px-2 py-1.5 text-emerald-300 text-xs outline-none focus:border-amber-400 placeholder:text-blue-500/50"
+                      />
+                      <textarea
+                        rows={2}
+                        placeholder="Deskripsi Khusus"
+                        value={slideConfig.description || ''}
+                        onChange={(e) => {
+                          const currentConfigs = state.adminSettings.masjidHeroSlidesConfig || [];
+                          const existingIdx = currentConfigs.findIndex(c => c.url === img.url);
+                          let newConfigs = [...currentConfigs];
+                          if (existingIdx >= 0) {
+                            newConfigs[existingIdx] = { ...newConfigs[existingIdx], description: e.target.value };
+                          } else {
+                            newConfigs.push({ url: img.url, description: e.target.value });
+                          }
+                          updateAdminSettings({ masjidHeroSlidesConfig: newConfigs });
+                        }}
+                        className="w-full bg-blue-950/50 border border-blue-800 rounded px-2 py-1.5 text-blue-100 text-[11px] outline-none focus:border-amber-400 resize-none placeholder:text-blue-500/50 grow"
+                      />
                     </div>
                   </div>
                 );
@@ -319,12 +378,12 @@ export const AppManagerAdmin: React.FC = () => {
               )}
             </div>
 
-            {/* ====== Pengaturan Teks, Font & Tombol Hero ====== */}
+            {/* ====== Pengaturan Teks Default (Global) ====== */}
             <div className="bg-blue-950/60 p-5 rounded-2xl border border-blue-700 space-y-4 mt-2">
               <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                <span className="text-xl">✍️</span> Pengaturan Teks &amp; Tampilan Beranda
+                <span className="text-xl">✍️</span> Pengaturan Teks Default (Global) &amp; Tampilan Beranda
               </h4>
-              <p className="text-[11px] text-blue-300">Teks &amp; gaya font di bawah ini akan muncul di atas setiap foto animasi. Tombol sudah otomatis terintegrasi.</p>
+              <p className="text-[11px] text-blue-300">Teks ini akan digunakan jika teks spesifik pada gambar di atas dibiarkan kosong.</p>
 
               {/* Teks */}
               <div>
