@@ -208,6 +208,87 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
       window.history.replaceState(null, '', `${currentHashBase}?tab=${dkmTab}`);
     }
   }, [dkmTab, store.state.session?.role]);
+
+  const MENU_CATEGORIES = [
+    {
+      id: 'laporan',
+      label: 'Dashboard & Laporan',
+      icon: LayoutDashboard,
+      tabs: [
+        { id: 'dashboard_utama', label: 'Ringkasan Utama', icon: LayoutDashboard },
+        { id: 'akuntansi', label: 'Modul Keuangan Terpadu', icon: BookOpen },
+        { id: 'ttd_laporan', label: 'Tanda Tangan Laporan', icon: Edit3 },
+      ]
+    },
+    {
+      id: 'program',
+      label: 'Program & Ibadah',
+      icon: Heart,
+      tabs: [
+        { id: 'program', label: 'Program & Campaign', icon: Sparkles },
+        { id: 'qurban', label: 'Patungan Qurban', icon: Heart },
+        { id: 'petugas', label: 'Jadwal Petugas & Jumat', icon: Calendar },
+        { id: 'kalender', label: 'Kalender & Agenda', icon: Calendar },
+      ]
+    },
+    {
+      id: 'aset',
+      label: 'Aset & Fasilitas',
+      icon: Building,
+      tabs: [
+        { id: 'inventaris', label: 'Inventaris & Foto Aset', icon: Package },
+        { id: 'sewa', label: 'Sewa & Booking', icon: Building },
+      ]
+    },
+    {
+      id: 'media',
+      label: 'Media & Komunikasi',
+      icon: Megaphone,
+      tabs: [
+        { id: 'pengumuman', label: 'Pengumuman & Berita', icon: Image },
+        { id: 'galeri', label: 'Galeri & Artikel Kajian', icon: Video },
+        { id: 'broadcast', label: 'Broadcast WhatsApp', icon: Megaphone },
+        { id: 'layanan_aduan', label: 'Layanan Aduan', icon: MessageCircle },
+      ]
+    },
+    {
+      id: 'manajemen',
+      label: 'Manajemen Jamaah & Pengurus',
+      icon: Users,
+      tabs: [
+        { id: 'pengurus', label: 'Profil & Pengurus', icon: Users },
+        { id: 'jamaah_manage', label: 'Manajemen Akun & Role', icon: Heart },
+      ]
+    },
+    {
+      id: 'sistem',
+      label: 'Sistem & Pengaturan',
+      icon: Settings,
+      tabs: [
+        { id: 'aplikasi', label: 'Pengaturan Aplikasi', icon: Settings },
+        { id: 'pengaturan', label: 'Pengaturan Dasar', icon: Settings },
+        { id: 'supabase', label: 'Konfigurasi Supabase', icon: Database },
+        { id: 'audit_log', label: 'Audit Log System', icon: BookOpen },
+        { id: 'panduan', label: 'Buku Panduan', icon: BookOpen },
+      ]
+    }
+  ];
+
+  const getCategoryForTab = (tabId: string) => {
+    for (const cat of MENU_CATEGORIES) {
+      if (cat.tabs.some(t => t.id === tabId)) {
+        return cat.id;
+      }
+    }
+    return 'laporan';
+  };
+
+  const [activeCategory, setActiveCategory] = useState<string>(() => getCategoryForTab(dkmTab));
+
+  useEffect(() => {
+    setActiveCategory(getCategoryForTab(dkmTab));
+  }, [dkmTab]);
+
   const [finSubTab, setFinSubTab] = useState<'mutasi' | 'jurnal' | 'bukubesar' | 'kaskecil' | 'psak109'>('mutasi');
   const [erpSubTab, setErpSubTab] = useState<'coa' | 'jurnal_umum' | 'buku_besar' | 'anggaran' | 'pencairan' | 'laporan'>('coa');
   const [tabSearchQuery, setTabSearchQuery] = useState('');
@@ -889,42 +970,28 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
             onChange={e => setDkmTab(e.target.value as any)}
             className="w-full bg-blue-900 border border-blue-700 text-white text-sm font-bold rounded-xl px-3 py-2.5 outline-none cursor-pointer"
           >
-            {[
-              { id: 'dashboard_utama', label: 'Ringkasan Utama' },
-              { id: 'akuntansi', label: 'Keuangan Terpadu' },
-              { id: 'panduan', label: 'Buku Panduan' },
-              { id: 'galeri', label: 'Galeri & Artikel Kajian' },
-              { id: 'qurban', label: 'Patungan Qurban' },
-              { id: 'sewa', label: 'Sewa & Booking' },
-              { id: 'kalender', label: 'Kalender & Agenda' },
-              { id: 'aplikasi', label: 'Pengaturan Aplikasi' },
-              { id: 'pengaturan', label: 'Pengaturan Admin & Foto' },
-              { id: 'pengurus', label: 'Profil & Pengurus' },
-              { id: 'ttd_laporan', label: 'Tanda Tangan Laporan' },
-              { id: 'inventaris', label: 'Inventaris & Foto Aset' },
-              { id: 'program', label: 'Program & Campaign' },
-              { id: 'pengumuman', label: 'Pengumuman & Berita' },
-              { id: 'petugas', label: 'Jadwal Petugas & Jumat' },
-              { id: 'broadcast', label: 'Broadcast WhatsApp' },
-              { id: 'verifikasi', label: 'Verifikasi ZISWAF' },
-              { id: 'audit_log', label: 'Audit Log System' }
-            ].filter(tab => {
-              const r = store.state.session?.role;
-              const isTopManagement = ['direktur', 'ketua_dkm', 'ketua_dewan_pembina'].includes(r || '');
-              const isConfidential = ['aplikasi', 'pengaturan', 'jamaah_manage', 'supabase', 'audit_log', 'ttd_laporan', 'pengurus'].includes(tab.id);
-              if (isConfidential && !isTopManagement) return false;
-              if (tabSearchQuery) {
-                return tab.label.toLowerCase().includes(tabSearchQuery.toLowerCase());
-              }
-              return true;
-            }).map(tab => (
-              <option key={tab.id} value={tab.id}>{tab.label}</option>
+            {MENU_CATEGORIES.map(category => (
+              <optgroup key={category.id} label={category.label}>
+                {category.tabs.filter(tab => {
+                  const r = store.state.session?.role;
+                  const isTopManagement = ['direktur', 'ketua_dkm', 'ketua_dewan_pembina'].includes(r || '');
+                  const isConfidential = ['aplikasi', 'pengaturan', 'jamaah_manage', 'supabase', 'audit_log', 'ttd_laporan', 'pengurus'].includes(tab.id);
+                  if (isConfidential && !isTopManagement) return false;
+                  if (tabSearchQuery) {
+                    return tab.label.toLowerCase().includes(tabSearchQuery.toLowerCase());
+                  }
+                  return true;
+                }).map(tab => (
+                  <option key={tab.id} value={tab.id}>{tab.label}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>
-        {/* Desktop: Horizontal Tabs with Search */}
-        <div className="hidden sm:flex flex-col gap-3 print:hidden">
-          <div className="relative">
+
+        {/* Desktop: Two-Tier Horizontal Tabs with Search */}
+        <div className="hidden sm:flex flex-col gap-2 print:hidden">
+          <div className="relative mb-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="w-4 h-4 text-blue-400" />
             </div>
@@ -938,67 +1005,77 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
               className="w-full bg-blue-900 border border-blue-700 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-blue-500 transition-colors shadow-inner"
             />
           </div>
-          
-          <div className="relative group bg-blue-950 p-2 rounded-2xl border-b border-blue-800 flex items-center">
-            <button
-              onClick={() => scrollTabs('left')}
-              className="absolute left-0 z-10 p-2 bg-gradient-to-r from-blue-950 via-blue-950 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div ref={tabsRef} className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth w-full px-6">
-            {[
-              { id: 'dashboard_utama', label: 'Ringkasan Utama', icon: LayoutDashboard },
-              { id: 'akuntansi', label: 'Modul Keuangan Terpadu', icon: BookOpen },
-              { id: 'panduan', label: 'Buku Panduan', icon: BookOpen },
-              { id: 'galeri', label: 'Galeri & Artikel Kajian', icon: Video },
-              { id: 'qurban', label: 'Patungan Qurban', icon: Heart },
-              { id: 'sewa', label: 'Sewa & Booking', icon: Building },
-              { id: 'kalender', label: 'Kalender & Agenda', icon: Calendar },
-              { id: 'aplikasi', label: 'Pengaturan Aplikasi', icon: Settings },
-              { id: 'pengaturan', label: 'Pengaturan Dasar', icon: Settings },
-              { id: 'jamaah_manage', label: 'Manajemen Akun & Role', icon: Heart },
-              { id: 'layanan_aduan', label: 'Layanan Aduan', icon: MessageCircle },
-              { id: 'supabase', label: 'Konfigurasi Supabase', icon: Database },
-              { id: 'pengurus', label: 'Profil & Pengurus', icon: Users },
-              { id: 'ttd_laporan', label: 'Tanda Tangan Laporan', icon: Edit3 },
-              { id: 'inventaris', label: 'Inventaris & Foto Aset', icon: Package },
-              { id: 'program', label: 'Program & Campaign', icon: Sparkles },
-              { id: 'pengumuman', label: 'Pengumuman & Berita', icon: Image },
-              { id: 'petugas', label: 'Jadwal Petugas & Jumat', icon: Calendar },
-              { id: 'broadcast', label: 'Broadcast WhatsApp', icon: Megaphone },
-              { id: 'audit_log', label: 'Audit Log System', icon: BookOpen }
-            ]
-            .filter(tab => tab.label.toLowerCase().includes(tabSearchQuery.toLowerCase()))
-            .map(tab => {
-              const IconComp = tab.icon;
+
+          {/* Tier 1: Category Pills */}
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide py-1">
+            {MENU_CATEGORIES.map(category => {
+              const CategoryIcon = category.icon;
               return (
                 <button
-                  key={tab.id}
-                  onClick={() => setDkmTab(tab.id as any)}
-                  className={`shrink-0 py-3.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                    dkmTab === tab.id
-                      ? 'bg-blue-500 text-blue-950 shadow-md shadow-blue-500/20 font-extrabold'
-                      : 'text-white hover:text-orange-400 hover:bg-blue-900'
+                  key={category.id}
+                  onClick={() => setActiveCategory(category.id)}
+                  className={`shrink-0 py-2 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                    activeCategory === category.id
+                      ? 'bg-amber-500 text-blue-950 shadow-md shadow-amber-500/20'
+                      : 'bg-blue-950 border border-blue-800 text-blue-300 hover:text-white hover:bg-blue-900'
                   }`}
                 >
-                  <IconComp className="w-4 h-4 shrink-0" />
-                  <span className="whitespace-nowrap">{tab.label}</span>
+                  <CategoryIcon className="w-4 h-4 shrink-0" />
+                  <span className="whitespace-nowrap">{category.label}</span>
                 </button>
               );
             })}
+          </div>
+          
+          {/* Tier 2: Sub-tabs within the active category */}
+          <div className="relative group bg-blue-950 p-2 rounded-2xl border border-blue-800 flex items-center mt-1 shadow-lg">
+            <button
+              onClick={() => scrollTabs('left')}
+              className="absolute left-0 z-10 p-2 bg-gradient-to-r from-blue-950 via-blue-950 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity rounded-l-2xl"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
             
-            {tabSearchQuery && [
-              { id: 'akuntansi', label: 'Modul Keuangan Terpadu' },
-            ].filter(tab => tab.label.toLowerCase().includes(tabSearchQuery.toLowerCase())).length === 0 && (
-              <div className="flex-1 py-2 text-center text-blue-400 text-xs italic">
-                Fitur tidak ditemukan
-              </div>
-            )}
+            <div ref={tabsRef} className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth w-full px-6">
+              {MENU_CATEGORIES.find(c => c.id === activeCategory)?.tabs
+                .filter(tab => {
+                  const r = store.state.session?.role;
+                  const isTopManagement = ['direktur', 'ketua_dkm', 'ketua_dewan_pembina'].includes(r || '');
+                  const isConfidential = ['aplikasi', 'pengaturan', 'jamaah_manage', 'supabase', 'audit_log', 'ttd_laporan', 'pengurus'].includes(tab.id);
+                  if (isConfidential && !isTopManagement) return false;
+                  if (tabSearchQuery) {
+                    return tab.label.toLowerCase().includes(tabSearchQuery.toLowerCase());
+                  }
+                  return true;
+                })
+                .map(tab => {
+                  const IconComp = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setDkmTab(tab.id as any)}
+                      className={`shrink-0 py-3 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                        dkmTab === tab.id
+                          ? 'bg-blue-500 text-blue-950 shadow-md shadow-blue-500/30'
+                          : 'text-white hover:text-amber-400 hover:bg-blue-800/60'
+                      }`}
+                    >
+                      <IconComp className="w-4 h-4 shrink-0" />
+                      <span className="whitespace-nowrap">{tab.label}</span>
+                    </button>
+                  );
+              })}
+              
+              {tabSearchQuery && MENU_CATEGORIES.find(c => c.id === activeCategory)?.tabs.filter(tab => tab.label.toLowerCase().includes(tabSearchQuery.toLowerCase())).length === 0 && (
+                <div className="flex-1 py-2 text-center text-blue-400 text-xs italic">
+                  Fitur tidak ditemukan di kategori ini.
+                </div>
+              )}
             </div>
+            
             <button
               onClick={() => scrollTabs('right')}
-              className="absolute right-0 z-10 p-2 bg-gradient-to-l from-blue-950 via-blue-950 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute right-0 z-10 p-2 bg-gradient-to-l from-blue-950 via-blue-950 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity rounded-r-2xl"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
