@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { CITIES_DATA, CityPrayerTime, SURAHS_LIST } from '../lib/islamicUtils';
 import { Announcement, PetugasJadwal, AppAdminSettings } from '../types';
-import { Tv, X, Volume2, VolumeX, Play, Pause, Calendar, MapPin, Sparkles, Home } from 'lucide-react';
+import { Tv, X, Volume2, VolumeX, Play, Pause, Calendar, MapPin, Sparkles, Home, Maximize } from 'lucide-react';
 
 const QARI_LIST = [
   { id: 'alafasy', name: 'Mishary Rashid Alafasy', baseUrl: 'https://server8.mp3quran.net/afs/' },
@@ -346,15 +346,34 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
             </p>
           </div>
 
-          {/* Desktop Exit Button */}
-          <button
-            onClick={onExit}
-            className="hidden lg:flex items-center gap-2 p-3 px-5 bg-blue-800 hover:bg-blue-700 text-blue-200 rounded-2xl border border-blue-700 cursor-pointer shrink-0 transition-colors shadow-lg"
-            title="Kembali ke Beranda"
-          >
-            <Home className="w-5 h-5" />
-            <span className="text-sm font-bold uppercase tracking-widest">Beranda</span>
-          </button>
+          {/* Desktop Controls */}
+          <div className="hidden lg:flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (!document.fullscreenElement) {
+                  document.documentElement.requestFullscreen().catch(err => {
+                    console.error("Error attempting to enable full-screen mode:", err.message);
+                  });
+                } else {
+                  if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                  }
+                }
+              }}
+              className="flex items-center justify-center p-3 w-12 h-12 bg-blue-800 hover:bg-blue-700 text-blue-200 rounded-2xl border border-blue-700 cursor-pointer shrink-0 transition-colors shadow-lg"
+              title="Layar Penuh (Fullscreen)"
+            >
+              <Maximize className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onExit}
+              className="flex items-center gap-2 p-3 px-5 bg-blue-800 hover:bg-blue-700 text-blue-200 rounded-2xl border border-blue-700 cursor-pointer shrink-0 transition-colors shadow-lg"
+              title="Kembali ke Beranda"
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-sm font-bold uppercase tracking-widest">Beranda</span>
+            </button>
+          </div>
         </div>
       </div>
 
