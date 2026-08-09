@@ -297,6 +297,7 @@ export interface AppAdminSettings {
   tvSlide2Desc?: string;
   tvSlide2Target?: string;
   tvVideoUrl?: string;
+  tvVideoSourceType?: 'url' | 'camera';
   tvEnableVideoSlide?: boolean;
   masjidLogoUrl?: string;
   masjidHeroPhotoUrl?: string;

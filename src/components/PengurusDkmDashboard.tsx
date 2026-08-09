@@ -2762,16 +2762,59 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                         </button>
                       </div>
                       {adminSettings?.tvEnableVideoSlide && (
-                        <div>
-                          <label className="text-blue-300 font-semibold block mb-1 text-xs">URL YouTube Video (Harap gunakan link 'Embed' YouTube / link CCTV iFrame-compatible):</label>
-                          <input
-                            type="text"
-                            value={adminSettings?.tvVideoUrl || ''}
-                            onChange={(e) => handleTextSettingChange('tvVideoUrl', e.target.value)}
-                            placeholder="Contoh: https://www.youtube.com/embed/XXXXXXX?autoplay=1&mute=1"
-                            className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
-                          />
-                          <p className="text-[10px] text-blue-400 mt-1">Tambahkan <code className="text-amber-300 bg-blue-950 px-1 rounded">?autoplay=1&mute=1</code> di akhir URL agar video memutar otomatis tanpa suara dan tidak mengganggu murottal.</p>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-blue-300 font-semibold block mb-2 text-xs">Pilih Sumber Video:</label>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvVideoSourceType !== 'camera' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                                <input 
+                                  type="radio" 
+                                  name="videoSource" 
+                                  checked={adminSettings?.tvVideoSourceType !== 'camera'}
+                                  onChange={() => handleTextSettingChange('tvVideoSourceType', 'url')}
+                                  className="text-amber-500"
+                                />
+                                <div className="text-xs">
+                                  <div className="font-bold text-blue-200">Internet (URL)</div>
+                                  <div className="text-blue-400 text-[10px]">YouTube Live, HLS, IP Camera web</div>
+                                </div>
+                              </label>
+                              <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl cursor-pointer border transition-colors ${adminSettings?.tvVideoSourceType === 'camera' ? 'bg-blue-900 border-amber-500/50' : 'bg-blue-950 border-blue-800'}`}>
+                                <input 
+                                  type="radio" 
+                                  name="videoSource" 
+                                  checked={adminSettings?.tvVideoSourceType === 'camera'}
+                                  onChange={() => handleTextSettingChange('tvVideoSourceType', 'camera')}
+                                  className="text-amber-500"
+                                />
+                                <div className="text-xs">
+                                  <div className="font-bold text-blue-200">Kabel Fisik CCTV</div>
+                                  <div className="text-blue-400 text-[10px]">Capture Card USB / Kamera Web</div>
+                                </div>
+                              </label>
+                            </div>
+                          </div>
+
+                          {adminSettings?.tvVideoSourceType !== 'camera' ? (
+                            <div>
+                              <label className="text-blue-300 font-semibold block mb-1 text-xs">URL YouTube Video (Harap gunakan link 'Embed' YouTube / link CCTV iFrame-compatible):</label>
+                              <input
+                                type="text"
+                                value={adminSettings?.tvVideoUrl || ''}
+                                onChange={(e) => handleTextSettingChange('tvVideoUrl', e.target.value)}
+                                placeholder="Contoh: https://www.youtube.com/embed/XXXXXXX?autoplay=1&mute=1"
+                                className="w-full bg-blue-950 border border-blue-800 rounded-xl p-2 text-white font-mono text-xs outline-none"
+                              />
+                              <p className="text-[10px] text-blue-400 mt-1">Tambahkan <code className="text-amber-300 bg-blue-950 px-1 rounded">?autoplay=1&mute=1</code> di akhir URL agar video memutar otomatis tanpa suara dan tidak mengganggu murottal.</p>
+                            </div>
+                          ) : (
+                            <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl">
+                              <p className="text-xs text-amber-300 font-medium">
+                                ⚠️ Pastikan kabel Capture Card / Mesin DVR CCTV sudah dicolokkan ke USB komputer yang memutar TV Display ini.
+                                Browser akan meminta izin kamera (Allow Camera) saat TV Display dimuat ulang.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

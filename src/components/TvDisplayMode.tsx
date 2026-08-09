@@ -163,12 +163,37 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
 
   // Auto rotate slides every 8 seconds
   useEffect(() => {
-    const slideCount = adminSettings?.tvEnableVideoSlide && adminSettings?.tvVideoUrl ? 4 : 3;
+    // If video is enabled, we have 4 slides. Otherwise 3.
+    const isVideoEnabled = adminSettings?.tvEnableVideoSlide && (adminSettings?.tvVideoSourceType === 'camera' || adminSettings?.tvVideoUrl);
+    const slideCount = isVideoEnabled ? 4 : 3;
     const slideTimer = setInterval(() => {
       setCurrentSlideIndex(prev => (prev + 1) % slideCount);
     }, 8000);
     return () => clearInterval(slideTimer);
-  }, [adminSettings?.tvEnableVideoSlide, adminSettings?.tvVideoUrl]);
+  }, [adminSettings?.tvEnableVideoSlide, adminSettings?.tvVideoUrl, adminSettings?.tvVideoSourceType]);
+
+  // Handle Physical CCTV (Capture Card / Webcam)
+  const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    if (adminSettings?.tvEnableVideoSlide && adminSettings?.tvVideoSourceType === 'camera' && currentSlideIndex === 3) {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+        .then(mediaStream => {
+          stream = mediaStream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        })
+        .catch(err => {
+          console.error("Gagal mengakses kamera/CCTV fisik:", err);
+        });
+    }
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [adminSettings?.tvEnableVideoSlide, adminSettings?.tvVideoSourceType, currentSlideIndex]);
 
   const timeStr = time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\./g, ':');
   const dateStr = time.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -367,19 +392,35 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
               </div>
             )}
 
-            {currentSlideIndex === 3 && adminSettings?.tvEnableVideoSlide && adminSettings?.tvVideoUrl && (
+            {currentSlideIndex === 3 && adminSettings?.tvEnableVideoSlide && (
               <div className="w-full max-w-5xl mx-auto h-[40vh] sm:h-[50vh] bg-black border-2 border-amber-500/40 rounded-3xl overflow-hidden shadow-2xl animate-fade-in relative group">
-                <iframe 
-                  src={adminSettings.tvVideoUrl} 
-                  title="Live View"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full object-cover pointer-events-none"
-                  sandbox="allow-scripts allow-same-origin allow-presentation"
-                ></iframe>
-                <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-2 animate-pulse">
+                {adminSettings?.tvVideoSourceType === 'camera' ? (
+                  <video 
+                    ref={videoRef}
+                    autoPlay 
+                    playsInline 
+                    muted
+                    className="w-full h-full object-cover pointer-events-none"
+                  />
+                ) : adminSettings?.tvVideoUrl ? (
+                  <iframe 
+                    src={adminSettings.tvVideoUrl} 
+                    title="Live View"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full object-cover pointer-events-none"
+                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                  ></iframe>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-blue-500">
+                    <Tv className="w-16 h-16 mb-4 opacity-50" />
+                    <p className="font-mono text-sm">Sinyal Video Belum Dikonfigurasi</p>
+                  </div>
+                )}
+                
+                <div className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-2 animate-pulse shadow-lg">
                   <div className="w-2 h-2 bg-white rounded-full"></div>
-                  LIVE
+                  {adminSettings?.tvVideoSourceType === 'camera' ? 'CCTV LANGSUNG' : 'LIVE'}
                 </div>
               </div>
             )}
