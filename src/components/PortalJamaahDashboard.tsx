@@ -166,7 +166,7 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
         )}
 
         {/* Header Profile Section */}
-        <div className="bg-gradient-to-r from-blue-900 via-[#172554] to-blue-900 rounded-2xl p-4 sm:p-6 text-white shadow-lg relative overflow-hidden">
+        <div className="bg-blue-900 bg-gradient-to-r from-blue-900 via-[#172554] to-blue-900 rounded-2xl p-4 sm:p-6 text-white shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
           <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 border-2 border-amber-400/50 flex items-center justify-center text-2xl sm:text-3xl font-bold text-amber-300 font-serif shadow-inner backdrop-blur-sm">
@@ -273,7 +273,7 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
           {activeTab === 'ringkasan' && (
             <div className="space-y-6 animate-fade-in">
               {/* Jadwal Shalat Widget */}
-              <div className="bg-gradient-to-r from-emerald-900 to-teal-900 rounded-xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden">
+              <div className="bg-emerald-900 bg-gradient-to-r from-emerald-900 to-teal-900 rounded-xl p-4 sm:p-5 text-white shadow-md relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl translate-x-1/2 -translate-y-1/2"></div>
                 <div className="relative z-10">
                   <div className="flex justify-between items-center mb-4">
@@ -393,7 +393,7 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Card Kajian */}
-                  <div className="bg-gradient-to-br from-emerald-900 to-emerald-800 rounded-2xl p-5 text-white shadow-md relative overflow-hidden group hover:shadow-lg transition-all">
+                  <div className="bg-emerald-900 bg-gradient-to-br from-emerald-900 to-emerald-800 rounded-2xl p-5 text-white shadow-md relative overflow-hidden group hover:shadow-lg transition-all">
                     <div className="absolute -right-8 -bottom-8 opacity-20 group-hover:scale-110 transition-transform">
                       <BookOpen className="w-32 h-32" />
                     </div>
@@ -422,7 +422,7 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
                   </div>
 
                   {/* Card Program Pilihan */}
-                  <div className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-2xl p-5 text-white shadow-md relative overflow-hidden group hover:shadow-lg transition-all">
+                  <div className="bg-blue-900 bg-gradient-to-br from-blue-900 to-blue-800 rounded-2xl p-5 text-white shadow-md relative overflow-hidden group hover:shadow-lg transition-all">
                     <div className="absolute -right-8 -bottom-8 opacity-20 group-hover:scale-110 transition-transform">
                       <HeartHandshake className="w-32 h-32" />
                     </div>

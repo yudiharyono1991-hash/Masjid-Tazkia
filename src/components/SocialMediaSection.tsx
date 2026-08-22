@@ -154,7 +154,7 @@ export const SocialMediaSection: React.FC<SocialMediaProps> = ({ isDark = false 
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center mt-1">
                       <button onClick={() => setIgLoaded(true)}
-                        className="text-xs font-bold text-white bg-gradient-to-r from-pink-600 to-purple-600 px-4 py-2 rounded-full hover:opacity-90 transition-opacity shadow-lg">
+                        className="text-xs font-bold text-white bg-pink-600 bg-gradient-to-r from-pink-600 to-purple-600 px-4 py-2 rounded-full hover:opacity-90 transition-opacity shadow-lg">
                         Tampilkan Postingan
                       </button>
                       <a href="https://www.instagram.com/masjidtazkia/" target="_blank" rel="noopener noreferrer"
