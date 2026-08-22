@@ -1697,23 +1697,23 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 font-serif">Saldo Kas Utama (COA)</h4>
+                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 font-serif">Distribusi Saldo Rekening (COA)</h4>
                 <div className="h-64 flex items-center justify-center">
                   {kasAccounts.length > 0 ? (
                     <Doughnut data={kasChartData} options={{ maintainAspectRatio: false, cutout: '70%', plugins: { legend: { labels: { color: store.state.themeMode === 'dark' ? '#fff' : '#000' } } } }} />
                   ) : (
-                    <p className="text-gray-400 text-sm">Belum ada data kas.</p>
+                    <p className="text-gray-400 text-sm italic text-center px-4">Belum ada riwayat saldo kas atau bank yang tercatat.</p>
                   )}
                 </div>
               </div>
 
               <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700 shadow-sm">
-                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 font-serif">Progres Program Donasi</h4>
+                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 font-serif">Pencapaian Pendanaan Program</h4>
                 <div className="h-64 flex items-center justify-center">
                   {programs.length > 0 ? (
                     <Bar data={programChartData} options={{ maintainAspectRatio: false, indexAxis: 'y', scales: { x: { ticks: { color: store.state.themeMode === 'dark' ? '#9ca3af' : '#6b7280' } }, y: { ticks: { color: store.state.themeMode === 'dark' ? '#9ca3af' : '#6b7280' } } }, plugins: { legend: { display: false } } }} />
                   ) : (
-                    <p className="text-gray-400 text-sm">Belum ada data program.</p>
+                    <p className="text-gray-400 text-sm italic text-center px-4">Belum ada data program kampanye yang aktif.</p>
                   )}
                 </div>
               </div>
