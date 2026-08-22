@@ -1,25 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Program, ProgramCategory, AppAdminSettings } from '../types';
 import { formatRupiah, formatRupiahFull } from '../lib/islamicUtils';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 import {
   HeartHandshake,
@@ -79,127 +60,7 @@ export const ProgramCardsSection: React.FC<ProgramCardsSectionProps> = ({
     return matchesCategory && matchesSearch;
   });
 
-  // Calculate statistics for the chart
-  const chartData = useMemo(() => {
-    const categories = ['zakat', 'infaq', 'wakaf'];
-    const data = categories.map(cat => {
-      return programs
-        .filter(p => p.category === cat)
-        .reduce((sum, p) => sum + p.collectedAmount, 0);
-    });
 
-    return {
-      labels: ['Zakat Maal', 'Infaq & Shadaqah', 'Wakaf Produktif'],
-      datasets: [
-        {
-          label: 'Total Perolehan (Rp)',
-          data: data,
-          backgroundColor: [
-            'rgba(59, 130, 246, 0.85)', // blue-500
-            'rgba(16, 185, 129, 0.85)', // emerald-500
-            'rgba(245, 158, 11, 0.85)', // amber-500
-          ],
-          borderColor: [
-            'rgb(37, 99, 235)',
-            'rgb(5, 150, 105)',
-            'rgb(217, 119, 6)',
-          ],
-          borderWidth: 2,
-          borderRadius: 8,
-          barPercentage: 0.6,
-          hoverBackgroundColor: [
-            'rgba(37, 99, 235, 1)',
-            'rgba(5, 150, 105, 1)',
-            'rgba(217, 119, 6, 1)',
-          ]
-        },
-      ],
-    };
-  }, [programs]);
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: false,
-      },
-      tooltip: {
-        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-        titleColor: isDark ? '#94a3b8' : '#64748b',
-        bodyColor: isDark ? '#f8fafc' : '#0f172a',
-        borderColor: isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(226, 232, 240, 0.8)',
-        borderWidth: 1,
-        padding: 12,
-        cornerRadius: 8,
-        displayColors: false,
-        titleFont: {
-          family: "'Plus Jakarta Sans', sans-serif",
-          size: 13,
-          weight: 'normal' as const
-        },
-        bodyFont: {
-          family: "'Plus Jakarta Sans', sans-serif",
-          size: 15,
-          weight: 'bold' as const
-        },
-        callbacks: {
-          label: function(context: any) {
-            let label = context.dataset.label || '';
-            if (context.parsed.y !== null) {
-              label = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(context.parsed.y);
-            }
-            return label;
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        grid: {
-          display: false,
-          drawBorder: false,
-        },
-        ticks: {
-          color: isDark ? '#94a3b8' : '#64748b',
-          maxRotation: 0,
-          minRotation: 0,
-          font: {
-            family: "'Plus Jakarta Sans', sans-serif",
-            weight: 'bold' as const,
-            size: 10
-          }
-        }
-      },
-      y: {
-        beginAtZero: true,
-        suggestedMax: 10000000,
-        border: {
-          display: false
-        },
-        grid: {
-          color: isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.6)',
-          drawTicks: false,
-        },
-        ticks: {
-          color: isDark ? '#94a3b8' : '#64748b',
-          padding: 10,
-          callback: function(value: any) {
-            if (value >= 1000000000) {
-              return 'Rp ' + (value / 1000000000) + ' M';
-            }
-            if (value >= 1000000) {
-              return 'Rp ' + (value / 1000000) + ' Jt';
-            }
-            return 'Rp ' + value;
-          }
-        }
-      }
-    }
-  };
 
   return (
     <section id="ziswaf-section" className={`py-16 border-b transition-colors ${isDark ? "bg-blue-950 text-blue-100 border-blue-800" : "bg-stone-50 text-blue-900 border-blue-200"}`}>
@@ -214,18 +75,7 @@ export const ProgramCardsSection: React.FC<ProgramCardsSectionProps> = ({
           </div>
         )}
 
-        {/* ZISWAF Statistics Chart */}
-        <div className={`p-6 rounded-2xl border shadow-sm transition-colors mb-8 ${isDark ? "bg-blue-900/50 border-blue-800" : "bg-white border-blue-200"}`}>
-          <div className="flex items-center gap-2 mb-6">
-            <PieChart className={`w-5 h-5 ${isDark ? "text-amber-400" : "text-amber-600"}`} />
-            <h3 className={`font-bold font-serif ${isDark ? "text-white" : "text-blue-950"}`}>
-              Grafik Statistik Perolehan ZISWAF
-            </h3>
-          </div>
-          <div className="h-64 w-full">
-            <Bar data={chartData} options={chartOptions} />
-          </div>
-        </div>
+        {/* Removed ZISWAF Statistics Chart */}
 
         {/* Search and Filter Bar */}
         <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 p-3 rounded-2xl border transition-colors ${isDark ? "bg-blue-950/80 border-blue-800" : "bg-white border-blue-200 shadow-sm"}`}>

@@ -335,8 +335,8 @@ export const DonationModalFlow: React.FC<DonationModalFlowProps> = ({
                 <span className="text-[11px] text-gray-500 block mb-2">Akses Cepat Kategori Utama:</span>
                 <div className="grid grid-cols-4 gap-2">
                   {[
-                    { id: 'infaq', name: 'Infaq' },
                     { id: 'zakat', name: 'Zakat' },
+                    { id: 'infaq', name: 'Infaq' },
                     { id: 'shadaqah', name: 'Sedekah' },
                     { id: 'wakaf', name: 'Wakaf' }
                   ].map(c => (
