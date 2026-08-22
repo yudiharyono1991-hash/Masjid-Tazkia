@@ -125,7 +125,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   return (
     <section
-      className="relative overflow-hidden bg-[#172554] text-white min-h-[60vh] md:min-h-[85vh] flex flex-col justify-center"
+      className="relative overflow-hidden bg-[#172554] text-white min-h-[75vh] md:min-h-[85vh] flex flex-col justify-center"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -152,7 +152,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div className={`absolute inset-0 bg-gradient-to-t ${isDark ? 'from-slate-900/80' : 'from-slate-900/50'} via-transparent to-transparent`}></div>
             
             {/* Slide Text Content */}
-            <div className={`absolute inset-0 z-10 flex flex-col justify-end pb-14 md:justify-center md:pb-0 max-w-7xl mx-auto px-5 sm:px-12 lg:px-16 transition-all duration-1000 delay-300 ${isActive ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} ${textAlign}`}>
+            <div className={`absolute inset-0 z-10 flex flex-col justify-end pb-12 pt-48 md:justify-center md:pb-0 md:pt-0 max-w-7xl mx-auto px-5 sm:px-12 lg:px-16 transition-all duration-1000 delay-300 ${isActive ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} ${textAlign}`}>
               <div className="max-w-2xl">
                 {slide.subtitle && (
                   <div className="flex items-center gap-3 mb-2 sm:mb-3">
