@@ -137,29 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Theme Mode Toggle Button (Light/Dark) */}
-          <span className="opacity-30">|</span>
-          <button
-            onClick={toggleThemeMode}
-            className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[9px] sm:text-[10px] tracking-wider transition-all cursor-pointer border ${
-              isDark
-                ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25'
-                : 'bg-blue-900 text-amber-300 border-blue-700 hover:bg-blue-800'
-            }`}
-            title={isDark ? "Beralih ke Mode Terang (Light Mode)" : "Beralih ke Mode Gelap (Dark Mode)"}
-          >
-            {isDark ? (
-              <>
-                <Sun className="w-3 h-3 text-amber-300 animate-spin-slow" />
-                <span className="hidden xs:inline">Mode Terang</span>
-              </>
-            ) : (
-              <>
-                <Moon className="w-3 h-3 text-amber-300" />
-                <span className="hidden xs:inline">Mode Gelap</span>
-              </>
-            )}
-          </button>
+          {/* Theme Mode toggle removed to preserve Editorial Aesthetic Light Mode */}
         </div>
       </div>
 
