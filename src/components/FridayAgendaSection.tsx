@@ -68,7 +68,7 @@ export const FridayAgendaSection: React.FC<FridayAgendaSectionProps> = ({
         </div>
 
         {/* Featured Friday Highlight Card */}
-        <div className="relative bg-gradient-to-br from-[#1e3a8a] via-[#172554] to-[#1e3a8a] border-2 border-amber-400/80 rounded-3xl p-6 sm:p-10 shadow-2xl overflow-hidden">
+        <div className="relative bg-[#1e3a8a] bg-gradient-to-br from-[#1e3a8a] via-[#172554] to-[#1e3a8a] border-2 border-amber-400/80 rounded-3xl p-6 sm:p-10 shadow-2xl overflow-hidden">
           
           {/* Subtle Ambient Graphic */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />

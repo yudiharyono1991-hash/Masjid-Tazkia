@@ -132,7 +132,7 @@ export const ProfilTazkiaSection: React.FC = () => {
               alt="Prof. Dr. M. Syafii Antonio" 
               className="absolute inset-0 w-full h-full object-cover object-center"
             />
-            <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-blue-900 via-blue-900/70 to-transparent p-6 pt-24">
+            <div className="absolute bottom-0 left-0 w-full bg-blue-900 bg-gradient-to-t from-blue-900 via-blue-900/70 to-transparent p-6 pt-24">
               <h3 className="text-white text-xl font-bold">Prof. Dr. M. Syafii Antonio</h3>
               <p className="text-blue-200 text-sm">Ketua Dewan Pembina</p>
             </div>
@@ -160,7 +160,7 @@ export const ProfilTazkiaSection: React.FC = () => {
               alt="Syaripudin Kusin" 
               className="absolute inset-0 w-full h-full object-cover object-center"
             />
-            <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-blue-900 via-blue-900/70 to-transparent p-6 pt-24">
+            <div className="absolute bottom-0 left-0 w-full bg-blue-900 bg-gradient-to-t from-blue-900 via-blue-900/70 to-transparent p-6 pt-24">
               <h3 className="text-white text-xl font-bold">Syaripudin Kusin</h3>
               <p className="text-blue-200 text-sm">Direktur</p>
             </div>
@@ -188,7 +188,7 @@ export const ProfilTazkiaSection: React.FC = () => {
               alt="Abdul Mughni" 
               className="absolute inset-0 w-full h-full object-cover object-center"
             />
-            <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-blue-900 via-blue-900/70 to-transparent p-6 pt-24">
+            <div className="absolute bottom-0 left-0 w-full bg-blue-900 bg-gradient-to-t from-blue-900 via-blue-900/70 to-transparent p-6 pt-24">
               <h3 className="text-white text-xl font-bold">Abdul Mughni</h3>
               <p className="text-blue-200 text-sm">Ketua DKM Masjid Tazkia Islamic Center</p>
             </div>

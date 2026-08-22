@@ -40,7 +40,7 @@ export const ProgramDetailModal: React.FC<ProgramDetailModalProps> = ({
             alt={program.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#172554] via-[#172554]/50 to-transparent" />
+          <div className="absolute inset-0 bg-[#172554] bg-gradient-to-t from-[#172554] via-[#172554]/50 to-transparent" />
 
           {/* Close Button */}
           <button
@@ -109,7 +109,7 @@ export const ProgramDetailModal: React.FC<ProgramDetailModalProps> = ({
             {/* Progress Bar */}
             <div className="w-full bg-blue-900 h-3 rounded-full overflow-hidden p-0.5 border border-blue-700">
               <div
-                className="bg-gradient-to-r from-amber-400 to-blue-400 h-full rounded-full transition-all duration-500"
+                className="bg-amber-400 bg-gradient-to-r from-amber-400 to-blue-400 h-full rounded-full transition-all duration-500"
                 style={{ width: `${percentage}%` }}
               />
             </div>
@@ -189,7 +189,7 @@ export const ProgramDetailModal: React.FC<ProgramDetailModalProps> = ({
                 onClose();
                 onDonate(program);
               }}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-amber-400 to-blue-500 hover:from-amber-300 hover:to-blue-400 text-blue-950 font-extrabold px-6 py-3 rounded-2xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg transition-transform active:scale-95 border border-amber-300/40"
+              className="flex-1 sm:flex-none bg-amber-400 bg-gradient-to-r from-amber-400 to-blue-500 hover:from-amber-300 hover:to-blue-400 text-blue-950 font-extrabold px-6 py-3 rounded-2xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg transition-transform active:scale-95 border border-amber-300/40"
             >
               <Heart className="w-4 h-4 fill-blue-950" />
               <span>Bantu Donasi / Salurkan Sekarang</span>

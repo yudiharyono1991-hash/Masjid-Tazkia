@@ -275,7 +275,7 @@ export const ProgramCardsSection: React.FC<ProgramCardsSectionProps> = ({
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                     referrerPolicy="no-referrer"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-blue-950 via-blue-950/40 to-transparent" />
+                  <div className="absolute inset-0 bg-blue-950 bg-gradient-to-t from-blue-950 via-blue-950/40 to-transparent" />
 
                   {/* Badge Category */}
                   <div className="absolute top-3 left-3 flex items-center gap-2">

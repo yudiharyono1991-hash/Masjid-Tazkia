@@ -342,7 +342,7 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
               </div>
               
               {monthlyTarget > 0 && (
-                <div className="bg-gradient-to-r from-amber-50 to-amber-100/50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                <div className="bg-amber-50 bg-gradient-to-r from-amber-50 to-amber-100/50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
                   <div className="p-2 bg-amber-200/50 text-amber-600 rounded-lg shrink-0">
                     <Bell className="w-5 h-5 animate-pulse" />
                   </div>

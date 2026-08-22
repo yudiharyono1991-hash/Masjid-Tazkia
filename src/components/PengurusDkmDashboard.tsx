@@ -929,7 +929,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header Title Bar */}
-        <div className="bg-gradient-to-r from-blue-950/80 via-blue-900 to-blue-950/80 border border-blue-500/30 p-6 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xl print:hidden">
+        <div className="bg-blue-950 bg-gradient-to-r from-blue-950/80 via-blue-900 to-blue-950/80 border border-blue-500/30 p-6 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xl print:hidden">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center">
               <ShieldCheck className="w-6 h-6" />
@@ -1069,7 +1069,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
           <div className="relative group bg-blue-950 p-2 rounded-2xl border border-blue-800 flex items-center mt-1 shadow-lg">
             <button
               onClick={() => scrollTabs('left')}
-              className="absolute left-0 z-10 p-2 bg-gradient-to-r from-blue-950 via-blue-950 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity rounded-l-2xl"
+              className="absolute left-0 z-10 p-2 bg-blue-950 bg-gradient-to-r from-blue-950 via-blue-950 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity rounded-l-2xl"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -1113,7 +1113,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
             
             <button
               onClick={() => scrollTabs('right')}
-              className="absolute right-0 z-10 p-2 bg-gradient-to-l from-blue-950 via-blue-950 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity rounded-r-2xl"
+              className="absolute right-0 z-10 p-2 bg-blue-950 bg-gradient-to-l from-blue-950 via-blue-950 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity rounded-r-2xl"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -1570,7 +1570,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
             <div className="relative group flex items-center bg-blue-900 border border-blue-800 p-1.5 rounded-2xl print:hidden">
               <button
                 onClick={() => scrollErpTabs('left')}
-                className="absolute left-0 z-10 p-2 bg-gradient-to-r from-blue-900 via-blue-900 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity rounded-l-2xl"
+                className="absolute left-0 z-10 p-2 bg-blue-900 bg-gradient-to-r from-blue-900 via-blue-900 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity rounded-l-2xl"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -1602,7 +1602,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
               
               <button
                 onClick={() => scrollErpTabs('right')}
-                className="absolute right-0 z-10 p-2 bg-gradient-to-l from-blue-900 via-blue-900 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity rounded-r-2xl"
+                className="absolute right-0 z-10 p-2 bg-blue-900 bg-gradient-to-l from-blue-900 via-blue-900 to-transparent text-blue-300 hover:text-white h-full flex items-center opacity-0 group-hover:opacity-100 transition-opacity rounded-r-2xl"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -1655,7 +1655,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
           return (
           <div className="space-y-6 animate-fade-in">
             <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-gray-100 dark:border-slate-700 shadow-xl shadow-gray-200/40 dark:shadow-none relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
               <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                   <h3 className="text-3xl font-serif font-bold text-gray-900 dark:text-white mb-2">Ahlan wa Sahlan, {store.state.session?.name}</h3>
@@ -2170,7 +2170,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                 </div>
 
                 {/* Petty Cash Overview Balance Box */}
-                <div className="bg-gradient-to-r from-amber-950/60 to-blue-900 border border-amber-500/30 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="bg-amber-950 bg-gradient-to-r from-amber-950/60 to-blue-900 border border-amber-500/30 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-center gap-4">
                   <div>
                     <span className="text-[10px] font-mono text-amber-300 uppercase tracking-widest font-bold block">
                       SALDO KAS KECIL SAAT INI (IMPREST LIMIT: RP 10.000.000)
@@ -3496,7 +3496,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
             </div>
 
             {/* Featured Friday Khutbah Card */}
-            <div className="bg-gradient-to-r from-blue-900 via-[#0e1d38] to-blue-900 border-2 border-amber-500/40 rounded-2xl p-5 space-y-3 shadow-xl">
+            <div className="bg-blue-900 bg-gradient-to-r from-blue-900 via-[#0e1d38] to-blue-900 border-2 border-amber-500/40 rounded-2xl p-5 space-y-3 shadow-xl">
               <div className="flex items-center justify-between border-b border-amber-500/30 pb-2">
                 <span className="bg-amber-500 text-blue-950 font-bold font-mono text-[10px] px-2.5 py-0.5 rounded-full uppercase">
                   INFORMASI KHUTBAH JUMAT TERKINI (AKTIF DI TV SIGNAGE)
@@ -4896,7 +4896,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
               Pengaturan Display TV & Notifikasi Khusus
             </h3>
 
-            <div className="bg-gradient-to-r from-blue-900 via-[#0e1d38] to-blue-900 border-2 border-blue-800 rounded-2xl p-6 shadow-xl">
+            <div className="bg-blue-900 bg-gradient-to-r from-blue-900 via-[#0e1d38] to-blue-900 border-2 border-blue-800 rounded-2xl p-6 shadow-xl">
               <div className="space-y-6">
                 <div className="space-y-4">
                   <h5 className="font-bold text-blue-200 text-xs uppercase tracking-wider">Pengaturan Mode Khusus (Jumat, Hari Raya & Buka Puasa)</h5>

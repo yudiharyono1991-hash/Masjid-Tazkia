@@ -214,7 +214,7 @@ export const PatunganQurbanSection: React.FC<PatunganQurbanSectionProps> = ({
                         }
                       }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-transparent to-black/30" />
+                    <div className="absolute inset-0 bg-blue-950 bg-gradient-to-t from-blue-950/80 via-transparent to-black/30" />
 
                     {/* Animal Badge */}
                     <span className="absolute top-3 left-3 bg-[#1e3a8a] text-white text-[10px] font-mono font-extrabold uppercase px-3 py-1 rounded-full shadow-md flex items-center gap-1 border border-blue-400/40">

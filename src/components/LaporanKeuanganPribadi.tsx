@@ -154,7 +154,7 @@ export const LaporanKeuanganPribadi: React.FC = () => {
     <div className="space-y-6 animate-fade-in">
       {/* Header Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-blue-600 bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden flex flex-col justify-between">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-xl translate-x-1/2 -translate-y-1/2" />
           <div className="relative z-10 flex flex-col justify-center h-full">
             <h3 className="text-blue-100 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
@@ -164,7 +164,7 @@ export const LaporanKeuanganPribadi: React.FC = () => {
           </div>
         </div>
         
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-800 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-emerald-600 bg-gradient-to-r from-emerald-600 to-teal-800 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden flex flex-col justify-between">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-xl translate-x-1/2 -translate-y-1/2" />
           <div className="relative z-10 flex flex-col justify-center h-full">
             <h3 className="text-emerald-100 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
@@ -198,7 +198,7 @@ export const LaporanKeuanganPribadi: React.FC = () => {
       </div>
 
       {/* AI Analysis Notification */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-4 flex gap-3 shadow-sm">
+      <div className="bg-indigo-50 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-4 flex gap-3 shadow-sm">
         <div className="bg-indigo-100 text-indigo-600 p-2 rounded-xl shrink-0 h-min">
           <Sparkles className="w-5 h-5" />
         </div>

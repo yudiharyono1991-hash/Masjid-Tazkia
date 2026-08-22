@@ -56,7 +56,7 @@ export function RoleSwitcherWidget() {
       {isOpen && (
         <div className="mb-3 w-64 bg-white rounded-2xl shadow-2xl border border-blue-100 overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-900 to-blue-800 p-3 text-white flex justify-between items-center">
+          <div className="bg-blue-900 bg-gradient-to-r from-blue-900 to-blue-800 p-3 text-white flex justify-between items-center">
             <h4 className="text-sm font-bold flex items-center gap-2">
               <Users className="w-4 h-4" />
               Uji Coba Peran
@@ -124,7 +124,7 @@ export function RoleSwitcherWidget() {
       {/* FAB Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 bg-gradient-to-r from-blue-700 to-blue-600 text-white rounded-2xl px-3 py-2 shadow-lg shadow-blue-900/30 hover:shadow-xl hover:scale-105 transition-all relative"
+        className="flex items-center gap-2 bg-blue-700 bg-gradient-to-r from-blue-700 to-blue-600 text-white rounded-2xl px-3 py-2 shadow-lg shadow-blue-900/30 hover:shadow-xl hover:scale-105 transition-all relative"
         title="Uji Coba Peran"
       >
         <Users className="w-4 h-4 shrink-0" />

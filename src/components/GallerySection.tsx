@@ -279,7 +279,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-950/20 to-transparent" />
+                    <div className="absolute inset-0 bg-blue-950 bg-gradient-to-t from-blue-950/90 via-blue-950/20 to-transparent" />
 
                     {/* Top Badges */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">

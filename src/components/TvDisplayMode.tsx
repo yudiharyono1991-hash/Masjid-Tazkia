@@ -518,7 +518,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
         {prayerPhase.phase === 'NORMAL' || prayerPhase.phase === 'IFTAR_WAIT' || prayerPhase.phase === 'IMSAK_WAIT' ? (
           <>
             {currentSlideIndex === 0 && (
-              <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
+              <div className="bg-blue-900 bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
                 <div className="flex items-center justify-center gap-2">
                   <span className="bg-amber-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
                     INFORMASI KHUTBAH JUMAT
@@ -543,7 +543,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
             )}
 
             {currentSlideIndex === 1 && (
-              <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
+              <div className="bg-blue-900 bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
                 <span className="bg-blue-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
                   {adminSettings?.tvSlide1Title || 'HADIS SHAHIH HARI INI'}
                 </span>
@@ -558,7 +558,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
             )}
 
             {currentSlideIndex === 2 && (
-              <div className="bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
+              <div className="bg-blue-900 bg-gradient-to-r from-blue-900 via-[#0f1d3a] to-blue-900 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-8 max-w-5xl mx-auto shadow-2xl text-center space-y-4 animate-fade-in">
                 <span className="bg-amber-500 text-blue-950 font-bold font-mono text-xs px-3 py-1 rounded-full uppercase tracking-widest inline-block">
                   {adminSettings?.tvSlide2Title || 'PROGRAM WAKAF UTAMA'}
                 </span>

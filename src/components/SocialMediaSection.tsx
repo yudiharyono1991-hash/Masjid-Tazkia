@@ -133,7 +133,7 @@ export const SocialMediaSection: React.FC<SocialMediaProps> = ({ isDark = false 
 
             {/* Instagram */}
             <div className={`border rounded-2xl overflow-hidden shadow-xl flex-1 transition-colors ${isDark ? 'bg-black/30 border-pink-500/20' : 'bg-white border-slate-200'}`}>
-              <div className={`flex items-center gap-3 px-5 py-3 border-b ${isDark ? 'bg-gradient-to-r from-pink-600/10 to-purple-600/10 border-pink-500/20' : 'bg-pink-50 border-pink-100'}`}>
+              <div className={`flex items-center gap-3 px-5 py-3 border-b ${isDark ? 'bg-pink-600 bg-gradient-to-r from-pink-600/10 to-purple-600/10 border-pink-500/20' : 'bg-pink-50 border-pink-100'}`}>
                 <Instagram className="w-5 h-5 text-pink-500" />
                 <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>Instagram @masjidtazkia</span>
                 <a href="https://www.instagram.com/masjidtazkia/" target="_blank" rel="noopener noreferrer"
@@ -145,7 +145,7 @@ export const SocialMediaSection: React.FC<SocialMediaProps> = ({ isDark = false 
               <div className="overflow-hidden" style={{ minHeight: '320px' }}>
                 {!igLoaded ? (
                   <div className={`flex flex-col items-center gap-3 py-8 px-4 ${isDark ? '' : 'bg-slate-50 h-full'}`}>
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-pink-500 bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
                       <Instagram className="w-7 h-7 text-white" />
                     </div>
                     <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>@masjidtazkia</p>
@@ -228,7 +228,7 @@ export const SocialMediaSection: React.FC<SocialMediaProps> = ({ isDark = false 
         {/* Bottom CTA Row */}
         <div className={`flex flex-wrap justify-center gap-4 pt-4 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
           <a href="https://www.instagram.com/masjidtazkia/" target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 text-white text-sm font-bold rounded-full shadow-lg hover:opacity-90 transition-opacity">
+            className="flex items-center gap-2 px-5 py-2.5 bg-pink-600 bg-gradient-to-r from-pink-600 to-purple-600 text-white text-sm font-bold rounded-full shadow-lg hover:opacity-90 transition-opacity">
             <Instagram className="w-4 h-4" /> Follow Instagram
           </a>
           <a href="https://www.facebook.com/MasjidTazkia/" target="_blank" rel="noopener noreferrer"

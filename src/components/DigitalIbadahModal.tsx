@@ -433,7 +433,7 @@ export const DigitalIbadahModal: React.FC<DigitalIbadahModalProps> = ({
                   className="w-full h-full rounded-full border-2 border-blue-500/40 absolute transition-transform duration-500 flex items-center justify-center"
                   style={{ transform: `rotate(${qiblaAngle}deg)` }}
                 >
-                  <div className="w-3 h-16 bg-gradient-to-t from-blue-500 to-amber-400 rounded-full mb-20 shadow-lg"></div>
+                  <div className="w-3 h-16 bg-blue-500 bg-gradient-to-t from-blue-500 to-amber-400 rounded-full mb-20 shadow-lg"></div>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-amber-500 text-blue-950 flex items-center justify-center font-bold text-xl font-mono shadow-md z-10">
                   🕋

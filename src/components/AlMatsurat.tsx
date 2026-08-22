@@ -91,7 +91,7 @@ export const AlMatsurat: React.FC = () => {
             </div>
             <div className="h-2.5 bg-white/10 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-amber-400 to-amber-300 rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-amber-400 bg-gradient-to-r from-amber-400 to-amber-300 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>

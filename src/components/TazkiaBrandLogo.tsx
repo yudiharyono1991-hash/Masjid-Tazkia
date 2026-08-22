@@ -41,7 +41,7 @@ export const TazkiaBrandLogo: React.FC<TazkiaBrandLogoProps> = ({
       <div className={`flex flex-col items-center text-center space-y-2 ${className}`}>
         {/* Emblem Dome Graphic */}
         <div className="relative flex items-center justify-center">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-b from-blue-900 to-blue-950 border-2 border-amber-400/60 p-2 shadow-2xl flex items-center justify-center relative overflow-hidden">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-blue-900 bg-gradient-to-b from-blue-900 to-blue-950 border-2 border-amber-400/60 p-2 shadow-2xl flex items-center justify-center relative overflow-hidden">
             <img
               src={logoUrl}
               alt="Logo Masjid Tazkia"
@@ -51,7 +51,7 @@ export const TazkiaBrandLogo: React.FC<TazkiaBrandLogoProps> = ({
                 e.currentTarget.src = '/logo.png'; 
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 via-transparent to-blue-500/10 z-0" />
+            <div className="absolute inset-0 bg-amber-500 bg-gradient-to-tr from-amber-500/10 via-transparent to-blue-500/10 z-0" />
           </div>
         </div>
 
@@ -82,7 +82,7 @@ export const TazkiaBrandLogo: React.FC<TazkiaBrandLogoProps> = ({
   return (
     <div className={`flex items-center gap-2 sm:gap-3 ${className}`}>
       {/* Mini Mosque Emblem */}
-      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#1e3a8a] to-[#172554] border border-amber-400/50 flex items-center justify-center shadow-lg relative shrink-0">
+      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#1e3a8a] bg-gradient-to-br from-[#1e3a8a] to-[#172554] border border-amber-400/50 flex items-center justify-center shadow-lg relative shrink-0">
         <img 
           src={logoUrl} 
           alt="Logo Masjid Tazkia" 
