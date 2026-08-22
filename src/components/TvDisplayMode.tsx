@@ -359,13 +359,13 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
         {/* Audio Player & Digital Clock */}
         <div className="flex flex-col sm:flex-row items-center gap-4 lg:gap-6 w-full lg:w-auto justify-between lg:justify-end">
           
-          <div className="flex flex-col gap-2 w-full sm:w-auto">
-            <div className="flex items-center gap-2 bg-blue-950/80 p-2 sm:p-3 rounded-xl border border-blue-800 w-full justify-between sm:justify-start overflow-hidden">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-blue-950/80 p-1.5 sm:p-3 rounded-xl border border-blue-800 w-full justify-between sm:justify-start overflow-hidden">
               <button 
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 rounded-lg bg-blue-800 hover:bg-blue-700 flex items-center justify-center text-amber-400 transition-colors"
+                className="w-7 h-7 sm:w-10 sm:h-10 shrink-0 rounded-lg bg-blue-800 hover:bg-blue-700 flex items-center justify-center text-amber-400 transition-colors"
               >
-                {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />}
+                {isPlaying ? <Pause className="w-3.5 h-3.5 sm:w-5 sm:h-5" /> : <Play className="w-3.5 h-3.5 sm:w-5 sm:h-5 ml-1" />}
               </button>
               <div className="flex flex-col text-left min-w-0 flex-1 px-1">
                 <span className="text-[8px] sm:text-[9px] font-mono text-blue-400 uppercase tracking-widest truncate">Murottal Al-Quran</span>
@@ -575,7 +575,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
             )}
 
             {currentSlideIndex === 3 && adminSettings?.tvEnableVideoSlide && (
-              <div className="w-full max-w-5xl mx-auto h-[40vh] sm:h-[50vh] bg-black border-2 border-amber-500/40 rounded-3xl overflow-hidden shadow-2xl animate-fade-in relative group">
+              <div className="w-full max-w-5xl mx-auto aspect-video lg:h-[50vh] bg-black border-2 border-amber-500/40 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl animate-fade-in relative group">
                 {adminSettings?.tvVideoSourceType === 'camera' ? (
                   <video 
                     ref={videoRef}
@@ -675,16 +675,16 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
             return (
               <div
               key={idx}
-              className={`p-2 sm:p-4 rounded-2xl border text-center transition-all ${
+              className={`p-1.5 sm:p-4 rounded-xl sm:rounded-2xl border text-center transition-all ${
                 isActive
                   ? 'bg-amber-500 text-blue-950 border-amber-300 shadow-2xl scale-105'
                   : 'bg-blue-900/90 border-blue-800 text-blue-200'
               }`}
             >
-              <p className={`text-[10px] sm:text-xs font-bold font-mono ${isActive ? 'text-blue-950' : 'text-blue-400'}`}>
+              <p className={`text-[9px] sm:text-xs font-bold font-mono ${isActive ? 'text-blue-950' : 'text-blue-400'}`}>
                 {item.name}
               </p>
-              <p className={`text-lg sm:text-3xl font-extrabold font-mono mt-1 ${isActive ? 'text-blue-950' : 'text-amber-400'}`}>
+              <p className={`text-base sm:text-3xl font-extrabold font-mono mt-0.5 sm:mt-1 ${isActive ? 'text-blue-950' : 'text-amber-400'}`}>
                 {item.time}
               </p>
             </div>
