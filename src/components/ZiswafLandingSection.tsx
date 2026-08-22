@@ -76,18 +76,18 @@ export const ZiswafLandingSection: React.FC<ZiswafLandingProps> = (props) => {
     <div className="bg-white min-h-screen pb-0 font-sans">
       
       {/* 1. Hero Section */}
-      <div className="relative w-full aspect-[19/6] min-h-[300px] md:min-h-[400px] lg:min-h-[500px] bg-gray-900 overflow-hidden">
+      <div className="relative w-full min-h-[300px] md:min-h-[400px] lg:min-h-[500px] bg-gray-900 overflow-hidden flex items-center justify-center">
         <img 
           src="https://assets.pikiran-rakyat.com/crop/0x0:0x0/1200x675/photo/2024/09/07/4221350838.jpg" 
           alt="Masjid Tazkia" 
-          className="w-full h-full object-cover opacity-85"
+          className="absolute inset-0 w-full h-full object-cover opacity-85"
         />
-        <div className="absolute inset-0 bg-blue-900/20 mix-blend-multiply" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold mb-4 drop-shadow-lg tracking-wider">
+        <div className="absolute inset-0 bg-blue-900/40 mix-blend-multiply" />
+        <div className="relative z-10 flex flex-col items-center justify-center text-center text-white px-4 md:px-8 w-full max-w-4xl mx-auto">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold mb-4 drop-shadow-lg tracking-wider break-words">
             ZISWAF CENTER
           </h1>
-          <p className="text-lg md:text-xl font-medium max-w-2xl drop-shadow-md text-blue-50">
+          <p className="text-base md:text-xl font-medium max-w-2xl drop-shadow-md text-blue-50 leading-relaxed">
             Menghimpun Kebaikan, Memberdayakan Umat melalui Zakat, Infaq, Sedekah, dan Wakaf.
           </p>
         </div>
