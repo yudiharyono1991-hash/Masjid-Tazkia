@@ -26,6 +26,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { formatRupiahFull } from '../lib/islamicUtils';
+import { useMasjidStore } from '../lib/store';
 import { JamaahCalendar } from './JamaahCalendar';
 import { QiblaCompass } from './QiblaCompass';
 import { ChatDkm } from './ChatDkm';
@@ -63,6 +64,14 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
   const [visibleHistoryCount, setVisibleHistoryCount] = useState(10);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  
+  const { state } = useMasjidStore();
+  const upcomingAgenda = (state.agendas || [])
+    .filter(a => new Date(a.date).getTime() >= new Date().getTime() - 86400000)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+    
+  const featuredProgram = (state.programs || [])
+    .find(p => p.featured) || (state.programs || [])[0];
   
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const handleScroll = (direction: 'left' | 'right') => {
@@ -104,7 +113,16 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
   const [filterStartDate, setFilterStartDate] = useState(getFirstDayOfMonth());
   const [filterEndDate, setFilterEndDate] = useState(getToday());
 
-  const allUserDonations = donations.filter(d => d.donorName.toLowerCase() === session.name.toLowerCase());
+  const allUserDonations = donations.filter(d => {
+    const matchEmail = d.donorEmail && session.email && d.donorEmail.toLowerCase() === session.email.toLowerCase();
+    const matchPhone = d.donorPhone && profile.phone && d.donorPhone === profile.phone;
+    const matchName = d.donorName && session.name && d.donorName.toLowerCase() === session.name.toLowerCase();
+    return matchEmail || matchPhone || matchName;
+  });
+
+  const calculatedTotalKebaikan = allUserDonations
+    .filter(d => d.status === 'berhasil')
+    .reduce((sum, d) => sum + d.totalAmount, 0);
   
   const filteredDonations = allUserDonations.filter(d => {
     const dDate = d.createdAt.split('T')[0];
@@ -159,11 +177,11 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
                 <span className="bg-amber-500 text-blue-950 font-bold font-mono text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block shadow-sm">
                   Anggota Terverifikasi
                 </span>
-                {profile.totalDonation >= 5000000 ? (
+                {calculatedTotalKebaikan >= 5000000 ? (
                   <span className="bg-yellow-400/20 text-yellow-300 border border-yellow-400/30 font-bold font-mono text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1 shadow-sm">
                     <Award className="w-3 h-3" /> Gold Muhsinin
                   </span>
-                ) : profile.totalDonation >= 1000000 ? (
+                ) : calculatedTotalKebaikan >= 1000000 ? (
                   <span className="bg-slate-300/20 text-slate-300 border border-slate-300/30 font-bold font-mono text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1 shadow-sm">
                     <Award className="w-3 h-3" /> Silver Muhsinin
                   </span>
@@ -180,7 +198,7 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 pt-2">
                 <div className="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm border border-white/10">
                   <p className="text-[9px] text-blue-300 font-mono uppercase">Total Kebaikan</p>
-                  <p className="font-bold text-amber-300 text-sm sm:text-base">{formatRupiahFull(profile.totalDonation)}</p>
+                  <p className="font-bold text-amber-300 text-sm sm:text-base">{formatRupiahFull(calculatedTotalKebaikan)}</p>
                 </div>
                 <div className="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm border border-white/10 hidden sm:block">
                   <p className="text-[9px] text-blue-300 font-mono uppercase">Bergabung Sejak</p>
@@ -339,11 +357,11 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
                       <div className="flex-1 w-full bg-white rounded-full h-2 overflow-hidden border border-amber-100">
                         <div 
                           className="bg-amber-500 h-full rounded-full"
-                          style={{ width: `${Math.min(100, (profile.totalDonation / (monthlyTarget || 1)) * 100)}%` }}
+                          style={{ width: `${Math.min(100, (calculatedTotalKebaikan / (monthlyTarget || 1)) * 100)}%` }}
                         ></div>
                       </div>
                       <div className="text-xs font-bold text-amber-700 shrink-0">
-                        Tercapai: {formatRupiahFull(profile.totalDonation)} / {formatRupiahFull(monthlyTarget)}
+                        Tercapai: {formatRupiahFull(calculatedTotalKebaikan)} / {formatRupiahFull(monthlyTarget)}
                       </div>
                     </div>
                   </div>
@@ -353,7 +371,7 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   { label: 'Total Zakat', amount: 0, color: 'bg-emerald-50 text-emerald-900 border-emerald-300 shadow-sm' },
-                  { label: 'Total Infaq', amount: profile.totalDonation, color: 'bg-blue-50 text-blue-900 border-blue-300 shadow-sm' },
+                  { label: 'Total Infaq', amount: calculatedTotalKebaikan, color: 'bg-blue-50 text-blue-900 border-blue-300 shadow-sm' },
                   { label: 'Total Wakaf', amount: 0, color: 'bg-amber-50 text-amber-900 border-amber-300 shadow-sm' },
                   { label: 'Partisipasi Qurban', amount: 0, color: 'bg-rose-50 text-rose-900 border-rose-300 shadow-sm', prefix: ' Kali' }
                 ].map((item, idx) => (
@@ -383,11 +401,17 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
                       Kajian Terdekat
                     </span>
                     <h4 className="text-lg font-bold font-serif mt-3 mb-1.5 leading-tight">
-                      Kajian Ahad Pagi: Tafsir Al-Baqarah
+                      {upcomingAgenda ? upcomingAgenda.title : 'Kajian Rutin Masjid Tazkia'}
                     </h4>
                     <p className="text-emerald-100 text-xs mb-3">
-                      Bersama Ustadz H. M. Zainuddin, SQ. <br/>
-                      Ruang Utama Masjid Tazkia, Ahad 08:00 WIB.
+                      {upcomingAgenda ? (
+                        <>
+                          Bersama {upcomingAgenda.speaker || 'Ustadz / Pemateri'}. <br/>
+                          {upcomingAgenda.location || 'Masjid Tazkia'}, {new Date(upcomingAgenda.date).toLocaleDateString('id-ID', { weekday: 'long' })} {upcomingAgenda.time} WIB.
+                        </>
+                      ) : (
+                        <>Mari makmurkan masjid dengan menghadiri kajian rutin kita.</>
+                      )}
                     </p>
                     <button 
                       onClick={() => onNavigateToHome && onNavigateToHome()}
@@ -406,10 +430,13 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
                       Program Pilihan
                     </span>
                     <h4 className="text-lg font-bold font-serif mt-3 mb-1.5 leading-tight">
-                      Beasiswa Santri Tahfidz Qur'an
+                      {featuredProgram ? featuredProgram.title : "Program ZISWAF Tazkia"}
                     </h4>
                     <p className="text-blue-100 text-xs mb-3">
-                      Mari bersama mencetak generasi penghafal Qur'an. Salurkan infaq terbaik Anda mulai Rp 50.000.
+                      {featuredProgram ? 
+                        (featuredProgram.description.length > 80 ? featuredProgram.description.substring(0, 80) + '...' : featuredProgram.description)
+                        : "Mari bersedekah untuk mensucikan harta dan jiwa."
+                      }
                     </p>
                     <button 
                       onClick={() => openDonationModal && openDonationModal()}

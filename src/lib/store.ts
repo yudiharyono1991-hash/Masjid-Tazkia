@@ -33,7 +33,9 @@ import {
   AppRole,
   JamaahFeedback,
   JamaahCalendarNote,
-  KamarBooking
+  KamarBooking,
+  KeropakTransaction,
+  JamaahTransaction
 } from '../types';
 
 import { sendWhatsAppMessage } from './whatsapp';
@@ -84,11 +86,15 @@ export interface AppState {
   erpCoa: ERPChartOfAccount[];
   erpJournals: ERPGeneralJournal[];
   erpJournalEntries: ERPJournalEntry[];
+  keropakTransactions: KeropakTransaction[];
   erpBudgets: ERPBudgetEntry[];
   erpDisbursements: ERPDisbursementRequest[];
   erpSignatures: ReportSignature[];
   auditLogs: AuditLog[];
   jamaahProfiles: JamaahProfile[];
+  jamaahTransactions: JamaahTransaction[];
+  tpaRegistrations: TpaRegistration[];
+  muallafRegistrations: MuallafRegistration[];
   boardMembers: BoardMember[];
   reportSignatories: ReportSignatory[];
   gedungBookings: GedungBooking[];
@@ -126,11 +132,15 @@ const defaultState: AppState = {
   erpCoa: INITIAL_ERP_COA as ERPChartOfAccount[],
   erpJournals: [],
   erpJournalEntries: [],
+  keropakTransactions: [],
   erpBudgets: INITIAL_ERP_BUDGETS,
   erpDisbursements: [],
   erpSignatures: [],
   auditLogs: INITIAL_AUDIT_LOGS,
   jamaahProfiles: INITIAL_JAMAAH_PROFILES,
+  jamaahTransactions: [],
+  tpaRegistrations: [],
+  muallafRegistrations: [],
   boardMembers: INITIAL_BOARD_MEMBERS,
   reportSignatories: INITIAL_REPORT_SIGNATORIES,
   gedungBookings: [],
@@ -182,6 +192,9 @@ export function getStoredState(): AppState {
         erpSignatures: parsed.erpSignatures || [],
         auditLogs: parsed.auditLogs !== undefined ? parsed.auditLogs : INITIAL_AUDIT_LOGS,
         jamaahProfiles: parsed.jamaahProfiles !== undefined ? parsed.jamaahProfiles : INITIAL_JAMAAH_PROFILES,
+        jamaahTransactions: parsed.jamaahTransactions || [],
+        tpaRegistrations: parsed.tpaRegistrations || [],
+        muallafRegistrations: parsed.muallafRegistrations || [],
         boardMembers: parsed.boardMembers !== undefined ? parsed.boardMembers : INITIAL_BOARD_MEMBERS,
         reportSignatories: parsed.reportSignatories !== undefined ? parsed.reportSignatories : INITIAL_REPORT_SIGNATORIES,
         gedungBookings: parsed.gedungBookings || [],
@@ -682,6 +695,41 @@ export function useMasjidStore() {
     setState(prev => ({
       ...prev,
       financials: [newTrx, ...prev.financials]
+    }));
+  };
+
+  
+  const addKeropakTransaction = (keropak: Omit<KeropakTransaction, 'id' | 'createdAt'>) => {
+    const newKeropak: KeropakTransaction = {
+      ...keropak,
+      id: 'keropak-' + Date.now(),
+      createdAt: new Date().toISOString()
+    };
+    setState(prev => ({ ...prev, keropakTransactions: [...(prev.keropakTransactions || []), newKeropak] }));
+  };
+
+  const deleteKeropakTransaction = (id: string) => {
+    setState(prev => ({ ...prev, keropakTransactions: (prev.keropakTransactions || []).filter(k => k.id !== id) }));
+  };
+
+  const addJamaahTransaction = (newTrx: Omit<JamaahTransaction, 'id' | 'createdAt'>) => {
+    setState(prev => ({
+      ...prev,
+      jamaahTransactions: [
+        {
+          ...newTrx,
+          id: `JT-${Math.floor(Date.now() / 1000)}`,
+          createdAt: new Date().toISOString()
+        },
+        ...(prev.jamaahTransactions || [])
+      ]
+    }));
+  };
+
+  const deleteJamaahTransaction = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      jamaahTransactions: (prev.jamaahTransactions || []).filter(t => t.id !== id)
     }));
   };
 
@@ -1383,10 +1431,26 @@ export function useMasjidStore() {
   };
 
   const updateJamaahProfile = (id: string, updated: Partial<JamaahProfile>) => {
-    setState(prev => ({
-      ...prev,
-      jamaahProfiles: (prev.jamaahProfiles || []).map(j => j.id === id ? { ...j, ...updated } : j)
-    }));
+    setState(prev => {
+      const jamaahProfiles = (prev.jamaahProfiles || []).map(j => j.id === id ? { ...j, ...updated } : j);
+      
+      // Update session if it's the current user
+      let newSession = prev.session;
+      const targetUser = prev.jamaahProfiles?.find(j => j.id === id);
+      if (targetUser && prev.session.isLoggedIn && targetUser.email === prev.session.email) {
+        newSession = {
+          ...prev.session,
+          name: updated.name || prev.session.name,
+          phone: updated.phone !== undefined ? updated.phone : prev.session.phone
+        };
+      }
+      
+      return {
+        ...prev,
+        jamaahProfiles,
+        session: newSession
+      };
+    });
   };
 
   const deleteJamaahProfile = (id: string) => {
@@ -1521,6 +1585,50 @@ export function useMasjidStore() {
     setState(prev => ({
       ...prev,
       gedungBookings: prev.gedungBookings.filter(b => b.id !== id)
+    }));
+  };
+
+  
+  const addTpaRegistration = (reg: Omit<TpaRegistration, 'id' | 'createdAt'>) => {
+    setState(prev => ({
+      ...prev,
+      tpaRegistrations: [{
+        ...reg,
+        id: `tpa-${Math.floor(1000 + Math.random() * 9000)}`,
+        createdAt: new Date().toISOString()
+      }, ...(prev.tpaRegistrations || [])]
+    }));
+  };
+
+  const updateTpaRegistrationStatus = (id: string, status: TpaRegistration['status'], paymentStatus?: TpaRegistration['paymentStatus']) => {
+    setState(prev => ({
+      ...prev,
+      tpaRegistrations: (prev.tpaRegistrations || []).map(t => {
+        if (t.id === id) {
+          const updated = { ...t, status };
+          if (paymentStatus) updated.paymentStatus = paymentStatus;
+          return updated;
+        }
+        return t;
+      })
+    }));
+  };
+
+  const addMuallafRegistration = (reg: Omit<MuallafRegistration, 'id' | 'createdAt'>) => {
+    setState(prev => ({
+      ...prev,
+      muallafRegistrations: [{
+        ...reg,
+        id: `mual-${Math.floor(1000 + Math.random() * 9000)}`,
+        createdAt: new Date().toISOString()
+      }, ...(prev.muallafRegistrations || [])]
+    }));
+  };
+
+  const updateMuallafRegistrationStatus = (id: string, status: MuallafRegistration['status']) => {
+    setState(prev => ({
+      ...prev,
+      muallafRegistrations: (prev.muallafRegistrations || []).map(m => m.id === id ? { ...m, status } : m)
     }));
   };
 
@@ -1731,6 +1839,10 @@ export function useMasjidStore() {
     addPetugasJadwal,
     deletePetugasJadwal,
     fetchPrograms,
+    addKeropakTransaction,
+    deleteKeropakTransaction,
+    addJamaahTransaction,
+    deleteJamaahTransaction,
     addProgram,
     updateProgram,
     deleteProgram,
@@ -1785,6 +1897,10 @@ export function useMasjidStore() {
     addGedungBooking,
     updateGedungBookingStatus,
     deleteGedungBooking,
+    addTpaRegistration,
+    updateTpaRegistrationStatus,
+    addMuallafRegistration,
+    updateMuallafRegistrationStatus,
     addAgenda,
     updateAgenda,
     deleteAgenda,

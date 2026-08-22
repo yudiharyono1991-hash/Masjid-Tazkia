@@ -556,3 +556,49 @@ export interface KamarBooking {
   createdAt: string;
 }
 
+
+export interface KeropakTransaction {
+  id: string;
+  type: 'jumat' | 'harian' | 'keluar';
+  amount: number;
+  date: string;
+  description: string;
+  createdAt: string;
+}
+
+export interface JamaahTransaction {
+  id: string;
+  jamaahId: string; // The email or ID of the jamaah
+  date: string;
+  description: string;
+  type: 'kredit' | 'debit';
+  amount: number;
+  createdAt: string;
+}
+
+export interface TpaRegistration {
+  id: string;
+  program: 'Anak' | 'Dewasa';
+  namaLengkap: string;
+  usia: string;
+  namaWali: string;
+  whatsapp: string;
+  email?: string;
+  alamat: string;
+  status: 'pending' | 'verified' | 'rejected';
+  paymentStatus: 'unpaid' | 'paid';
+  feeAmount: number;
+  createdAt: string;
+}
+
+export interface MuallafRegistration {
+  id: string;
+  namaLengkap: string;
+  nik: string;
+  whatsapp: string;
+  email?: string;
+  tanggalIkrar: string;
+  namaIslam?: string;
+  status: 'pending' | 'scheduled' | 'completed';
+  createdAt: string;
+}

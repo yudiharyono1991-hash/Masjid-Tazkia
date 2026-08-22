@@ -7,8 +7,10 @@ import {
   Mail, 
   MapPin 
 } from 'lucide-react';
+import { useMasjidStore } from '../lib/store';
 
 export const TpaProgramSection: React.FC = () => {
+  const { addTpaRegistration } = useMasjidStore();
   const [formData, setFormData] = useState({
     program: 'Anak',
     namaLengkap: '',
@@ -26,6 +28,20 @@ export const TpaProgramSection: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    addTpaRegistration({
+      program: formData.program as 'Anak' | 'Dewasa',
+      namaLengkap: formData.namaLengkap,
+      usia: formData.usia,
+      namaWali: formData.namaWali,
+      whatsapp: formData.whatsapp,
+      email: formData.email,
+      alamat: formData.alamat,
+      status: 'pending',
+      paymentStatus: 'unpaid',
+      feeAmount: formData.program === 'Anak' ? 250000 : 350000 // Contoh biaya
+    });
+
     alert('Terima kasih, formulir pendaftaran TPA Anda telah kami terima. Admin kami akan segera menghubungi Anda untuk konfirmasi jadwal.');
     setFormData({
       program: 'Anak',

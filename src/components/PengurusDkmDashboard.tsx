@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { TpaAdmin } from './admin/TpaAdmin';
+import { MuallafAdmin } from './admin/MuallafAdmin';
 import {
   FinancialTransaction,
   InventoryItem,
@@ -296,13 +298,32 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
   }, [dkmTab]);
 
   const [finSubTab, setFinSubTab] = useState<'mutasi' | 'jurnal' | 'bukubesar' | 'kaskecil' | 'psak109'>('mutasi');
-  const [erpSubTab, setErpSubTab] = useState<'coa' | 'jurnal_umum' | 'buku_besar' | 'anggaran' | 'pencairan' | 'laporan'>('coa');
+  const [erpSubTab, setErpSubTab] = useState<'coa' | 'jurnal_umum' | 'buku_besar' | 'anggaran' | 'pencairan' | 'laporan'>(() => {
+    try {
+      const urlHash = window.location.hash;
+      if (urlHash.includes('?')) {
+        const queryParams = new URLSearchParams(urlHash.split('?')[1]);
+        const subtab = queryParams.get('subtab');
+        if (subtab && ['coa', 'jurnal_umum', 'buku_besar', 'anggaran', 'pencairan', 'laporan'].includes(subtab)) {
+          return subtab as any;
+        }
+      }
+    } catch (e) {}
+    return 'coa';
+  });
   const [tabSearchQuery, setTabSearchQuery] = useState('');
 
-  // Also add scroll reset for erpSubTab changes
+  // Also add scroll reset and URL sync for erpSubTab changes
   useEffect(() => {
+    const currentHashBase = window.location.hash.split('?')[0];
+    if (currentHashBase) {
+      const queryParams = new URLSearchParams();
+      queryParams.set('tab', dkmTab);
+      queryParams.set('subtab', erpSubTab);
+      window.history.replaceState(null, '', `${currentHashBase}?${queryParams.toString()}`);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [erpSubTab]);
+  }, [erpSubTab, dkmTab]);
 
   const tabsRef = useRef<HTMLDivElement>(null);
   const erpTabsRef = useRef<HTMLDivElement>(null);
@@ -333,7 +354,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
 
   // Jamaah Master Data State
   const [jamaahPage, setJamaahPage] = useState(1);
-  const jamaahPerPage = 20;
+  const jamaahPerPage = 10;
   const [expandedJamaahId, setExpandedJamaahId] = useState<string | null>(null);
 
   // Zustand Store (Moved to top to prevent ReferenceError)

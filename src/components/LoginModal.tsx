@@ -76,6 +76,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     
     let finalRole: UserRole = 'jamaah';
     let finalName = name || 'Jamaah Tazkia';
+    let finalPhone: string | undefined = undefined;
 
     // Auto-detect admin & pengurus logins based on email
     if (email === 'admin@tazkia.id' || email === 'direktur@tazkia.id') {
@@ -96,6 +97,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         if (user.password === password || (!user.password && password === '123456')) {
           finalRole = (user.role as UserRole) || 'jamaah';
           finalName = user.name;
+          finalPhone = user.phone;
         } else {
           alert("Maaf, Kata Sandi Anda salah.");
           return;
@@ -107,7 +109,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       }
     }
     
-    onLogin(email, finalName, finalRole);
+    onLogin(email, finalName, finalRole, finalPhone);
     
     alert(`Assalamualaikum, selamat datang di aplikasi Masjid Tazkia${finalName ? ', ' + finalName : ''}!`);
     

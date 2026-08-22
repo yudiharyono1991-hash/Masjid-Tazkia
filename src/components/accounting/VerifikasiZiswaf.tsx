@@ -9,7 +9,9 @@ export function VerifikasiZiswaf() {
   const [statusFilter, setStatusFilter] = useState<'menunggu_verifikasi' | 'berhasil' | 'ditolak' | 'all'>('menunggu_verifikasi');
   
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 10;
+  
+  const [selectedProof, setSelectedProof] = useState<string | null>(null);
 
   const getProgramTitle = (id: string) => {
     const prog = state.programs.find(p => p.id === id);
@@ -133,9 +135,16 @@ export function VerifikasiZiswaf() {
                         </span>
                       </td>
                       <td className="p-4 align-middle text-center">
-                        <button className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs hover:bg-blue-100 font-semibold transition-colors">
-                          <FileText className="w-3 h-3" /> Cek Bukti
-                        </button>
+                        {donation.proofUrl ? (
+                          <button 
+                            onClick={() => setSelectedProof(donation.proofUrl || null)}
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs hover:bg-blue-100 font-semibold transition-colors cursor-pointer"
+                          >
+                            <FileText className="w-3 h-3" /> Cek Bukti
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">Tanpa Bukti</span>
+                        )}
                       </td>
                       <td className="p-4 align-middle text-center">
                         {donation.status === 'menunggu_verifikasi' ? (
@@ -185,6 +194,29 @@ export function VerifikasiZiswaf() {
           })()}
         </div>
       </div>
+      {/* Bukti Modal */}
+      {selectedProof && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 relative shadow-2xl flex flex-col">
+            <button
+              onClick={() => setSelectedProof(null)}
+              className="absolute -top-3 -right-3 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 cursor-pointer"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+            <h4 className="font-bold text-gray-800 mb-3 text-center border-b pb-2">Bukti Struk Transfer</h4>
+            <div className="bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center min-h-[300px]">
+              <img src={selectedProof} alt="Bukti Transfer" className="max-w-full max-h-[70vh] object-contain" />
+            </div>
+            <button
+              onClick={() => setSelectedProof(null)}
+              className="mt-4 w-full bg-blue-900 text-white py-2 rounded-xl font-semibold hover:bg-blue-800"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

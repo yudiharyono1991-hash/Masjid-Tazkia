@@ -1,0 +1,131 @@
+﻿diff --git a/src/lib/store.ts b/src/lib/store.ts
+index a6e7758..853dc1e 100644
+--- a/src/lib/store.ts
++++ b/src/lib/store.ts
+@@ -84,11 +131,13 @@ export interface AppState {
+   erpCoa: ERPChartOfAccount[];
+   erpJournals: ERPGeneralJournal[];
+   erpJournalEntries: ERPJournalEntry[];
++  keropakTransactions: KeropakTransaction[];
+   erpBudgets: ERPBudgetEntry[];
+   erpDisbursements: ERPDisbursementRequest[];
+   erpSignatures: ReportSignature[];
+   auditLogs: AuditLog[];
+   jamaahProfiles: JamaahProfile[];
++  jamaahTransactions: JamaahTransaction[];
+   boardMembers: BoardMember[];
+   reportSignatories: ReportSignatory[];
+   gedungBookings: GedungBooking[];
+@@ -126,11 +175,13 @@ const defaultState: AppState = {
+   erpCoa: INITIAL_ERP_COA as ERPChartOfAccount[],
+   erpJournals: [],
+   erpJournalEntries: [],
++  keropakTransactions: [],
+   erpBudgets: INITIAL_ERP_BUDGETS,
+   erpDisbursements: [],
+   erpSignatures: [],
+   auditLogs: INITIAL_AUDIT_LOGS,
+   jamaahProfiles: INITIAL_JAMAAH_PROFILES,
++  jamaahTransactions: [],
+   boardMembers: INITIAL_BOARD_MEMBERS,
+   reportSignatories: INITIAL_REPORT_SIGNATORIES,
+   gedungBookings: [],
+@@ -182,6 +233,7 @@ export function getStoredState(): AppState {
+         erpSignatures: parsed.erpSignatures || [],
+         auditLogs: parsed.auditLogs !== undefined ? parsed.auditLogs : INITIAL_AUDIT_LOGS,
+         jamaahProfiles: parsed.jamaahProfiles !== undefined ? parsed.jamaahProfiles : INITIAL_JAMAAH_PROFILES,
++        jamaahTransactions: parsed.jamaahTransactions || [],
+         boardMembers: parsed.boardMembers !== undefined ? parsed.boardMembers : INITIAL_BOARD_MEMBERS,
+         reportSignatories: parsed.reportSignatories !== undefined ? parsed.reportSignatories : INITIAL_REPORT_SIGNATORIES,
+         gedungBookings: parsed.gedungBookings || [],
+@@ -685,6 +737,41 @@ export function useMasjidStore() {
+     }));
+   };
+ 
++  
++  const addKeropakTransaction = (keropak: Omit<KeropakTransaction, 'id' | 'createdAt'>) => {
++    const newKeropak: KeropakTransaction = {
++      ...keropak,
++      id: 'keropak-' + Date.now(),
++      createdAt: new Date().toISOString()
++    };
++    setState(prev => ({ ...prev, keropakTransactions: [...(prev.keropakTransactions || []), newKeropak] }));
++  };
++
++  const deleteKeropakTransaction = (id: string) => {
++    setState(prev => ({ ...prev, keropakTransactions: (prev.keropakTransactions || []).filter(k => k.id !== id) }));
++  };
++
++  const addJamaahTransaction = (newTrx: Omit<JamaahTransaction, 'id' | 'createdAt'>) => {
++    setState(prev => ({
++      ...prev,
++      jamaahTransactions: [
++        {
++          ...newTrx,
++          id: `JT-${Math.floor(Date.now() / 1000)}`,
++          createdAt: new Date().toISOString()
++        },
++        ...(prev.jamaahTransactions || [])
++      ]
++    }));
++  };
++
++  const deleteJamaahTransaction = (id: string) => {
++    setState(prev => ({
++      ...prev,
++      jamaahTransactions: (prev.jamaahTransactions || []).filter(t => t.id !== id)
++    }));
++  };
++
+   const addKamarBooking = (booking: Omit<KamarBooking, 'id' | 'createdAt'>) => {
+     const newBooking: KamarBooking = {
+       ...booking,
+@@ -1383,10 +1470,26 @@ export function useMasjidStore() {
+   };
+ 
+   const updateJamaahProfile = (id: string, updated: Partial<JamaahProfile>) => {
+-    setState(prev => ({
+-      ...prev,
+-      jamaahProfiles: (prev.jamaahProfiles || []).map(j => j.id === id ? { ...j, ...updated } : j)
+-    }));
++    setState(prev => {
++      const jamaahProfiles = (prev.jamaahProfiles || []).map(j => j.id === id ? { ...j, ...updated } : j);
++      
++      // Update session if it's the current user
++      let newSession = prev.session;
++      const targetUser = prev.jamaahProfiles?.find(j => j.id === id);
++      if (targetUser && prev.session.isLoggedIn && targetUser.email === prev.session.email) {
++        newSession = {
++          ...prev.session,
++          name: updated.name || prev.session.name,
++          phone: updated.phone !== undefined ? updated.phone : prev.session.phone
++        };
++      }
++      
++      return {
++        ...prev,
++        jamaahProfiles,
++        session: newSession
++      };
++    });
+   };
+ 
+   const deleteJamaahProfile = (id: string) => {
+@@ -1722,15 +1825,8 @@ export function useMasjidStore() {
+     addInventoryItem,
+     updateInventoryItem,
+     deleteInventoryItem,
+-    addKamarBooking,
+-    updateKamarBookingStatus,
+-    addAnnouncement,
+-    updateAnnouncement,
+-    deleteAnnouncement,
+-    updatePetugasJadwal,
+-    addPetugasJadwal,
+-    deletePetugasJadwal,
+-    fetchPrograms,
++    addKeropakTransaction,
++    deleteKeropakTransaction,
+     addProgram,
+     updateProgram,
+     deleteProgram,

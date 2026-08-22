@@ -76,8 +76,9 @@ export const PrayerTimesCard: React.FC = () => {
       break;
     }
   }
-  // If all prayers have passed for the day, highlight Isya (last one)
-  if (!found) activeIdx = prayers.length - 1;
+  // Jika semua jadwal shalat hari ini sudah lewat (contoh: sudah jam 8 malam),
+  // maka otomatis kembali menunggu sholat Subuh esok harinya (index 0).
+  if (!found) activeIdx = 0;
 
   // Format date in Bahasa Indonesia
   const dateStr = currentTime.toLocaleDateString('id-ID', {

@@ -10,7 +10,7 @@ export function JurnalUmum() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingJournalId, setEditingJournalId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 5;
 
   const generateUniqueId = (prefix: string) => {
     const d = new Date();

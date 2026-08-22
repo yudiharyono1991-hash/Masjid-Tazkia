@@ -143,7 +143,7 @@ export function ReportPrinter() {
             className="p-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-gray-50 outline-none w-full sm:w-auto"
           >
             <option value="Neraca">Laporan Posisi Keuangan (Neraca)</option>
-            <option value="LabaRugi">Laporan Aktivitas (Laba/Rugi)</option>
+            <option value="LabaRugi">Laporan Aktivitas (Surplus/Defisit)</option>
             <option value="Realisasi">Laporan Realisasi Anggaran</option>
           </select>
           {reportType === 'Realisasi' ? (
@@ -216,7 +216,7 @@ export function ReportPrinter() {
           <p className="text-xs sm:text-sm text-gray-600 font-medium">Jl. Ir. H. Djuanda No. 78 Sentul City, Bogor</p>
           <h2 className="text-sm sm:text-base font-bold mt-4 underline">
             {reportType === 'Neraca' && 'Laporan Posisi Keuangan (Neraca)'}
-            {reportType === 'LabaRugi' && 'Laporan Aktivitas (Laba Rugi)'}
+            {reportType === 'LabaRugi' && 'Laporan Aktivitas'}
             {reportType === 'Realisasi' && `Laporan Realisasi Anggaran Tahun ${selectedYear}`}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
@@ -307,7 +307,7 @@ export function ReportPrinter() {
             </div>
             
             <div className="flex justify-between font-bold text-lg mt-8 pt-4 border-t-2 border-gray-400">
-              <span>SURPLUS / (DEFISIT) NETO <span className="text-gray-500 font-normal text-sm ml-2 hidden print:inline-block md:inline-block">(Laba / Rugi Bersih)</span></span>
+              <span>SURPLUS / (DEFISIT) NETO</span>
               <span className={(totalRevenue - totalExpense) < 0 ? 'text-red-600' : ''}>
                 Rp {(totalRevenue - totalExpense).toLocaleString('id-ID')}
               </span>

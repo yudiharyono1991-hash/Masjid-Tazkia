@@ -322,5 +322,62 @@ create table if not exists gedung_bookings (
 create trigger update_gedung_bookings_updated_at
   before update on gedung_bookings
   for each row execute function update_updated_at_column();
+
+-- Kamar Bookings
+create table if not exists kamar_bookings (
+  id uuid primary key default uuid_generate_v4(),
+  date date not null,
+  checkout_date date not null,
+  name text not null,
+  whatsapp text not null,
+  email text,
+  room_type text not null,
+  notes text,
+  status text not null default 'pending',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create trigger update_kamar_bookings_updated_at
+  before update on kamar_bookings
+  for each row execute function update_updated_at_column();
+
+-- Keropak Transactions
+create table if not exists keropak_transactions (
+  id uuid primary key default uuid_generate_v4(),
+  type text not null,
+  amount bigint not null,
+  date date not null,
+  description text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create trigger update_keropak_transactions_updated_at
+  before update on keropak_transactions
+  for each row execute function update_updated_at_column();
+
+-- Jamaah Transactions
+create table if not exists jamaah_transactions (
+  id uuid primary key default uuid_generate_v4(),
+  jamaah_id text not null,
+  date date not null,
+  description text,
+  type text not null,
+  amount bigint not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create trigger update_jamaah_transactions_updated_at
+  before update on jamaah_transactions
+  for each row execute function update_updated_at_column();
+
+-- App Sync State (For global state syncing)
+create table if not exists app_sync_state (
+  id integer primary key default 1,
+  state_json jsonb not null,
+  updated_at timestamptz not null default now()
+);
 ```
 

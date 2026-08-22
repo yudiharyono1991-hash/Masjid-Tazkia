@@ -8,8 +8,10 @@ import {
   CheckCircle2,
   UploadCloud
 } from 'lucide-react';
+import { useMasjidStore } from '../lib/store';
 
 export const MuallafCenterSection: React.FC = () => {
+  const { addMuallafRegistration } = useMasjidStore();
   const [formData, setFormData] = useState({
     namaLengkap: '',
     nik: '',
@@ -26,6 +28,17 @@ export const MuallafCenterSection: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    addMuallafRegistration({
+      namaLengkap: formData.namaLengkap,
+      nik: formData.nik,
+      whatsapp: formData.whatsapp,
+      email: formData.email,
+      tanggalIkrar: formData.tanggal,
+      namaIslam: formData.namaIslam,
+      status: 'pending'
+    });
+
     alert('Terima kasih, formulir pendaftaran syahadat Anda telah kami terima. Tim Muallaf Center akan segera menghubungi Anda.');
     setFormData({
       namaLengkap: '',
