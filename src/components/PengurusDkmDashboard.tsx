@@ -1641,12 +1641,12 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
             datasets: [
               {
                 label: 'Terkumpul',
-                data: topPrograms.map(p => p.collected),
+                data: topPrograms.map(p => p.collectedAmount || 0),
                 backgroundColor: '#10b981',
               },
               {
                 label: 'Target',
-                data: topPrograms.map(p => p.target),
+                data: topPrograms.map(p => p.targetAmount || 0),
                 backgroundColor: '#e2e8f0',
               }
             ]
@@ -1655,7 +1655,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
           return (
           <div className="space-y-6 animate-fade-in">
             <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-gray-100 dark:border-slate-700 shadow-xl shadow-gray-200/40 dark:shadow-none relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
               <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                   <h3 className="text-3xl font-serif font-bold text-gray-900 dark:text-white mb-2">Ahlan wa Sahlan, {store.state.session?.name}</h3>
