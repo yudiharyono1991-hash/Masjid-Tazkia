@@ -74,6 +74,69 @@ export const KalenderKegiatanSection: React.FC<KalenderKegiatanSectionProps> = (
     const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
     const currentDay = today.getDate();
 
+  return (
+      <div className={`p-6 rounded-3xl shadow-lg border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {monthNames[month]} {year}
+          </h3>
+          <div className="flex gap-2">
+            <button onClick={prevMonth} className={`p-2 rounded-lg ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`}>
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <button onClick={nextMonth} className={`p-2 rounded-lg ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`}>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 gap-1 text-center mb-2">
+          {['MG', 'SN', 'SL', 'RB', 'KM', 'JM', 'SB'].map(day => (
+            <div key={day} className="text-xs font-bold text-slate-400 py-2">{day}</div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {Array.from({ length: firstDayOffset }).map((_, i) => (
+            <div key={`empty-${i}`} className="p-2"></div>
+          ))}
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day = i + 1;
+            const isToday = isCurrentMonth && day === currentDay;
+            const hasEvent = eventDays.includes(day);
+
+            return (
+              <button
+                key={day}
+                onClick={() => {
+                  const dayAgendas = currentMonthAgendas.filter(a => new Date(a.date).getDate() === day);
+                  if (dayAgendas.length > 0) {
+                    alert(`Terdapat ${dayAgendas.length} agenda pada tanggal ${day} ${monthNames[month]} ${year}`);
+                  }
+                }}
+                className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-medium transition-colors cursor-pointer hover:scale-105 active:scale-95
+                  ${isToday ? 'bg-blue-600 text-white shadow-md font-bold' : ''}
+                  ${hasEvent && !isToday ? (isDark ? 'bg-blue-900/40 text-blue-300 border border-blue-700/50' : 'bg-blue-100 text-blue-700 border border-blue-200') : ''}
+                  ${!isToday && !hasEvent ? (isDark ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-100') : ''}
+                `}
+              >
+                {day}
+              </button>
+            );
+          })}
+        </div>
+        
+        <div className="mt-6 flex flex-col gap-4">
+          <div className="flex items-center justify-center gap-4 text-[10px] sm:text-xs text-slate-500 font-medium">
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full border border-slate-300"></div> Tersedia</div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-100 border border-blue-300"></div> Ada Event</div>
+            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-600"></div> Hari Ini</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   
   const renderRegistrationModal = () => {
     if (!showRegModal || !selectedAgenda) return null;
@@ -207,69 +270,6 @@ export const KalenderKegiatanSection: React.FC<KalenderKegiatanSectionProps> = (
                 Kirim Pendaftaran
               </button>
             </form>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-      <div className={`p-6 rounded-3xl shadow-lg border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-slate-800'}`}>
-            {monthNames[month]} {year}
-          </h3>
-          <div className="flex gap-2">
-            <button onClick={prevMonth} className={`p-2 rounded-lg ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`}>
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <button onClick={nextMonth} className={`p-2 rounded-lg ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'}`}>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-7 gap-1 text-center mb-2">
-          {['MG', 'SN', 'SL', 'RB', 'KM', 'JM', 'SB'].map(day => (
-            <div key={day} className="text-xs font-bold text-slate-400 py-2">{day}</div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-1 text-center">
-          {Array.from({ length: firstDayOffset }).map((_, i) => (
-            <div key={`empty-${i}`} className="p-2"></div>
-          ))}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const isToday = isCurrentMonth && day === currentDay;
-            const hasEvent = eventDays.includes(day);
-
-            return (
-              <button
-                key={day}
-                onClick={() => {
-                  const dayAgendas = currentMonthAgendas.filter(a => new Date(a.date).getDate() === day);
-                  if (dayAgendas.length > 0) {
-                    alert(`Terdapat ${dayAgendas.length} agenda pada tanggal ${day} ${monthNames[month]} ${year}`);
-                  }
-                }}
-                className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center text-sm font-medium transition-colors cursor-pointer hover:scale-105 active:scale-95
-                  ${isToday ? 'bg-blue-600 text-white shadow-md font-bold' : ''}
-                  ${hasEvent && !isToday ? (isDark ? 'bg-blue-900/40 text-blue-300 border border-blue-700/50' : 'bg-blue-100 text-blue-700 border border-blue-200') : ''}
-                  ${!isToday && !hasEvent ? (isDark ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-100') : ''}
-                `}
-              >
-                {day}
-              </button>
-            );
-          })}
-        </div>
-        
-        <div className="mt-6 flex flex-col gap-4">
-          <div className="flex items-center justify-center gap-4 text-[10px] sm:text-xs text-slate-500 font-medium">
-            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full border border-slate-300"></div> Tersedia</div>
-            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-100 border border-blue-300"></div> Ada Event</div>
-            <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-600"></div> Hari Ini</div>
           </div>
         </div>
       </div>

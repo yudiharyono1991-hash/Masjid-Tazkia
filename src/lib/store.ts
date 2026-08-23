@@ -150,6 +150,7 @@ const defaultState: AppState = {
   reportSignatories: INITIAL_REPORT_SIGNATORIES,
   gedungBookings: [],
   agendas: INITIAL_AGENDAS,
+    agendaRegistrations: [],
   appRoles: [
     { id: 'ketua_dewan_pembina', name: 'Ketua Dewan Pembina', type: 'pengurus_dkm', permissions: ['keuangan', 'laporan', 'approval_direktur', 'master_data', 'semua'] },
     { id: 'direktur', name: 'Direktur', type: 'pengurus_dkm', permissions: ['keuangan', 'laporan', 'approval_direktur', 'master_data', 'semua'] },
