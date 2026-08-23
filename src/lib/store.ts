@@ -35,7 +35,9 @@ import {
   JamaahCalendarNote,
   KamarBooking,
   KeropakTransaction,
-  JamaahTransaction
+  JamaahTransaction,
+  TpaRegistration,
+  MuallafRegistration
 } from '../types';
 
 import { sendWhatsAppMessage } from './whatsapp';

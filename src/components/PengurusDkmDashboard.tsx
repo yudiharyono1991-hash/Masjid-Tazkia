@@ -121,6 +121,7 @@ interface PengurusDkmDashboardProps {
   onUpdateAnnouncement?: (id: string, anc: Partial<Announcement>) => void;
   onDeleteAnnouncement?: (id: string) => void;
   onAddProgram: (prog: Omit<Program, 'id' | 'collectedAmount' | 'donorsCount'>) => void;
+  onUpdateProgram?: (id: string, updated: Partial<Program>) => void;
   onDeleteProgram?: (id: string) => void;
   onAddJournalEntry?: (entry: Omit<JournalEntry, 'id'>) => void;
   onAddPettyCashEntry?: (entry: Omit<PettyCashEntry, 'id' | 'remainingBalance'>) => void;
@@ -171,6 +172,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
   onUpdateAnnouncement,
   onDeleteAnnouncement,
   onAddProgram,
+  onUpdateProgram,
   onDeleteProgram,
   onAddJournalEntry,
   onAddPettyCashEntry,
@@ -458,12 +460,17 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
 
   // Program Input Modal
   const [showAddProg, setShowAddProg] = useState(false);
+  const [editingProgramId, setEditingProgramId] = useState<string | null>(null);
   const [progTitle, setProgTitle] = useState('');
   const [progSubtitle, setProgSubtitle] = useState('');
   const [progCategory, setProgCategory] = useState<'zakat' | 'infaq' | 'shadaqah' | 'wakaf'>('wakaf');
   const [progTarget, setProgTarget] = useState(1000000000);
   const [progDesc, setProgDesc] = useState('');
   const [progImageUrl, setProgImageUrl] = useState('https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=800&q=80');
+
+  // Jadwal Petugas Edit State
+  const [editingPetugasId, setEditingPetugasId] = useState<string | null>(null);
+  const [petugasEditForm, setPetugasEditForm] = useState<Partial<PetugasJadwal>>({});
 
   // Pengumuman Input
   const [showAddAnc, setShowAddAnc] = useState(false);
@@ -815,17 +822,36 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
   const handleCreateProgram = (e: React.FormEvent) => {
     e.preventDefault();
     if (!progTitle) return;
-    onAddProgram({
-      title: progTitle,
-      subtitle: progSubtitle || 'Program Kebaikan DKM Tazkia',
-      category: progCategory,
-      targetAmount: progTarget,
-      imageUrl: progImageUrl || 'https://images.unsplash.com/photo-1609599006352-d35d9472e1c3?auto=format&fit=crop&w=800&q=80',
-      description: progDesc || 'Deskripsi program sosial dan ZISWAF.'
-    });
+
+    if (editingProgramId && onUpdateProgram) {
+      // MODE EDIT
+      onUpdateProgram(editingProgramId, {
+        title: progTitle,
+        subtitle: progSubtitle || 'Program Kebaikan DKM Tazkia',
+        category: progCategory,
+        targetAmount: progTarget,
+        imageUrl: progImageUrl || 'https://images.unsplash.com/photo-1609599006352-d35d9472e1c3?auto=format&fit=crop&w=800&q=80',
+        description: progDesc || 'Deskripsi program sosial dan ZISWAF.'
+      });
+      showToast('Alhamdulillah, Program berhasil diperbarui! ✓');
+    } else {
+      // MODE TAMBAH BARU
+      onAddProgram({
+        title: progTitle,
+        subtitle: progSubtitle || 'Program Kebaikan DKM Tazkia',
+        category: progCategory,
+        targetAmount: progTarget,
+        imageUrl: progImageUrl || 'https://images.unsplash.com/photo-1609599006352-d35d9472e1c3?auto=format&fit=crop&w=800&q=80',
+        description: progDesc || 'Deskripsi program sosial dan ZISWAF.'
+      });
+      showToast('Alhamdulillah, Program/Campaign baru berhasil dipublikasi! ✓');
+    }
     setProgTitle('');
+    setProgSubtitle('');
+    setProgDesc('');
+    setProgImageUrl('https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=800&q=80');
+    setEditingProgramId(null);
     setShowAddProg(false);
-    showToast('Alhamdulillah, Program/Campaign baru berhasil dipublikasi! ✓');
   };
 
   const handleCreateAnnouncement = (e: React.FormEvent) => {
@@ -3522,41 +3548,183 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                   <p className="font-serif font-bold text-white text-xs sm:text-sm">{adminSettings?.jumatMuadzinName || 'Ustadz Bilal Al-Hafiz'}</p>
                 </div>
               </div>
+              <p className="text-[10px] text-blue-500 italic">* Edit data Khatib/Imam Jumat melalui tab "Pengaturan TV Display & Khutbah"</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {petugasList.map(p => (
                 <div key={p.id} className="bg-blue-900 border border-blue-800 rounded-2xl p-5 space-y-3">
-                  <div className="flex justify-between items-center border-b border-blue-800 pb-2">
-                    <span className="font-serif font-bold text-blue-400 text-sm">{p.dayName}, {p.date}</span>
-                    <span className="text-[10px] bg-blue-800 text-blue-400 font-mono px-2 py-0.5 rounded">Jadwal Tugas</span>
-                  </div>
+                  {editingPetugasId === p.id ? (
+                    /* ── FORM EDIT INLINE ── */
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center border-b border-blue-700 pb-2">
+                        <span className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+                          <Edit2 className="w-3.5 h-3.5" /> Edit Jadwal Petugas
+                        </span>
+                        <button
+                          onClick={() => setEditingPetugasId(null)}
+                          className="text-blue-500 hover:text-white text-[10px]"
+                        >
+                          Batal
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[10px] text-blue-400 block mb-1">Hari:</label>
+                          <input
+                            type="text"
+                            value={petugasEditForm.dayName ?? p.dayName}
+                            onChange={(e) => setPetugasEditForm(f => ({ ...f, dayName: e.target.value }))}
+                            className="w-full bg-blue-950 border border-blue-800 text-white text-xs rounded-lg px-2 py-1.5 outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-blue-400 block mb-1">Tanggal:</label>
+                          <input
+                            type="text"
+                            value={petugasEditForm.date ?? p.date}
+                            onChange={(e) => setPetugasEditForm(f => ({ ...f, date: e.target.value }))}
+                            className="w-full bg-blue-950 border border-blue-800 text-white text-xs rounded-lg px-2 py-1.5 outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-blue-400 block mb-1">Imam Subuh:</label>
+                          <input
+                            type="text"
+                            value={petugasEditForm.subuh ?? p.subuh}
+                            onChange={(e) => setPetugasEditForm(f => ({ ...f, subuh: e.target.value }))}
+                            className="w-full bg-blue-950 border border-blue-800 text-white text-xs rounded-lg px-2 py-1.5 outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-blue-400 block mb-1">Imam Dzuhur:</label>
+                          <input
+                            type="text"
+                            value={petugasEditForm.dzuhur ?? p.dzuhur}
+                            onChange={(e) => setPetugasEditForm(f => ({ ...f, dzuhur: e.target.value }))}
+                            className="w-full bg-blue-950 border border-blue-800 text-white text-xs rounded-lg px-2 py-1.5 outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-blue-400 block mb-1">Imam Ashar:</label>
+                          <input
+                            type="text"
+                            value={petugasEditForm.ashar ?? p.ashar}
+                            onChange={(e) => setPetugasEditForm(f => ({ ...f, ashar: e.target.value }))}
+                            className="w-full bg-blue-950 border border-blue-800 text-white text-xs rounded-lg px-2 py-1.5 outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-blue-400 block mb-1">Imam Maghrib:</label>
+                          <input
+                            type="text"
+                            value={petugasEditForm.maghrib ?? p.maghrib}
+                            onChange={(e) => setPetugasEditForm(f => ({ ...f, maghrib: e.target.value }))}
+                            className="w-full bg-blue-950 border border-blue-800 text-white text-xs rounded-lg px-2 py-1.5 outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-blue-400 block mb-1">Khatib & Imam Shalat Jumat:</label>
+                        <input
+                          type="text"
+                          value={petugasEditForm.khatibJumat ?? p.khatibJumat ?? ''}
+                          onChange={(e) => setPetugasEditForm(f => ({ ...f, khatibJumat: e.target.value }))}
+                          className="w-full bg-blue-950 border border-blue-800 text-white text-xs rounded-lg px-2 py-1.5 outline-none"
+                          placeholder="Nama Khatib Jumat..."
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-blue-400 block mb-1">Topik Khutbah Jumat:</label>
+                        <input
+                          type="text"
+                          value={petugasEditForm.topikJumat ?? p.topikJumat ?? ''}
+                          onChange={(e) => setPetugasEditForm(f => ({ ...f, topikJumat: e.target.value }))}
+                          className="w-full bg-blue-950 border border-blue-800 text-white text-xs rounded-lg px-2 py-1.5 outline-none"
+                          placeholder="Topik khutbah Jumat..."
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          const updated: PetugasJadwal = {
+                            ...p,
+                            dayName: petugasEditForm.dayName ?? p.dayName,
+                            date: petugasEditForm.date ?? p.date,
+                            subuh: petugasEditForm.subuh ?? p.subuh,
+                            dzuhur: petugasEditForm.dzuhur ?? p.dzuhur,
+                            ashar: petugasEditForm.ashar ?? p.ashar,
+                            maghrib: petugasEditForm.maghrib ?? p.maghrib,
+                            khatibJumat: petugasEditForm.khatibJumat ?? p.khatibJumat,
+                            topikJumat: petugasEditForm.topikJumat ?? p.topikJumat,
+                          };
+                          onUpdatePetugas(updated);
+                          setEditingPetugasId(null);
+                          setPetugasEditForm({});
+                          showToast('Alhamdulillah, Jadwal Petugas berhasil diperbarui! ✓');
+                        }}
+                        className="w-full bg-blue-500 hover:bg-blue-400 text-blue-950 font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Check className="w-4 h-4" /> Simpan Jadwal
+                      </button>
+                    </div>
+                  ) : (
+                    /* ── TAMPILAN NORMAL ── */
+                    <>
+                      <div className="flex justify-between items-center border-b border-blue-800 pb-2">
+                        <span className="font-serif font-bold text-blue-400 text-sm">{p.dayName}, {p.date}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] bg-blue-800 text-blue-400 font-mono px-2 py-0.5 rounded">Jadwal Tugas</span>
+                          <button
+                            onClick={() => {
+                              setEditingPetugasId(p.id);
+                              setPetugasEditForm({});
+                            }}
+                            className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 p-1.5 rounded-lg transition-colors border border-blue-500/30 cursor-pointer"
+                            title="Edit Jadwal"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          {onDeletePetugasJadwal && (
+                            <button
+                              onClick={() => {
+                                if (window.confirm('Hapus jadwal ini?')) onDeletePetugasJadwal(p.id);
+                              }}
+                              className="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-1.5 rounded-lg transition-colors border border-red-500/30 cursor-pointer"
+                              title="Hapus Jadwal"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span className="text-blue-400 text-[10px]">Imam Subuh:</span>
-                      <p className="font-bold text-white">{p.subuh}</p>
-                    </div>
-                    <div>
-                      <span className="text-blue-400 text-[10px]">Imam Dzuhur:</span>
-                      <p className="font-bold text-white">{p.dzuhur}</p>
-                    </div>
-                    <div>
-                      <span className="text-blue-400 text-[10px]">Imam Ashar:</span>
-                      <p className="font-bold text-white">{p.ashar}</p>
-                    </div>
-                    <div>
-                      <span className="text-blue-400 text-[10px]">Imam Maghrib:</span>
-                      <p className="font-bold text-white">{p.maghrib}</p>
-                    </div>
-                  </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-blue-400 text-[10px]">Imam Subuh:</span>
+                          <p className="font-bold text-white">{p.subuh}</p>
+                        </div>
+                        <div>
+                          <span className="text-blue-400 text-[10px]">Imam Dzuhur:</span>
+                          <p className="font-bold text-white">{p.dzuhur}</p>
+                        </div>
+                        <div>
+                          <span className="text-blue-400 text-[10px]">Imam Ashar:</span>
+                          <p className="font-bold text-white">{p.ashar}</p>
+                        </div>
+                        <div>
+                          <span className="text-blue-400 text-[10px]">Imam Maghrib:</span>
+                          <p className="font-bold text-white">{p.maghrib}</p>
+                        </div>
+                      </div>
 
-                  {p.khatibJumat && (
-                    <div className="bg-blue-950 p-3 rounded-xl border border-blue-500/30 text-xs">
-                      <span className="text-[10px] text-amber-400 font-bold uppercase block">Khatib & Imam Shalat Jumat</span>
-                      <p className="font-serif font-bold text-white text-xs sm:text-sm mt-0.5">{p.khatibJumat}</p>
-                      <p className="text-[11px] text-blue-400 mt-1 italic">"{p.topikJumat || 'Kutbah Keutamaan Ketaatan'}"</p>
-                    </div>
+                      {p.khatibJumat && (
+                        <div className="bg-blue-950 p-3 rounded-xl border border-blue-500/30 text-xs">
+                          <span className="text-[10px] text-amber-400 font-bold uppercase block">Khatib & Imam Shalat Jumat</span>
+                          <p className="font-serif font-bold text-white text-xs sm:text-sm mt-0.5">{p.khatibJumat}</p>
+                          <p className="text-[11px] text-blue-400 mt-1 italic">"{p.topikJumat || 'Kutbah Keutamaan Ketaatan'}"</p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ))}
@@ -4021,7 +4189,10 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                 <div className="flex justify-end gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowAddProg(false)}
+                    onClick={() => {
+                      setShowAddProg(false);
+                      setEditingProgramId(null);
+                    }}
                     className="px-4 py-2 rounded-xl text-xs text-blue-400 hover:text-white"
                   >
                     Batal
@@ -4030,7 +4201,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                     type="submit"
                     className="bg-blue-500 text-blue-950 font-bold px-5 py-2 rounded-xl text-xs cursor-pointer"
                   >
-                    Simpan Program
+                    {editingProgramId ? 'Simpan Perubahan' : 'Simpan Program'}
                   </button>
                 </div>
               </form>
@@ -4053,8 +4224,32 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                     <p className="text-xs font-mono text-blue-400 mt-1">
                       Target: {formatRupiahFull(p.targetAmount)}
                     </p>
+                    <p className="text-xs text-blue-500 mt-0.5">
+                      Terkumpul: {formatRupiahFull(p.collectedAmount)} ({p.donorsCount} donatur)
+                    </p>
                   </div>
                   <div className="flex flex-col gap-2">
+                    {/* Tombol Edit */}
+                    {onUpdateProgram && (
+                      <button
+                        onClick={() => {
+                          setEditingProgramId(p.id);
+                          setProgTitle(p.title);
+                          setProgSubtitle(p.subtitle || '');
+                          setProgCategory(p.category as any);
+                          setProgTarget(p.targetAmount);
+                          setProgDesc(p.description || '');
+                          setProgImageUrl(p.imageUrl || '');
+                          setShowAddProg(true);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 p-2 rounded-lg transition-colors border border-blue-500/30 cursor-pointer"
+                        title="Edit Program"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    {/* Tombol Hapus */}
                     {onDeleteProgram && (
                       <button
                         onClick={() => {

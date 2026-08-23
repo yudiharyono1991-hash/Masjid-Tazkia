@@ -52,6 +52,7 @@ export default function App() {
     updateAnnouncement,
     deleteAnnouncement,
     addProgram,
+    updateProgram,
     deleteProgram,
     addJournalEntry,
     addPettyCashEntry,
@@ -340,6 +341,7 @@ export default function App() {
             onUpdateAnnouncement={updateAnnouncement}
             onDeleteAnnouncement={deleteAnnouncement}
             onAddProgram={addProgram}
+            onUpdateProgram={updateProgram}
             onDeleteProgram={deleteProgram}
             onAddJournalEntry={addJournalEntry}
             onAddPettyCashEntry={addPettyCashEntry}

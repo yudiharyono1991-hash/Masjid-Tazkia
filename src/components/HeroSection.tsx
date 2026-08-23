@@ -40,7 +40,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       title: 'Wakaf Pembangunan Masjid',
       subtitle: 'MASJID TAZKIA SENTUL',
       description: 'Amal Jariyah Tak Terputus — "Barangsiapa membangun masjid karena Allah, Allah akan membangunkan untuknya rumah di surga." (HR. Bukhari & Muslim)',
-      buttonText: 'Salurkan Wakaf ❯'
+      buttonText: 'Salurkan Ziswaf ❯'
     },
     {
       imageUrl: '/hero-2.jpg',
@@ -79,7 +79,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           title: config?.title || state.adminSettings.heroPromoTitle || defaultSlides[idx % defaultSlides.length]?.title || defaultSlides[0].title,
           subtitle: config?.subtitle || state.adminSettings.heroPromoSubtitle || defaultSlides[idx % defaultSlides.length]?.subtitle || defaultSlides[0].subtitle,
           description: config?.description || state.adminSettings.heroPromoDescription || defaultSlides[idx % defaultSlides.length]?.description || defaultSlides[0].description,
-          buttonText: 'Salurkan Wakaf ❯'
+          buttonText: 'Salurkan Ziswaf ❯'
         };
       })
     : featuredPrograms.length > 0 
@@ -177,7 +177,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     onClick={() => { if (openDonationModal) openDonationModal(); }}
                     className="bg-amber-400 hover:bg-amber-500 text-blue-950 font-bold py-2.5 px-5 sm:py-3 sm:px-7 rounded-full transition-all hover:scale-105 shadow-lg shadow-amber-400/30 text-xs sm:text-sm whitespace-nowrap"
                   >
-                    Salurkan Wakaf ›
+                    Salurkan Ziswaf ›
                   </button>
                   <button 
                     onClick={() => { window.location.hash = 'program'; window.scrollTo({ top: 0, behavior: 'smooth' }); }}
