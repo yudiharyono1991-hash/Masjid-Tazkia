@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, Clock, MapPin, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, ArrowRight, ArrowLeft, X } from 'lucide-react';
 import { useMasjidStore } from '../lib/store';
 
 interface KalenderKegiatanSectionProps {
@@ -13,6 +13,32 @@ export const KalenderKegiatanSection: React.FC<KalenderKegiatanSectionProps> = (
   const agendas = state.agendas || [];
   
   const [currentDate, setCurrentDate] = useState(new Date());
+  
+  // Registration Modal State
+  const [selectedAgenda, setSelectedAgenda] = useState<any>(null);
+  const [showRegModal, setShowRegModal] = useState(false);
+  const [regForm, setRegForm] = useState({ name: '', whatsapp: '', email: '' });
+  
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAgenda || !regForm.name || !regForm.whatsapp) return;
+    
+    if (state.addAgendaRegistration) {
+      state.addAgendaRegistration({
+        agendaId: selectedAgenda.id,
+        name: regForm.name,
+        whatsapp: regForm.whatsapp,
+        email: regForm.email
+      });
+      alert('Pendaftaran berhasil! Terimakasih telah mendaftar.');
+    } else {
+      alert('Fitur pendaftaran sedang dalam pembaruan sistem.');
+    }
+    
+    setShowRegModal(false);
+    setRegForm({ name: '', whatsapp: '', email: '' });
+  };
+
 
   // Helper functions for calendar
   const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
@@ -48,7 +74,146 @@ export const KalenderKegiatanSection: React.FC<KalenderKegiatanSectionProps> = (
     const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
     const currentDay = today.getDate();
 
+  
+  const renderRegistrationModal = () => {
+    if (!showRegModal || !selectedAgenda) return null;
+    
     return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className={`w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+          {/* Left Side: Agenda Info */}
+          <div className="w-full md:w-1/2 p-8 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800">
+            <h2 className={`text-2xl font-bold font-serif mb-2 ${isDark ? 'text-white' : 'text-[#1e3a8a]'}`}>
+              {selectedAgenda.title}
+            </h2>
+            {selectedAgenda.speaker && (
+              <p className={`text-lg mb-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                {selectedAgenda.speaker}
+              </p>
+            )}
+            
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                  <CalendarIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500 font-medium">Tanggal</p>
+                  <p className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                    {new Date(selectedAgenda.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500 font-medium">Waktu</p>
+                  <p className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                    {selectedAgenda.time} WIB
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500 font-medium">Lokasi</p>
+                  <p className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                    {selectedAgenda.location}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className={`p-4 rounded-xl ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+              <h4 className={`font-semibold mb-2 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>Detail Acara</h4>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                {selectedAgenda.description}
+              </p>
+            </div>
+          </div>
+          
+          {/* Right Side: Registration Form */}
+          <div className="w-full md:w-1/2 p-8 relative">
+            <button 
+              onClick={() => setShowRegModal(false)}
+              className={`absolute top-4 right-4 p-2 rounded-full ${isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="mb-6">
+              <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>Daftar Sekarang</h3>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                Amankan kuota Anda dengan mengisi formulir di bawah ini.
+              </p>
+            </div>
+            
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              <div>
+                <label className={`block text-xs font-bold mb-1 uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  NAMA LENGKAP <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Nama sesuai KTP"
+                  value={regForm.name}
+                  onChange={(e) => setRegForm({...regForm, name: e.target.value})}
+                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 transition-all outline-none ${
+                    isDark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
+                  }`}
+                />
+              </div>
+              
+              <div>
+                <label className={`block text-xs font-bold mb-1 uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  NO. WHATSAPP <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="0812..."
+                  value={regForm.whatsapp}
+                  onChange={(e) => setRegForm({...regForm, whatsapp: e.target.value})}
+                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 transition-all outline-none ${
+                    isDark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
+                  }`}
+                />
+              </div>
+              
+              <div>
+                <label className={`block text-xs font-bold mb-1 uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  EMAIL (opsional)
+                </label>
+                <input
+                  type="email"
+                  placeholder="email@contoh.com"
+                  value={regForm.email}
+                  onChange={(e) => setRegForm({...regForm, email: e.target.value})}
+                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 transition-all outline-none ${
+                    isDark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
+                  }`}
+                />
+              </div>
+              
+              <button
+                type="submit"
+                className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98]"
+              >
+                Kirim Pendaftaran
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
       <div className={`p-6 rounded-3xl shadow-lg border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
         <div className="flex items-center justify-between mb-6">
           <h3 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-slate-800'}`}>
@@ -174,6 +339,21 @@ export const KalenderKegiatanSection: React.FC<KalenderKegiatanSectionProps> = (
                       <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                         {agenda.description}
                       </p>
+
+                      <div className="pt-2">
+                        {(agenda as any).requiresRegistration || agenda.category === 'Kajian' || agenda.category === 'Kegiatan' ? (
+                          <button
+                            onClick={() => {
+                              setSelectedAgenda(agenda);
+                              setShowRegModal(true);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-5 py-2 rounded-lg transition-colors inline-flex items-center gap-2"
+                          >
+                            Detail & Daftar
+                          </button>
+                        ) : null}
+                      </div>
+
                     </div>
 
                   </div>
@@ -190,6 +370,7 @@ export const KalenderKegiatanSection: React.FC<KalenderKegiatanSectionProps> = (
 
         </div>
       </div>
+      {renderRegistrationModal()}
     </section>
   );
 };

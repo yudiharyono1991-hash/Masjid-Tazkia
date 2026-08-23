@@ -30,6 +30,7 @@ import {
   BoardMember,
   GedungBooking,
   MasjidAgenda,
+  AgendaRegistration,
   AppRole,
   JamaahFeedback,
   JamaahCalendarNote,
@@ -101,6 +102,7 @@ export interface AppState {
   reportSignatories: ReportSignatory[];
   gedungBookings: GedungBooking[];
   agendas: MasjidAgenda[];
+  agendaRegistrations: AgendaRegistration[];
   unreadDonationsCount: number;
   feedbacks: JamaahFeedback[];
   calendarNotes: JamaahCalendarNote[];
@@ -1662,6 +1664,26 @@ export function useMasjidStore() {
     }));
   };
 
+  
+  const addAgendaRegistration = (registration: Omit<AgendaRegistration, 'id' | 'createdAt'>) => {
+    const newRegistration: AgendaRegistration = {
+      ...registration,
+      id: `reg-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: new Date().toISOString()
+    };
+    setState(prev => ({
+      ...prev,
+      agendaRegistrations: [newRegistration, ...(prev.agendaRegistrations || [])]
+    }));
+  };
+
+  const deleteAgendaRegistration = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      agendaRegistrations: (prev.agendaRegistrations || []).filter(r => r.id !== id)
+    }));
+  };
+
   const resetToDefault = () => {
     setState(defaultState);
   };
@@ -1923,6 +1945,8 @@ export function useMasjidStore() {
     addMuallafRegistration,
     updateMuallafRegistrationStatus,
     addAgenda,
+    addAgendaRegistration,
+    deleteAgendaRegistration,
     updateAgenda,
     deleteAgenda,
     resetToDefault,
@@ -2029,6 +2053,20 @@ CREATE TABLE IF NOT EXISTS public.announcements (
   image_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+
+-- 6B. TABEL AGENDA REGISTRATIONS
+CREATE TABLE IF NOT EXISTS public.agenda_registrations (
+  id TEXT PRIMARY KEY,
+  agenda_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  whatsapp TEXT NOT NULL,
+  email TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.agenda_registrations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public Read Agenda Registrations" ON public.agenda_registrations FOR SELECT USING (true);
+CREATE POLICY "Public Insert Agenda Registrations" ON public.agenda_registrations FOR INSERT WITH CHECK (true);
 
 -- 7. TABEL JURNAL UMUM & KAS KECIL
 CREATE TABLE IF NOT EXISTS public.petty_cash (

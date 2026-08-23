@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Edit2, Calendar as CalendarIcon, Clock, MapPin, Upload } from 'lucide-react';
+import { Plus, Trash2, Edit2, Calendar as CalendarIcon, Clock, MapPin, Upload, Users, X } from 'lucide-react';
 import { getSupabaseClient } from '../lib/supabase';
 import { useMasjidStore } from '../lib/store';
 import { uploadMedia } from '../lib/mediaUpload';
@@ -20,7 +20,9 @@ export const AgendaAdmin = () => {
     speaker: '',
     description: '',
     category: 'Kajian',
-    imageUrl: ''
+      imageUrl: '',
+      requiresRegistration: false,
+      quota: 0
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -52,7 +54,9 @@ export const AgendaAdmin = () => {
       speaker: '',
       description: '',
       category: 'Kajian',
-      imageUrl: ''
+      imageUrl: '',
+      requiresRegistration: false,
+      quota: 0
     });
   };
 
@@ -67,6 +71,16 @@ export const AgendaAdmin = () => {
     if (window.confirm(`Apakah Anda yakin ingin menghapus agenda "${title}"?`)) {
       deleteAgenda(id);
     }
+  };
+
+
+  const [showRegistrantsModal, setShowRegistrantsModal] = useState(false);
+  const [selectedAgendaForRegistrants, setSelectedAgendaForRegistrants] = useState<MasjidAgenda | null>(null);
+  const agendaRegistrations = state.agendaRegistrations || [];
+  
+  const handleViewRegistrants = (agenda: MasjidAgenda) => {
+    setSelectedAgendaForRegistrants(agenda);
+    setShowRegistrantsModal(true);
   };
 
   const [isUploading, setIsUploading] = useState(false);
@@ -183,6 +197,37 @@ export const AgendaAdmin = () => {
                 className="w-full p-3 bg-white text-slate-800 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500"
                 placeholder="Contoh: Ust. Adi Hidayat (Kosongkan jika tidak ada)"
               />
+            </div>
+
+
+            <div className="md:col-span-2 space-y-4 pt-4 border-t border-slate-200">
+              <h3 className="font-bold text-slate-800">Pengaturan Pendaftaran (Opsional)</h3>
+              
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="requiresRegistration"
+                  checked={formData.requiresRegistration || false}
+                  onChange={e => setFormData({ ...formData, requiresRegistration: e.target.checked })}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="requiresRegistration" className="font-medium text-slate-700 cursor-pointer">
+                  Aktifkan Formulir Pendaftaran (Tombol "Detail & Daftar")
+                </label>
+              </div>
+
+              {formData.requiresRegistration && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-slate-700">Kuota Peserta (Opsional, isi 0 jika tidak terbatas)</label>
+                  <input
+                    type="number"
+                    value={formData.quota || ''}
+                    onChange={e => setFormData({ ...formData, quota: parseInt(e.target.value) || 0 })}
+                    className="w-full md:w-1/3 p-3 bg-white text-slate-800 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    placeholder="Contoh: 100"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="md:col-span-2 space-y-2">
@@ -304,6 +349,78 @@ export const AgendaAdmin = () => {
           )}
         </div>
       </div>
+
+      {/* Modal Pendaftar */}
+      {showRegistrantsModal && selectedAgendaForRegistrants && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-4xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-emerald-600 p-6 flex justify-between items-center text-white shrink-0">
+              <div>
+                <h3 className="text-xl font-bold font-serif mb-1">Daftar Peserta: {selectedAgendaForRegistrants.title}</h3>
+                <p className="text-emerald-100 text-sm">
+                  Total Pendaftar: {agendaRegistrations.filter(r => r.agendaId === selectedAgendaForRegistrants.id).length} 
+                  {selectedAgendaForRegistrants.quota ? ` / ${selectedAgendaForRegistrants.quota} Kuota` : ''}
+                </p>
+              </div>
+              <button onClick={() => setShowRegistrantsModal(false)} className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
+              {agendaRegistrations.filter(r => r.agendaId === selectedAgendaForRegistrants.id).length > 0 ? (
+                <div className="overflow-x-auto bg-white rounded-xl border border-slate-200 shadow-sm">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
+                        <th className="p-4 font-bold">No</th>
+                        <th className="p-4 font-bold">Nama Lengkap</th>
+                        <th className="p-4 font-bold">No. WhatsApp</th>
+                        <th className="p-4 font-bold">Email</th>
+                        <th className="p-4 font-bold">Waktu Daftar</th>
+                        <th className="p-4 font-bold text-center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {agendaRegistrations.filter(r => r.agendaId === selectedAgendaForRegistrants.id).map((reg, idx) => (
+                        <tr key={reg.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                          <td className="p-4 text-slate-500">{idx + 1}</td>
+                          <td className="p-4 font-semibold text-slate-800">{reg.name}</td>
+                          <td className="p-4 text-emerald-600 font-medium">
+                            <a href={`https://wa.me/${reg.whatsapp.replace(/^0/, '62')}`} target="_blank" rel="noreferrer" className="hover:underline">
+                              {reg.whatsapp}
+                            </a>
+                          </td>
+                          <td className="p-4 text-slate-600">{reg.email || '-'}</td>
+                          <td className="p-4 text-sm text-slate-500">{new Date(reg.createdAt).toLocaleString('id-ID')}</td>
+                          <td className="p-4 text-center">
+                            <button 
+                              onClick={() => {
+                                if (window.confirm('Hapus pendaftar ini?')) {
+                                  if (state.deleteAgendaRegistration) state.deleteAgendaRegistration(reg.id);
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg"
+                              title="Hapus Peserta"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-slate-500">
+                  Belum ada jamaah yang mendaftar untuk kegiatan ini.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

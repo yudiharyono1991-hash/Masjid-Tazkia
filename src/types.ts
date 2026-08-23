@@ -552,6 +552,9 @@ export interface MasjidAgenda {
   description: string;
   category: 'Kajian' | 'Rapat' | 'Kegiatan' | 'Lainnya';
   imageUrl?: string;
+  requiresRegistration?: boolean;
+  registrationLink?: string;
+  quota?: number;
 }
 
 
@@ -623,5 +626,14 @@ export interface MuallafRegistration {
   tanggalIkrar: string;
   namaIslam?: string;
   status: 'pending' | 'scheduled' | 'completed';
+  createdAt: string;
+}
+
+export interface AgendaRegistration {
+  id: string;
+  agendaId: string;
+  name: string;
+  whatsapp: string;
+  email?: string;
   createdAt: string;
 }
