@@ -78,20 +78,32 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     let finalName = name || 'Jamaah Tazkia';
     let finalPhone: string | undefined = undefined;
 
+    const loginInput = email.trim();
+    const loginEmail = loginInput.toLowerCase();
+    // Normalize phone similar to registration logic for matching
+    const loginPhone = loginInput.startsWith('0') ? '+62' + loginInput.slice(1) : loginInput.replace(/^(\+62|62)/, '+62').replace(/\s/g, '');
+
     // Auto-detect admin & pengurus logins based on email
-    if (email === 'admin@tazkia.id' || email === 'direktur@tazkia.id') {
+    if (loginEmail === 'admin@tazkia.id' || loginEmail === 'direktur@tazkia.id') {
       if (password === 'admin123' || password === '123456') {
-        finalRole = email === 'admin@tazkia.id' ? 'ketua_dewan_pembina' : 'direktur';
-        finalName = email === 'admin@tazkia.id' ? 'Super Admin Tazkia' : 'Direktur';
+        finalRole = loginEmail === 'admin@tazkia.id' ? 'ketua_dewan_pembina' : 'direktur';
+        finalName = loginEmail === 'admin@tazkia.id' ? 'Super Admin Tazkia' : 'Direktur';
       } else {
         alert("Kredensial akses khusus tidak valid.");
         return;
       }
     } else {
       // Check if it's an existing user in database
-      const user = state.jamaahProfiles?.find(u => 
-        u.email === email || u.name === email || u.phone === email
-      );
+      const user = state.jamaahProfiles?.find(u => {
+        const uEmail = u.email?.toLowerCase();
+        const uPhone = u.phone?.replace(/\s/g, '');
+        return (
+          uEmail === loginEmail || 
+          uPhone === loginPhone || 
+          uPhone === loginInput || 
+          u.name === loginInput
+        );
+      });
       
       if (user) {
         if (user.password === password || (!user.password && password === '123456')) {
