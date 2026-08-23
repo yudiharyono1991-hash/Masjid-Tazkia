@@ -6,7 +6,8 @@ import { formatRupiahFull } from '../../lib/islamicUtils';
 import { exportJurnalUmumToExcel } from '../../lib/excelUtils'; // Use as placeholder
 
 export function KasKecil() {
-  const { state, addPettyCashEntry } = useMasjidStore();
+  const { state, addPettyCashEntry, deletePettyCashEntry, deletePettyCashBulk } = useMasjidStore();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -80,6 +81,22 @@ export function KasKecil() {
     });
   };
 
+  const handleDelete = (id: string) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus data kas kecil ini?')) {
+      deletePettyCashEntry(id);
+      setSelectedIds(prev => prev.filter(item => item !== id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    if (window.confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} data kas kecil yang dipilih?`)) {
+      deletePettyCashBulk(selectedIds);
+      setSelectedIds([]);
+      alert(`Berhasil menghapus ${selectedIds.length} data.`);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm print:hidden">
@@ -94,15 +111,20 @@ export function KasKecil() {
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="border border-gray-300 bg-white text-gray-900 rounded-lg px-2 py-1.5 text-sm font-medium focus:outline-none focus:border-blue-500" />
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          {selectedIds.length > 0 && (
+            <button 
+              onClick={handleBulkDelete} 
+              className="px-3 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-red-700 transition"
+            >
+              <Trash2 className="w-4 h-4" /> Hapus Terpilih ({selectedIds.length})
+            </button>
+          )}
           <button onClick={handlePrint} className="flex-1 md:flex-none px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100">
             <Printer className="w-4 h-4" /> Cetak
           </button>
-          <button onClick={handleExport} className="flex-1 md:flex-none px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100">
-            <Download className="w-4 h-4" /> Ekspor
-          </button>
           <button onClick={() => { setEditingId(null); setIsAdding(true); }} className="px-3 py-2 bg-tazkia-primary text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-tazkia-light">
-            <Plus className="w-4 h-4" /> Input Kas Kecil
+            <Plus className="w-4 h-4" /> Entri Kas Baru
           </button>
         </div>
       </div>
@@ -158,6 +180,9 @@ export function KasKecil() {
           <table className="w-full text-left text-xs sm:text-sm min-w-[700px]">
             <thead className="bg-gray-50 border-b border-gray-100 text-gray-600">
               <tr>
+                <th className="p-4 w-12 text-center">
+                  {/* Checkbox placeholder */}
+                </th>
                 <th className="p-4 font-semibold">Tanggal & Ref</th>
                 <th className="p-4 font-semibold">Keterangan / Tujuan</th>
                 <th className="p-4 font-semibold">PIC / Penerima</th>
@@ -180,11 +205,41 @@ export function KasKecil() {
                 const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
                 const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
                 
+                const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+                  if (e.target.checked) setSelectedIds(paginatedData.map(j => j.id));
+                  else setSelectedIds([]);
+                };
+                const toggleSelectOne = (id: string) => {
+                  setSelectedIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+                };
+
                 if (currentPage > totalPages) setCurrentPage(1);
 
                 if (paginatedData.length > 0) {
-                  return paginatedData.map((item, idx) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
+                  return (
+                    <>
+                      {/* Dummy row for hacky select all */}
+                      <tr className="bg-gray-50 absolute -mt-10 opacity-0 pointer-events-none">
+                        <td></td>
+                      </tr>
+                      {paginatedData.map((item, index) => (
+                        <tr key={item.id} className={`hover:bg-gray-50 ${selectedIds.includes(item.id) ? 'bg-blue-50/50' : ''}`}>
+                          <td className="p-4 text-center">
+                            {index === 0 && (
+                              <input 
+                                type="checkbox" 
+                                className="w-4 h-4 accent-blue-600 cursor-pointer rounded mt-[-40px] absolute -ml-2"
+                                checked={paginatedData.length > 0 && selectedIds.length === paginatedData.length}
+                                onChange={toggleSelectAll}
+                              />
+                            )}
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 accent-blue-600 cursor-pointer rounded"
+                              checked={selectedIds.includes(item.id)}
+                              onChange={() => toggleSelectOne(item.id)}
+                            />
+                          </td>
                       <td className="p-4 align-top w-1/5">
                         <div className="font-semibold text-gray-800">
                           {item.date ? new Date(item.date).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-'}
@@ -219,17 +274,19 @@ export function KasKecil() {
                       </td>
                       <td className="p-4 align-middle text-center print:hidden">
                         <div className="flex justify-center gap-1.5">
-                          <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                          <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition">
+                          <button onClick={() => handleDelete(item.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition" title="Hapus">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
                     </tr>
-                  ));
-                } else {
+                  ))}
+                  </>
+                );
+              } else {
                   return (
                     <tr>
                       <td colSpan={7} className="p-8 text-center text-gray-400 font-medium text-sm">

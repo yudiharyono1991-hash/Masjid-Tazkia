@@ -6,8 +6,9 @@ import { Plus, Trash2, Calendar, Download } from 'lucide-react';
 import { formatRupiahFull } from '../../lib/islamicUtils';
 
 export function ManajemenKeropak() {
-  const { state, addKeropakTransaction, deleteKeropakTransaction } = useMasjidStore();
+  const { state, addKeropakTransaction, deleteKeropakTransaction, deleteKeropakBulk } = useMasjidStore();
   const transactions = state.keropakTransactions || [];
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const [type, setType] = useState<'jumat' | 'harian' | 'keluar'>('jumat');
   const [amount, setAmount] = useState('');
@@ -31,6 +32,15 @@ export function ManajemenKeropak() {
     setAmount('');
     setDescription('');
     alert('Data Keropak berhasil disimpan!');
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    if (window.confirm(`Yakin ingin menghapus ${selectedIds.length} data keropak yang dipilih?`)) {
+      deleteKeropakBulk(selectedIds);
+      setSelectedIds([]);
+      alert(`Berhasil menghapus ${selectedIds.length} data.`);
+    }
   };
 
   return (
@@ -67,13 +77,21 @@ export function ManajemenKeropak() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 bg-gray-50 border-b border-gray-100">
+        <div className="p-4 bg-gray-50 border-b border-gray-100 flex flex-wrap justify-between items-center gap-2">
           <h3 className="font-bold text-gray-800">Riwayat Keropak</h3>
+          {selectedIds.length > 0 && (
+            <button onClick={handleBulkDelete} className="px-3 py-1.5 bg-red-600 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-red-700 transition">
+              <Trash2 className="w-4 h-4" /> Hapus Terpilih ({selectedIds.length})
+            </button>
+          )}
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-100 text-gray-700 text-xs uppercase">
+                <th className="p-4 w-12 text-center border-b border-gray-200">
+                  {/* Select All checkbox handled below */}
+                </th>
                 <th className="p-4 font-semibold border-b border-gray-200">Tanggal</th>
                 <th className="p-4 font-semibold border-b border-gray-200">Jenis</th>
                 <th className="p-4 font-semibold border-b border-gray-200">Keterangan</th>
@@ -86,27 +104,65 @@ export function ManajemenKeropak() {
                 const sorted = [...transactions].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                 const totalPages = Math.ceil(sorted.length / itemsPerPage) || 1;
                 const paginated = sorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                
+                const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+                  if (e.target.checked) setSelectedIds(paginated.map(j => j.id));
+                  else setSelectedIds([]);
+                };
+                const toggleSelectOne = (id: string) => {
+                  setSelectedIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+                };
+
                 if (currentPage > totalPages && totalPages > 0) setCurrentPage(1);
 
-                return paginated.map(t => (
-                  <tr key={t.id} className="hover:bg-gray-50 text-gray-900">
-                    <td className="p-4 text-sm font-medium">{new Date(t.date).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${t.type === 'keluar' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                        {t.type}
-                      </span>
-                    </td>
-                    <td className="p-4 text-sm text-gray-700">{t.description}</td>
-                    <td className={`p-4 text-sm font-bold text-right ${t.type === 'keluar' ? 'text-red-600' : 'text-emerald-600'}`}>
-                      {formatRupiahFull(t.amount)}
-                    </td>
-                    <td className="p-4 text-center">
-                      <button onClick={() => { if(window.confirm('Hapus riwayat ini?')) deleteKeropakTransaction(t.id); }} className="text-red-500 hover:bg-red-50 p-1.5 rounded">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ));
+                return (
+                  <>
+                    {/* Dummy row for hacky select all */}
+                    <tr className="bg-gray-50 absolute -mt-10 opacity-0 pointer-events-none">
+                      <td></td>
+                    </tr>
+                    {paginated.map((t, index) => (
+                      <tr key={t.id} className={`hover:bg-gray-50 text-gray-900 ${selectedIds.includes(t.id) ? 'bg-blue-50/50' : ''}`}>
+                        <td className="p-4 text-center">
+                          {index === 0 && (
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 accent-blue-600 cursor-pointer rounded mt-[-40px] absolute -ml-2"
+                              checked={paginated.length > 0 && selectedIds.length === paginated.length}
+                              onChange={toggleSelectAll}
+                            />
+                          )}
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 accent-blue-600 cursor-pointer rounded"
+                            checked={selectedIds.includes(t.id)}
+                            onChange={() => toggleSelectOne(t.id)}
+                          />
+                        </td>
+                        <td className="p-4 text-sm font-medium">{new Date(t.date).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</td>
+                        <td className="p-4">
+                          <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${t.type === 'keluar' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                            {t.type}
+                          </span>
+                        </td>
+                        <td className="p-4 text-sm text-gray-700">{t.description}</td>
+                        <td className={`p-4 text-sm font-bold text-right ${t.type === 'keluar' ? 'text-red-600' : 'text-emerald-600'}`}>
+                          {formatRupiahFull(t.amount)}
+                        </td>
+                        <td className="p-4 text-center">
+                          <button onClick={() => { 
+                            if(window.confirm('Hapus riwayat ini?')) {
+                              deleteKeropakTransaction(t.id);
+                              setSelectedIds(prev => prev.filter(id => id !== t.id));
+                            }
+                          }} className="text-red-500 hover:bg-red-50 p-1.5 rounded">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </>
+                );
               })()}
               {transactions.length === 0 && (
                 <tr>

@@ -6,7 +6,8 @@ import { exportJurnalUmumToExcel } from '../../lib/excelUtils';
 import { AccountCombobox } from '../AccountCombobox';
 
 export function JurnalUmum() {
-  const { state, addErpJournal, deleteErpJournal, updateErpJournal, addErpJournalEntry } = useMasjidStore();
+  const { state, addErpJournal, deleteErpJournal, updateErpJournal, addErpJournalEntry, deleteErpJournalBulk } = useMasjidStore();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingJournalId, setEditingJournalId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -134,7 +135,17 @@ export function JurnalUmum() {
   const handleDelete = (journalId: string) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus jurnal ini? Tindakan ini akan menghapus jurnal dan seluruh entri terkait secara permanen.')) {
       deleteErpJournal(journalId);
+      setSelectedIds(prev => prev.filter(id => id !== journalId));
       showToast('Jurnal berhasil dihapus.');
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    if (window.confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} jurnal yang dipilih secara permanen?`)) {
+      deleteErpJournalBulk(selectedIds);
+      setSelectedIds([]);
+      showToast(`${selectedIds.length} jurnal berhasil dihapus.`);
     }
   };
 
@@ -172,7 +183,15 @@ export function JurnalUmum() {
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="border border-gray-300 bg-white text-gray-900 rounded-lg px-2 py-1.5 text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          {selectedIds.length > 0 && (
+            <button 
+              onClick={handleBulkDelete} 
+              className="px-3 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-red-700 transition"
+            >
+              <Trash2 className="w-4 h-4" /> Hapus Terpilih ({selectedIds.length})
+            </button>
+          )}
           <button onClick={handleExport} className="flex-1 md:flex-none px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-100">
             <Download className="w-4 h-4" /> Ekspor
           </button>
@@ -284,6 +303,9 @@ export function JurnalUmum() {
         <table className="w-full text-left text-xs sm:text-sm min-w-[700px]">
           <thead className="bg-gray-50 border-b border-gray-100 text-gray-600">
             <tr>
+              <th className="p-4 w-12 text-center">
+                {/* Select All Checkbox rendered later via ref or dynamic logic, but we can do a simple one here */}
+              </th>
               <th className="p-4 font-semibold">Tanggal & No</th>
               <th className="p-4 font-semibold">Keterangan</th>
               <th className="p-4 font-semibold text-right">Debit</th>
@@ -297,17 +319,39 @@ export function JurnalUmum() {
               const totalPages = Math.ceil(filteredJournals.length / itemsPerPage) || 1;
               const paginatedJournals = filteredJournals.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
               
-              if (currentPage > totalPages) setCurrentPage(1); // Auto reset if out of bounds
-              
+              const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+                if (e.target.checked) setSelectedIds(paginatedJournals.map(j => j.id));
+                else setSelectedIds([]);
+              };
+              const toggleSelectOne = (id: string) => {
+                setSelectedIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+              };
+
+              // Patch table header with Select All
               return (
                 <>
-                  {paginatedJournals.map(journal => {
+                  <tr className="hidden" /> {/* Dummy row for react fragment safety */}
+                  {paginatedJournals.map((journal, index) => {
               const journalEntries = state.erpJournalEntries.filter(e => e.journalId === journal.id);
               const totalDebit = journalEntries.reduce((s, e) => s + e.debit, 0);
               
               return (
                 <React.Fragment key={journal.id}>
-                  <tr className="bg-gray-50/50 text-slate-900">
+                  {/* Select All Checkbox hack for header */}
+                  {index === 0 && (
+                    <tr className="bg-gray-50 absolute -mt-10 opacity-0 pointer-events-none">
+                      <td></td>
+                    </tr>
+                  )}
+                  <tr className={`bg-gray-50/50 text-slate-900 ${selectedIds.includes(journal.id) ? 'bg-blue-50/50' : ''}`}>
+                    <td className="p-4 text-center">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 accent-blue-600 cursor-pointer rounded mt-[-60px]"
+                        checked={selectedIds.includes(journal.id)}
+                        onChange={() => toggleSelectOne(journal.id)}
+                      />
+                    </td>
                     <td className="p-4 align-top w-1/4">
                       <div className="font-semibold text-gray-800">
                         {new Date(journal.date).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}

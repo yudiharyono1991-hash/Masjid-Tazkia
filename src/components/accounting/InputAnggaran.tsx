@@ -4,7 +4,8 @@ import { Plus, Trash2, Save, X, Edit2 } from 'lucide-react';
 import { ERPBudgetEntry } from '../../types';
 
 export function InputAnggaran() {
-  const { state, addErpBudget, updateErpBudget, deleteErpBudget } = useMasjidStore();
+  const { state, addErpBudget, updateErpBudget, deleteErpBudget, deleteErpBudgetBulk } = useMasjidStore();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   
   const [showAddForm, setShowAddForm] = useState(false);
@@ -58,6 +59,16 @@ export function InputAnggaran() {
   const handleDelete = (id: string) => {
     if (window.confirm('Yakin ingin menghapus anggaran ini?')) {
       deleteErpBudget(id);
+      setSelectedIds(prev => prev.filter(item => item !== id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    if (window.confirm(`Yakin ingin menghapus ${selectedIds.length} anggaran yang dipilih?`)) {
+      deleteErpBudgetBulk(selectedIds);
+      setSelectedIds([]);
+      alert(`Berhasil menghapus ${selectedIds.length} anggaran.`);
     }
   };
 
@@ -77,7 +88,16 @@ export function InputAnggaran() {
           <p className="text-sm text-gray-500">Buat perencanaan anggaran pendapatan & pengeluaran tahunan</p>
         </div>
         
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          {selectedIds.length > 0 && (
+            <button 
+              onClick={handleBulkDelete} 
+              className="flex-shrink-0 px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-xl flex items-center gap-2 hover:bg-red-700 transition-all shadow-md shadow-red-500/20"
+            >
+              <Trash2 className="w-4 h-4" /> 
+              <span className="hidden sm:inline">Hapus Terpilih ({selectedIds.length})</span>
+            </button>
+          )}
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -166,6 +186,17 @@ export function InputAnggaran() {
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500">
+                <th className="p-4 w-12 text-center">
+                  <input 
+                    type="checkbox" 
+                    className="w-4 h-4 accent-blue-600 cursor-pointer rounded"
+                    checked={currentBudgets.length > 0 && selectedIds.length === currentBudgets.length}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedIds(currentBudgets.map(b => b.id));
+                      else setSelectedIds([]);
+                    }}
+                  />
+                </th>
                 <th className="p-4 font-bold">Kode Akun</th>
                 <th className="p-4 font-bold">Nama Akun</th>
                 <th className="p-4 font-bold">Tipe Akun</th>
@@ -179,7 +210,17 @@ export function InputAnggaran() {
                 currentBudgets.map(budget => {
                   const acc = state.erpCoa.find(a => a.id === budget.accountId);
                   return (
-                    <tr key={budget.id} className="hover:bg-blue-50/50 transition-colors">
+                    <tr key={budget.id} className={`hover:bg-blue-50/50 transition-colors ${selectedIds.includes(budget.id) ? 'bg-blue-50/50' : ''}`}>
+                      <td className="p-4 text-center">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 accent-blue-600 cursor-pointer rounded"
+                          checked={selectedIds.includes(budget.id)}
+                          onChange={() => {
+                            setSelectedIds(prev => prev.includes(budget.id) ? prev.filter(id => id !== budget.id) : [...prev, budget.id]);
+                          }}
+                        />
+                      </td>
                       <td className="p-4 font-mono font-medium text-gray-600">{acc?.accountCode || '-'}</td>
                       <td className="p-4 font-semibold text-gray-800">{acc?.accountName || 'Akun tidak ditemukan'}</td>
                       <td className="p-4 text-gray-500">{acc?.accountType === 'Revenue' ? 'Pendapatan' : 'Beban'}</td>

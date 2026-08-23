@@ -1028,6 +1028,34 @@ export function useMasjidStore() {
     }));
   };
 
+  const deleteKeropakBulk = (ids: string[]) => {
+    setState(prev => ({
+      ...prev,
+      keropakTransactions: (prev.keropakTransactions || []).filter(t => !ids.includes(t.id))
+    }));
+  };
+
+  const deletePettyCashEntry = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      pettyCash: (prev.pettyCash || []).filter(p => p.id !== id)
+    }));
+  };
+
+  const deletePettyCashBulk = (ids: string[]) => {
+    setState(prev => ({
+      ...prev,
+      pettyCash: (prev.pettyCash || []).filter(p => !ids.includes(p.id))
+    }));
+  };
+
+  const deleteErpCoaBulk = (ids: string[]) => {
+    setState(prev => ({
+      ...prev,
+      erpCoa: prev.erpCoa.filter(c => !ids.includes(c.id))
+    }));
+  };
+
   const deleteErpCoa = (id: string) => {
     setState(prev => ({
       ...prev,
@@ -1041,6 +1069,14 @@ export function useMasjidStore() {
 
   const addErpJournal = (journal: ERPGeneralJournal) => {
     setState(prev => ({ ...prev, erpJournals: [...prev.erpJournals, journal] }));
+  };
+
+  const deleteErpJournalBulk = (ids: string[]) => {
+    setState(prev => ({
+      ...prev,
+      erpJournals: prev.erpJournals.filter(j => !ids.includes(j.id)),
+      erpJournalEntries: prev.erpJournalEntries.filter(e => !ids.includes(e.journalId))
+    }));
   };
 
   const deleteErpJournal = (id: string) => {
@@ -1091,6 +1127,13 @@ export function useMasjidStore() {
     setState(prev => ({
       ...prev,
       erpBudgets: prev.erpBudgets.map(b => b.id === id ? { ...b, ...updated } : b)
+    }));
+  };
+
+  const deleteErpBudgetBulk = (ids: string[]) => {
+    setState(prev => ({
+      ...prev,
+      erpBudgets: prev.erpBudgets.filter(b => !ids.includes(b.id))
     }));
   };
 
@@ -2020,6 +2063,12 @@ export function useMasjidStore() {
     setErpCoa,
     addErpCoa,
     updateErpCoa,
+    deleteKeropakBulk,
+    deletePettyCashEntry,
+    deletePettyCashBulk,
+    deleteErpCoaBulk,
+    deleteErpJournalBulk,
+    deleteErpBudgetBulk,
     deleteErpCoa,
     setErpJournals,
     addErpJournal,

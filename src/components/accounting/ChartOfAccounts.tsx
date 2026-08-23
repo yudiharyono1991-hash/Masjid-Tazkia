@@ -5,7 +5,8 @@ import { Download, Upload, Plus, Edit2, Trash2 } from 'lucide-react';
 import { exportCoaToExcel, importCoaFromExcel, downloadCoaTemplate } from '../../lib/excelUtils';
 
 export function ChartOfAccounts() {
-  const { state, addErpCoa, setErpCoa, updateErpCoa, deleteErpCoa } = useMasjidStore();
+  const { state, addErpCoa, setErpCoa, updateErpCoa, deleteErpCoa, deleteErpCoaBulk } = useMasjidStore();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,7 +64,31 @@ export function ChartOfAccounts() {
   const handleDelete = (acc: ERPChartOfAccount) => {
     if (window.confirm(`Apakah Anda yakin ingin menghapus akun ${acc.accountCode} - ${acc.accountName}?`)) {
       deleteErpCoa(acc.id);
+      setSelectedIds(prev => prev.filter(id => id !== acc.id));
     }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    if (window.confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} akun yang dipilih?`)) {
+      deleteErpCoaBulk(selectedIds);
+      setSelectedIds([]);
+      alert(`Berhasil menghapus ${selectedIds.length} akun.`);
+    }
+  };
+
+  const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(paginatedCoa.map(acc => acc.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
   };
 
   const handleExport = () => {
@@ -129,7 +154,15 @@ export function ChartOfAccounts() {
           </select>
 
           <div className="h-6 w-px bg-gray-200 hidden md:block mx-1"></div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            {selectedIds.length > 0 && (
+              <button 
+                onClick={handleBulkDelete} 
+                className="px-3 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg flex items-center gap-2 hover:bg-red-700 transition"
+              >
+                <Trash2 className="w-4 h-4" /> Hapus Terpilih ({selectedIds.length})
+              </button>
+            )}
             <button onClick={handleExport} className="px-3 py-2 bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-100">
               <Download className="w-4 h-4" /> Ekspor
             </button>
@@ -222,6 +255,14 @@ export function ChartOfAccounts() {
         <table className="w-full text-left text-xs sm:text-sm min-w-[500px]">
           <thead className="bg-gray-50 border-b border-gray-100 text-gray-600">
             <tr>
+              <th className="p-4 w-12 text-center">
+                <input 
+                  type="checkbox" 
+                  className="w-4 h-4 accent-blue-600 cursor-pointer rounded"
+                  checked={paginatedCoa.length > 0 && selectedIds.length === paginatedCoa.length}
+                  onChange={toggleSelectAll}
+                />
+              </th>
               <th className="p-4 font-semibold">Kode Akun</th>
               <th className="p-4 font-semibold">Nama Akun</th>
               <th className="p-4 font-semibold">Tipe Akun</th>
@@ -232,7 +273,15 @@ export function ChartOfAccounts() {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {paginatedCoa.map(acc => (
-              <tr key={acc.id} className="hover:bg-gray-50 text-slate-800">
+              <tr key={acc.id} className={`hover:bg-gray-50 text-slate-800 ${selectedIds.includes(acc.id) ? 'bg-blue-50/50' : ''}`}>
+                <td className="p-4 text-center">
+                  <input 
+                    type="checkbox" 
+                    className="w-4 h-4 accent-blue-600 cursor-pointer rounded"
+                    checked={selectedIds.includes(acc.id)}
+                    onChange={() => toggleSelectOne(acc.id)}
+                  />
+                </td>
                 <td className="p-4 font-mono text-blue-600">{acc.accountCode}</td>
                 <td className="p-4 font-medium text-gray-800">{acc.accountName}</td>
                 <td className="p-4 text-gray-600">{acc.accountType}</td>
