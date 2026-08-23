@@ -38,7 +38,7 @@ export function VerifikasiZiswaf() {
   };
 
   const handleSendReceipt = (donation: any) => {
-    const text = `Assalamu'alaikum wr. wb.\n\nAlhamdulillah, donasi Anda untuk program *${getProgramTitle(donation.programId)}* sebesar *${formatRupiahFull(donation.totalAmount)}* telah kami terima dan verifikasi pada ${new Date().toLocaleDateString('id-ID')}.\n\nJazakumullah khairan katsiran. Semoga Allah SWT membalas kebaikan Anda dengan pahala yang berlipat ganda, memberkahi rezeki Anda, dan menjadikannya sebagai amal jariyah. Aamiin.\n\nSalam hangat,\n*Pengurus Masjid Tazkia*`;
+    const text = `Assalamu'alaikum wr. wb.\n\nAlhamdulillah, donasi Anda untuk program *${getProgramTitle(donation.programId)}* sebesar *${formatRupiahFull(donation.totalAmount)}* telah kami terima dan verifikasi pada ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}.\n\nJazakumullah khairan katsiran. Semoga Allah SWT membalas kebaikan Anda dengan pahala yang berlipat ganda, memberkahi rezeki Anda, dan menjadikannya sebagai amal jariyah. Aamiin.\n\nSalam hangat,\n*Pengurus Masjid Tazkia*`;
     const phone = donation.donorPhone ? donation.donorPhone.replace(/^0/, '62').replace(/\D/g, '') : '';
     if (phone) {
       window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
@@ -110,7 +110,7 @@ export function VerifikasiZiswaf() {
                   return paginatedDonations.map(donation => (
                     <tr key={donation.id} className="hover:bg-gray-50">
                       <td className="p-4 align-top w-1/6">
-                        <div className="font-semibold">{new Date(donation.createdAt).toLocaleDateString('id-ID')}</div>
+                        <div className="font-semibold">{new Date(donation.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</div>
                         <div className="font-mono text-xs text-blue-600 mt-1">{donation.transactionRef}</div>
                       </td>
                       <td className="p-4 align-top font-medium text-gray-700 w-1/5">

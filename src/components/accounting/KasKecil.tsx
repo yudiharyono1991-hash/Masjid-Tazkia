@@ -187,7 +187,7 @@ export function KasKecil() {
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="p-4 align-top w-1/5">
                         <div className="font-semibold text-gray-800">
-                          {item.date ? new Date(item.date).toLocaleDateString('id-ID') : '-'}
+                          {item.date ? new Date(item.date).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-'}
                         </div>
                         {item.createdAt && (
                           <div className="text-[10px] text-gray-400 font-medium">

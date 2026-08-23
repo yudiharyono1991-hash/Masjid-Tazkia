@@ -148,7 +148,7 @@ export const TransparencySection: React.FC<TransparencySectionProps> = ({
                 <tbody className="divide-y divide-black/5">
                   {penyaluranKeropak.map(trx => (
                     <tr key={trx.id} className="hover:bg-stone-50 transition-colors">
-                      <td className="p-4 font-mono text-[#1A1A1A]/60 font-medium">{new Date(trx.date).toLocaleDateString('id-ID')}</td>
+                      <td className="p-4 font-mono text-[#1A1A1A]/60 font-medium">{new Date(trx.date).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</td>
                       <td className="p-4 font-bold text-[#1A1A1A]">{trx.description}</td>
                       <td className="p-4 text-right font-mono font-bold text-sm text-rose-600 whitespace-nowrap">
                         -{formatRupiahFull(trx.amount)}

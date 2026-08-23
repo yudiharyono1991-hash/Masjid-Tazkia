@@ -484,8 +484,8 @@ export const SewaGedungAdmin: React.FC = () => {
                   kamarBookings.filter(b => b.date >= startDate && b.date <= endDate).map(booking => (
                     <tr key={booking.id} className="hover:bg-blue-800/20 transition-colors">
                       <td className="p-4 font-medium text-white whitespace-nowrap">
-                        In: {new Date(booking.date).toLocaleDateString('id-ID')}<br/>
-                        Out: {new Date(booking.checkoutDate).toLocaleDateString('id-ID')}
+                        In: {new Date(booking.date).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}<br/>
+                        Out: {new Date(booking.checkoutDate).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}
                       </td>
                       <td className="p-4 text-blue-100">
                         <div className="flex flex-col gap-1">

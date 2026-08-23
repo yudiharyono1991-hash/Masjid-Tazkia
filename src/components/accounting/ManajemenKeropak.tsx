@@ -90,7 +90,7 @@ export function ManajemenKeropak() {
 
                 return paginated.map(t => (
                   <tr key={t.id} className="hover:bg-gray-50 text-gray-900">
-                    <td className="p-4 text-sm font-medium">{new Date(t.date).toLocaleDateString('id-ID')}</td>
+                    <td className="p-4 text-sm font-medium">{new Date(t.date).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${t.type === 'keluar' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
                         {t.type}

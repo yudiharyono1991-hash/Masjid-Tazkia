@@ -76,7 +76,7 @@ export const TpaAdmin: React.FC = () => {
           <tbody className="divide-y divide-slate-100">
             {tpaList.map(tpa => (
               <tr key={tpa.id} className="hover:bg-slate-50 transition-colors">
-                <td className="py-3 px-4">{new Date(tpa.createdAt).toLocaleDateString('id-ID')}</td>
+                <td className="py-3 px-4">{new Date(tpa.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</td>
                 <td className="py-3 px-4 font-medium text-slate-800">
                   {tpa.namaLengkap}<br/>
                   <span className="text-xs text-slate-500 font-normal">Usia: {tpa.usia} thn</span>

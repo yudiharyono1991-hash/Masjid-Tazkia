@@ -61,11 +61,34 @@ export const JamaahCalendar: React.FC<JamaahCalendarProps> = ({ notes, onAddNote
     return date.toISOString().split('T')[0]
   };
 
+  
+  // Calculate dynamic Hijri offset by comparing today's API date with local Intl date
+  const getDynamicHijriOffset = () => {
+    if (state.onlinePrayerData && state.onlinePrayerData.date && state.onlinePrayerData.date.hijri) {
+      try {
+        const apiHijriDay = parseInt(state.onlinePrayerData.date.hijri.day, 10);
+        // Compare with today's Intl format
+        const localHijriStr = new Intl.DateTimeFormat('id-u-ca-islamic', {day: 'numeric'}).format(new Date());
+        const localHijriDay = parseInt(localHijriStr, 10);
+        
+        // Return difference
+        if (!isNaN(apiHijriDay) && !isNaN(localHijriDay)) {
+          return apiHijriDay - localHijriDay;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return adminSettings?.hijriOffsetDays || 0;
+  };
+
+  const dynamicOffsetDays = getDynamicHijriOffset();
+
   const getHijriDate = (date: Date) => {
-    const offsetDays = adminSettings?.hijriOffsetDays || 0;
-    const offsetDate = new Date(date.getTime() + (offsetDays * 24 * 60 * 60 * 1000));
+    const offsetDate = new Date(date.getTime() + (dynamicOffsetDays * 24 * 60 * 60 * 1000));
     return new Intl.DateTimeFormat('id-u-ca-islamic', {day: 'numeric', month: 'short'}).format(offsetDate);
   };
+
 
   const getHijriMonthYear = (date: Date) => {
     const offsetDays = adminSettings?.hijriOffsetDays || 0;

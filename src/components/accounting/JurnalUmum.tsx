@@ -310,7 +310,7 @@ export function JurnalUmum() {
                   <tr className="bg-gray-50/50 text-slate-900">
                     <td className="p-4 align-top w-1/4">
                       <div className="font-semibold text-gray-800">
-                        {new Date(journal.date).toLocaleDateString('id-ID')}
+                        {new Date(journal.date).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}
                       </div>
                       {journal.createdAt && (
                         <div className="text-[10px] text-gray-400 font-medium">

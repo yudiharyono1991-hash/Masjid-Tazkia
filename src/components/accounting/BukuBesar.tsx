@@ -183,7 +183,7 @@ export function BukuBesar() {
                   <tr key={idx} className="hover:bg-gray-50 text-slate-800">
                     <td className="p-4">
                       <div className="font-semibold text-gray-800">
-                        {e.journalDate ? new Date(e.journalDate).toLocaleDateString('id-ID') : '-'}
+                        {e.journalDate ? new Date(e.journalDate).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-'}
                       </div>
                       {e.journalCreatedAt && (
                         <div className="text-[10px] text-gray-400 font-medium">
@@ -263,7 +263,7 @@ export function BukuBesar() {
                   <tr key={idx} className="hover:bg-gray-50 text-slate-800">
                     <td className="p-4">
                       <div className="font-semibold text-gray-800">
-                        {e.journalDate ? new Date(e.journalDate).toLocaleDateString('id-ID') : '-'}
+                        {e.journalDate ? new Date(e.journalDate).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB' : '-'}
                       </div>
                       {e.journalCreatedAt && (
                         <div className="text-[10px] text-gray-400 font-medium">

@@ -1572,7 +1572,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                       donations.filter(d => d.status === 'menunggu_verifikasi').map((d) => (
                         <tr key={d.id} className="hover:bg-blue-900/40 transition-colors">
                           <td className="p-4">
-                            <p className="text-sm font-bold text-white">{new Date(d.createdAt).toLocaleDateString('id-ID')}</p>
+                            <p className="text-sm font-bold text-white">{new Date(d.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</p>
                             <p className="text-[10px] font-mono text-amber-400 mt-1">{d.transactionRef}</p>
                           </td>
                           <td className="p-4">
@@ -4854,7 +4854,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                                 ))}
                               </select>
                             </td>
-                            <td className="px-4 py-3 text-blue-400 font-mono text-[10px]">{new Date(j.joinDate || j.createdAt || new Date()).toLocaleDateString('id-ID')}</td>
+                            <td className="px-4 py-3 text-blue-400 font-mono text-[10px]">{new Date(j.joinDate || j.createdAt || new Date()).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</td>
                             <td className="px-4 py-3 text-center">
                               <div className="flex justify-center items-center gap-1.5 flex-wrap">
                                 <button 
@@ -4920,7 +4920,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                                           <tbody className="divide-y divide-blue-800/30">
                                             {userDonations.map(d => (
                                               <tr key={d.id}>
-                                                <td className="py-2 text-white">{new Date(d.createdAt).toLocaleDateString('id-ID')}</td>
+                                                <td className="py-2 text-white">{new Date(d.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</td>
                                                 <td className="py-2">
                                                   <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded text-[10px] uppercase font-bold border border-emerald-500/30">
                                                     {d.category}

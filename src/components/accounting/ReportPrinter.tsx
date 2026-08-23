@@ -220,7 +220,7 @@ export function ReportPrinter() {
             {reportType === 'Realisasi' && `Laporan Realisasi Anggaran Tahun ${selectedYear}`}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Periode: {reportType === 'Realisasi' ? `Tahun ${selectedYear}` : `${new Date(startDate).toLocaleDateString('id-ID')} s/d ${new Date(endDate).toLocaleDateString('id-ID')}`}
+            Periode: {reportType === 'Realisasi' ? `Tahun ${selectedYear}` : `${new Date(startDate).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'} s/d ${new Date(endDate).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}`}
           </p>
           <p className="text-xs text-blue-800 font-medium mt-1 italic print:hidden">
             Dicetak pada: {today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} M / {new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(today)}

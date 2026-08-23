@@ -159,7 +159,7 @@ export const BookingKamar: React.FC<BookingKamarProps> = ({ isDark = false }) =>
                     Reservasi Berhasil Diajukan!
                   </h3>
                   <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                    Alhamdulillah, pesanan kamar untuk tanggal <strong className={isDark ? 'text-amber-400' : 'text-blue-600'}>{checkInDate?.toLocaleDateString('id-ID')} - {checkOutDate?.toLocaleDateString('id-ID')}</strong> telah kami terima. Tim Admin akan segera menghubungi Anda.
+                    Alhamdulillah, pesanan kamar untuk tanggal <strong className={isDark ? 'text-amber-400' : 'text-blue-600'}>{checkInDate?.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'} - {checkOutDate?.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</strong> telah kami terima. Tim Admin akan segera menghubungi Anda.
                   </p>
                   <button
                     onClick={() => {

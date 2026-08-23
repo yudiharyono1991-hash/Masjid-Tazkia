@@ -282,7 +282,7 @@ export function PencairanAnggaran() {
                       const coa = state.erpCoa.find(c => c.id === budget?.accountId);
                       return (
                         <tr key={d.id} className="hover:bg-gray-50">
-                          <td className="p-4 text-gray-600">{new Date(d.requestDate).toLocaleDateString('id-ID')}</td>
+                          <td className="p-4 text-gray-600">{new Date(d.requestDate).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</td>
                           <td className="p-4 font-medium text-gray-800">{coa?.accountName || 'Anggaran Dihapus'}</td>
                           <td className="p-4 text-right font-mono font-bold text-gray-900">{d.amount.toLocaleString('id-ID')}</td>
                           <td className="p-4 text-gray-600 max-w-[200px]">
@@ -374,7 +374,7 @@ export function PencairanAnggaran() {
                       <tr key={d.id} className="hover:bg-blue-50/50">
                         <td className="p-4">
                           <div className="font-bold text-gray-800">{d.requestedBy}</div>
-                          <div className="text-xs text-gray-500">{new Date(d.requestDate).toLocaleDateString('id-ID')}</div>
+                          <div className="text-xs text-gray-500">{new Date(d.requestDate).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</div>
                         </td>
                         <td className="p-4">
                           <div className="font-medium text-blue-900">{coa?.accountName}</div>

@@ -537,7 +537,7 @@ export const PortalJamaahDashboard: React.FC<PortalJamaahDashboardProps> = ({
                         {filteredDonations.slice(0, visibleHistoryCount).map(d => (
                           <tr key={d.id} className="hover:bg-gray-50 transition-colors">
                             <td className="p-3">
-                              <p className="text-xs font-bold text-gray-800">{new Date(d.createdAt).toLocaleDateString('id-ID')}</p>
+                              <p className="text-xs font-bold text-gray-800">{new Date(d.createdAt).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'}</p>
                               <p className="text-[9px] font-mono text-gray-500 mt-0.5">{d.transactionRef}</p>
                             </td>
                             <td className="p-3">
