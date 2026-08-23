@@ -92,6 +92,65 @@ import { ReportSignatoryAdmin } from './ReportSignatoryAdmin';
 import { AppManagerAdmin } from './AppManagerAdmin';
 import { uploadMedia } from '../lib/mediaUpload';
 
+const ChangePasswordBox: React.FC<{ onShowToast: (msg: string, type?: 'success'|'error') => void }> = ({ onShowToast }) => {
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const store = useMasjidStore();
+
+  const handleUpdatePassword = () => {
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      onShowToast('Harap lengkapi semua kolom kata sandi', 'error');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      onShowToast('Konfirmasi kata sandi baru tidak cocok', 'error');
+      return;
+    }
+
+    const session = store.state.session;
+    if (!session || !session.isLoggedIn) {
+      onShowToast('Anda harus login terlebih dahulu', 'error');
+      return;
+    }
+
+    const profile = (store.state.jamaahProfiles || []).find(p => p.email === session.email);
+    if (profile) {
+       if (profile.password && profile.password !== oldPassword) {
+         onShowToast('Kata sandi lama salah', 'error');
+         return;
+       }
+       store.updateJamaahProfile(profile.id, { password: newPassword });
+       onShowToast('Kata sandi berhasil diperbarui', 'success');
+       setOldPassword('');
+       setNewPassword('');
+       setConfirmPassword('');
+    } else {
+       onShowToast('Profil pengurus tidak ditemukan. Hubungi IT Admin.', 'error');
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="text-[10px] font-bold text-blue-300 uppercase tracking-wider block mb-1">Kata Sandi Lama</label>
+        <input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} autoComplete="new-password" placeholder="Masukkan kata sandi lama" className="w-full bg-blue-950 border border-blue-800 text-white rounded-xl px-3 py-2 outline-none text-xs" />
+      </div>
+      <div>
+        <label className="text-[10px] font-bold text-blue-300 uppercase tracking-wider block mb-1">Kata Sandi Baru</label>
+        <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} autoComplete="new-password" placeholder="Masukkan kata sandi baru" className="w-full bg-blue-950 border border-blue-800 text-white rounded-xl px-3 py-2 outline-none text-xs" />
+      </div>
+      <div>
+        <label className="text-[10px] font-bold text-blue-300 uppercase tracking-wider block mb-1">Konfirmasi Kata Sandi Baru</label>
+        <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} autoComplete="new-password" placeholder="Ketik ulang kata sandi baru" className="w-full bg-blue-950 border border-blue-800 text-white rounded-xl px-3 py-2 outline-none text-xs" />
+      </div>
+      <button className="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-xl mt-2 transition-colors cursor-pointer" onClick={handleUpdatePassword}>
+        Perbarui Kata Sandi
+      </button>
+    </div>
+  );
+};
+
 interface PengurusDkmDashboardProps {
   financials: FinancialTransaction[];
   inventories: InventoryItem[];
@@ -2493,23 +2552,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                     <Settings className="w-4 h-4 text-blue-400" />
                     <span>Ubah Kata Sandi Akses Portal Admin</span>
                   </h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-[10px] font-bold text-blue-300 uppercase tracking-wider block mb-1">Kata Sandi Lama</label>
-                      <input type="password" autoComplete="new-password" placeholder="Masukkan kata sandi lama" className="w-full bg-blue-950 border border-blue-800 text-white rounded-xl px-3 py-2 outline-none text-xs" />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-blue-300 uppercase tracking-wider block mb-1">Kata Sandi Baru</label>
-                      <input type="password" autoComplete="new-password" placeholder="Masukkan kata sandi baru" className="w-full bg-blue-950 border border-blue-800 text-white rounded-xl px-3 py-2 outline-none text-xs" />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-blue-300 uppercase tracking-wider block mb-1">Konfirmasi Kata Sandi Baru</label>
-                      <input type="password" autoComplete="new-password" placeholder="Ketik ulang kata sandi baru" className="w-full bg-blue-950 border border-blue-800 text-white rounded-xl px-3 py-2 outline-none text-xs" />
-                    </div>
-                    <button className="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded-xl mt-2 transition-colors" onClick={() => alert('Kata sandi berhasil diperbarui')}>
-                      Perbarui Kata Sandi
-                    </button>
-                  </div>
+                  <ChangePasswordBox onShowToast={showToast} />
                 </div>
 
                 {/* Box 1: Sakelar Visibilitas Modul Aplikasi */}
@@ -3048,7 +3091,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                                 if (currentSelected.length < 3) {
                                   newSelected.push(member.id);
                                 } else {
-                                  alert('Maksimal hanya 3 pengurus untuk footer.');
+                                  showToast('Maksimal hanya 3 pengurus untuk footer.', 'error');
                                   return;
                                 }
                               } else {
@@ -3150,7 +3193,6 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                     onClick={() => {
                       if (window.confirm('PERINGATAN KERAS!\n\nApakah Anda YAKIN ingin menghapus seluruh data lokal Masjid Tazkia di browser ini?\nAnda akan otomatis ter-logout.')) {
                         localStorage.clear();
-                        alert('Data lokal berhasil dibersihkan. Aplikasi akan dimuat ulang.');
                         window.location.href = '/';
                       }
                     }}
@@ -3269,7 +3311,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
                   onClick={() => {
                     if(window.confirm('Anda yakin ingin menghitung penyusutan semua Aset Tetap bulan ini? Jurnal beban penyusutan akan otomatis dibuat.')) {
                       store.hitungPenyusutanAset();
-                      alert('Perhitungan Penyusutan Berhasil!');
+                      showToast('Perhitungan Penyusutan Berhasil!', 'success');
                     }
                   }}
                   className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-lg"
