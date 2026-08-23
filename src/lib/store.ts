@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getSupabaseClient } from './supabase';
 import {
   Program,
@@ -240,73 +240,78 @@ export function saveStoredState(state: AppState) {
 }
 
 // React custom hook for global state with automatic persistence
+let globalStateInstance: AppState | null = null;
+const stateListeners = new Set<React.Dispatch<React.SetStateAction<AppState>>>();
+let isGlobalStateLoaded = false;
+let isFetchingGlobalState = false;
+
+function setGlobalState(updater: AppState | ((prev: AppState) => AppState)) {
+  if (!globalStateInstance) globalStateInstance = getStoredState();
+  const nextState = typeof updater === 'function' ? updater(globalStateInstance) : updater;
+  globalStateInstance = nextState;
+  
+  if (isGlobalStateLoaded && getSupabaseClient(nextState.supabaseUrl, nextState.supabaseAnonKey)) {
+    saveStoredState(nextState);
+  } else {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(nextState));
+  }
+
+  stateListeners.forEach(listener => listener(nextState));
+}
+
 export function useMasjidStore() {
-  const [state, setState] = useState<AppState>(getStoredState);
-  const isInitialMount = useRef(true);
-  const isGlobalStateLoaded = useRef(false);
+  if (!globalStateInstance) globalStateInstance = getStoredState();
+  const [state, setReactState] = useState<AppState>(globalStateInstance);
 
-  // Sync state ke LocalStorage dan Supabase jika berubah (kecuali reload pertama kali)
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-    // CEGAH OVERWRITE! Jangan push ke Supabase sebelum data global berhasil di-load
-    // agar setelan default di localhost tidak menimpa data production (Cpanel).
-    if (getSupabaseClient(state.supabaseUrl, state.supabaseAnonKey) && !isGlobalStateLoaded.current) {
-      // Kita tetap simpan ke localStorage secara lokal, tapi JANGAN panggil saveStoredState
-      // yang akan melakukan upsert ke Supabase.
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
-      return;
-    }
-    saveStoredState(state);
-  }, [state]);
-
-  // Download global state dari Supabase saat aplikasi dibuka
-  // Cloud adalah SUMBER KEBENARAN UTAMA (source of truth)
-  // Jika ada data di Supabase, data tersebut MENGGANTIKAN data lokal sepenuhnya
-  useEffect(() => {
-    const fetchGlobalState = async () => {
-      const supabase = getSupabaseClient(state.supabaseUrl, state.supabaseAnonKey);
-      if (!supabase) {
-        isGlobalStateLoaded.current = true;
-        return;
-      }
-      try {
-        const { data, error } = await supabase.from('app_sync_state').select('state_json').eq('id', 1).single();
-        if (data && data.state_json) {
-          setState(prev => {
-            // Cloud wins completely - spread cloud data over defaults
-            const cloudState = data.state_json;
-            const newState: AppState = {
-              ...defaultState,
-              ...cloudState,
-            };
-
-            // Merge adminSettings: Cloud is source of truth, but fill missing keys from defaults
-            if (cloudState.adminSettings) {
-              newState.adminSettings = {
-                ...INITIAL_ADMIN_SETTINGS,
-                ...cloudState.adminSettings,
-              };
-            }
-
-            // Preserve local session (login status)
-            newState.session = prev.session;
-            // Preserve local Supabase credentials  
-            newState.supabaseUrl = prev.supabaseUrl || cloudState.supabaseUrl;
-            newState.supabaseAnonKey = prev.supabaseAnonKey || cloudState.supabaseAnonKey;
-            return newState;
-          });
+    stateListeners.add(setReactState);
+    
+    if (!isGlobalStateLoaded && !isFetchingGlobalState) {
+      isFetchingGlobalState = true;
+      const fetchGlobalState = async () => {
+        const supabase = getSupabaseClient(globalStateInstance!.supabaseUrl, globalStateInstance!.supabaseAnonKey);
+        if (!supabase) {
+          isGlobalStateLoaded = true;
+          return;
         }
-      } catch (err) {
-        console.error('Error fetching global state from Supabase', err);
-      } finally {
-        isGlobalStateLoaded.current = true;
-      }
+        try {
+          const { data, error } = await supabase.from('app_sync_state').select('state_json').eq('id', 1).single();
+          if (data && data.state_json) {
+            setGlobalState(prev => {
+              const cloudState = data.state_json;
+              const newState: AppState = {
+                ...defaultState,
+                ...cloudState,
+              };
+              if (cloudState.adminSettings) {
+                newState.adminSettings = {
+                  ...INITIAL_ADMIN_SETTINGS,
+                  ...cloudState.adminSettings,
+                };
+              }
+              newState.session = prev.session;
+              newState.supabaseUrl = prev.supabaseUrl || cloudState.supabaseUrl;
+              newState.supabaseAnonKey = prev.supabaseAnonKey || cloudState.supabaseAnonKey;
+              return newState;
+            });
+          }
+        } catch (err) {
+          console.error('Error fetching global state from Supabase', err);
+        } finally {
+          isGlobalStateLoaded = true;
+        }
+      };
+      fetchGlobalState();
+    }
+
+    return () => {
+      stateListeners.delete(setReactState);
     };
-    fetchGlobalState();
   }, []);
+
+  const setState = (updater: AppState | ((prev: AppState) => AppState)) => {
+    setGlobalState(updater);
+  };
 
   const fetchPrograms = useCallback(async () => {
     const supabase = getSupabaseClient(state.supabaseUrl, state.supabaseAnonKey);
@@ -941,7 +946,8 @@ export function useMasjidStore() {
             phone,
             joinDate: new Date().toISOString(),
             lastLogin: new Date().toISOString(),
-            totalDonation: 0
+            totalDonation: 0,
+            role: 'jamaah'
           });
         }
       }
@@ -1004,9 +1010,9 @@ export function useMasjidStore() {
     }));
   };
 
-  const addJournalEntry = (entry: Omit<ERPJournalEntry, 'id'>) => {
+  const addJournalEntry = (entry: Omit<JournalEntry, 'id'>) => {
     const id = `JRN-${Math.floor(100 + Math.random() * 900)}`;
-    const created: ERPJournalEntry = { ...entry, id };
+    const created: JournalEntry = { ...entry, id };
     setState(prev => ({
       ...prev,
       journalEntries: [created, ...prev.journalEntries]
@@ -1805,11 +1811,12 @@ export function useMasjidStore() {
 
       let totalDepreciation = 0;
       const newInventories = (prev.inventories || []).map(item => {
-        if (item.category === 'Aset Tetap' && item.value > 0) {
+        const val = item.purchasePrice || 0;
+        if (item.category === 'Aset Tetap' && val > 0) {
           // Assume 5 years useful life (60 months) -> 1/60 per month
-          const monthlyDep = Math.round(item.value / 60);
+          const monthlyDep = Math.round(val / 60);
           totalDepreciation += monthlyDep;
-          return { ...item, value: Math.max(0, item.value - monthlyDep) };
+          return { ...item, accumulatedDepreciation: (item.accumulatedDepreciation || 0) + monthlyDep };
         }
         return item;
       });
@@ -1866,9 +1873,9 @@ export function useMasjidStore() {
       
       prev.erpJournalEntries.forEach(entry => {
         const coa = prev.erpCoa.find(c => c.id === entry.accountId);
-        if (coa && coa.category === 'Pendapatan') {
+        if (coa && coa.accountType === 'Revenue') {
           totalRevenue += (entry.credit - entry.debit);
-        } else if (coa && coa.category === 'Beban') {
+        } else if (coa && coa.accountType === 'Expense') {
           totalExpense += (entry.debit - entry.credit);
         }
       });
