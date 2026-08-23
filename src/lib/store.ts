@@ -438,10 +438,13 @@ export function useMasjidStore() {
       let newJamaahProfiles = prev.jamaahProfiles || [];
 
       // Auto-create/sync Jamaah Profile
-      const existingJamaahIdx = newJamaahProfiles.findIndex(j => 
-        (created.donorEmail && j.email && j.email.toLowerCase() === created.donorEmail.toLowerCase()) ||
-        (created.donorPhone && j.phone === created.donorPhone)
-      );
+      const existingJamaahIdx = newJamaahProfiles.findIndex(j => {
+        const emailMatch = created.donorEmail && j.email && j.email.toLowerCase() === created.donorEmail.toLowerCase();
+        const normDonorPhone = created.donorPhone ? created.donorPhone.replace(/^0/, '+62').replace(/\s/g, '') : null;
+        const normJPhone = j.phone ? j.phone.replace(/^0/, '+62').replace(/\s/g, '') : null;
+        const phoneMatch = normDonorPhone && normJPhone && (normDonorPhone === normJPhone || created.donorPhone === j.phone);
+        return emailMatch || phoneMatch;
+      });
 
       if (existingJamaahIdx >= 0) {
         // Update total donation if successful
@@ -1425,17 +1428,29 @@ export function useMasjidStore() {
   };
 
   const addJamaahProfile = (profile: Omit<JamaahProfile, 'id' | 'joinDate' | 'lastLogin' | 'totalDonation'>) => {
-    const newProfile: JamaahProfile = {
-      ...profile,
-      id: `jam-${Math.floor(100 + Math.random() * 900)}`,
-      joinDate: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
-      totalDonation: 0
-    };
-    setState(prev => ({
-      ...prev,
-      jamaahProfiles: [...(prev.jamaahProfiles || []), newProfile]
-    }));
+    setState(prev => {
+      const existingProfiles = prev.jamaahProfiles || [];
+      const emailExists = profile.email ? existingProfiles.find(p => p.email?.toLowerCase() === profile.email?.toLowerCase()) : undefined;
+      const phoneExists = profile.phone ? existingProfiles.find(p => p.phone === profile.phone || p.phone === profile.phone?.replace(/^0/, '+62')) : undefined;
+      
+      if (emailExists || phoneExists) {
+        // Prevent duplicate from being added at the store level
+        return prev;
+      }
+
+      const newProfile: JamaahProfile = {
+        ...profile,
+        id: `jam-${Math.floor(100 + Math.random() * 900)}`,
+        joinDate: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        totalDonation: 0
+      };
+      
+      return {
+        ...prev,
+        jamaahProfiles: [...existingProfiles, newProfile]
+      };
+    });
   };
 
   const updateJamaahProfile = (id: string, updated: Partial<JamaahProfile>) => {

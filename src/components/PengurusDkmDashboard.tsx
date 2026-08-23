@@ -680,6 +680,23 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
     e.preventDefault();
     if (!userFormName || !userFormEmail) return;
 
+    // Uniqueness check
+    if (!editingUserProfileId) {
+      const emailExists = jamaahProfiles.some(p => p.email?.toLowerCase() === userFormEmail.toLowerCase());
+      if (emailExists) {
+        alert(`Email "${userFormEmail}" sudah terdaftar. Gunakan email lain.`);
+        return;
+      }
+
+      if (userFormPhone) {
+        const phoneExists = jamaahProfiles.some(p => p.phone === userFormPhone || p.phone === userFormPhone.replace(/^0/, '+62'));
+        if (phoneExists) {
+          alert(`No HP "${userFormPhone}" sudah terdaftar. Gunakan nomor lain.`);
+          return;
+        }
+      }
+    }
+
     if (editingUserProfileId) {
       if (onUpdateJamaahProfile) {
         onUpdateJamaahProfile(editingUserProfileId, {
@@ -692,7 +709,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
         });
       }
       setEditingUserProfileId(null);
-      showToast('Alhamdulillah, Akun Pengguna berhasil diperbarui! ✓');
+      showToast('Alhamdulillah, Akun Pengguna berhasil diperbarui! 🕌');
     } else {
       if (onAddJamaahProfile) {
         onAddJamaahProfile({
@@ -704,7 +721,7 @@ export const PengurusDkmDashboard: React.FC<PengurusDkmDashboardProps> = ({
           password: userFormPassword || '123456'
         });
       }
-      showToast('Alhamdulillah, Pengurus/Jamaah baru berhasil didaftarkan! ✓');
+      showToast('Alhamdulillah, Pengurus/Jamaah baru berhasil didaftarkan! 🕌');
     }
 
     // Reset Form
