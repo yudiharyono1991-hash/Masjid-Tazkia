@@ -300,6 +300,26 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
   const timeStr = time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\./g, ':');
   const dateStr = time.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   
+  // Calculate dynamic Hijri offset
+  const getDynamicHijriOffset = () => {
+    if (state.onlinePrayerData && state.onlinePrayerData.date && state.onlinePrayerData.date.hijri) {
+      try {
+        const apiHijriDay = parseInt(state.onlinePrayerData.date.hijri.day, 10);
+        const localHijriStr = new Intl.DateTimeFormat('id-ID-u-ca-islamic', {day: 'numeric'}).format(new Date());
+        const localHijriDay = parseInt(localHijriStr, 10);
+        
+        if (!isNaN(apiHijriDay) && !isNaN(localHijriDay)) {
+          return apiHijriDay - localHijriDay;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return adminSettings?.hijriOffsetDays || 0;
+  };
+
+  const dynamicOffsetDays = getDynamicHijriOffset();
+
   let hijriDateStr = '';
   try {
     const hijriFormatter = new Intl.DateTimeFormat('id-ID-u-ca-islamic', {
@@ -307,9 +327,7 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
       month: 'long',
       year: 'numeric'
     });
-    // Adjust based on user calibration settings (default to 0 if not set)
-    const offsetDays = adminSettings?.hijriOffsetDays || 0;
-    const hijriDateObj = new Date(time.getTime() + (offsetDays * 24 * 60 * 60 * 1000));
+    const hijriDateObj = new Date(time.getTime() + (dynamicOffsetDays * 24 * 60 * 60 * 1000));
     hijriDateStr = hijriFormatter.format(hijriDateObj).replace(' AH', ' H').replace(' H', ' H');
   } catch (e) {
     hijriDateStr = '... H'; // Fallback
