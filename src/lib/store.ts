@@ -1856,9 +1856,9 @@ export function useMasjidStore() {
       return {
         ...prev,
         erpJournals: [newErpJournal, ...(prev.erpJournals || [])],
-      erpJournals: [newErpJournal, ...(prev.erpJournals || [])],
-      erpJournalEntries: [entryRetainedEarnings, ...(prev.erpJournalEntries || [])]
-    }));
+        erpJournalEntries: [entryRetainedEarnings, ...(prev.erpJournalEntries || [])]
+      };
+    });
   };
 
   const syncLegacyDonationsToErp = () => {
