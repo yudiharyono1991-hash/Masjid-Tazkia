@@ -27,6 +27,7 @@ import {
   CityPrayerTime
 } from '../lib/islamicUtils';
 import { INITIAL_DOA, INITIAL_HADIS } from '../lib/initialData';
+import { useMasjidStore } from '../lib/store';
 
 interface DigitalIbadahModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export const DigitalIbadahModal: React.FC<DigitalIbadahModalProps> = ({
   onClose,
   initialTab = 'quran'
 }) => {
+  const { state } = useMasjidStore();
   const [activeSubTab, setActiveSubTab] = useState<'quran' | 'salat' | 'kiblat' | 'doa'>(initialTab);
 
   // Quran State
@@ -390,7 +392,7 @@ export const DigitalIbadahModal: React.FC<DigitalIbadahModalProps> = ({
                     <span className="text-[10px] font-mono text-blue-400 uppercase tracking-widest font-bold">
                       Kalender Hijriah
                     </span>
-                    <p className="text-sm font-bold text-white font-serif">{getHijriDate()}</p>
+                    <p className="text-sm font-bold text-white font-serif">{getHijriDate(new Date(), state.adminSettings?.hijriOffsetDays)}</p>
                   </div>
                 </div>
               </div>
