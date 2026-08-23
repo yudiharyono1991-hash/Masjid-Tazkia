@@ -71,7 +71,8 @@ import {
   LayoutDashboard,
   Clock,
   Globe,
-  Calculator
+  Calculator,
+  History
 } from 'lucide-react';
 
 import { useMasjidStore } from '../lib/store';
