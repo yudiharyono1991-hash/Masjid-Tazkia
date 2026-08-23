@@ -559,7 +559,21 @@ export const INITIAL_ADMIN_SETTINGS = {
     { id: 'sm-1', platform: 'Facebook', url: 'https://www.facebook.com/MasjidTazkia/' },
     { id: 'sm-2', platform: 'Instagram', url: 'https://www.instagram.com/masjidtazkia/' },
     { id: 'sm-3', platform: 'Youtube', url: 'https://www.youtube.com/@masjidtazkia' }
-  ]
+  ],
+  sponsors: [{ id: '1', name: 'Tazkia Mart', imageUrl: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=200&q=80', link: '#' }],
+  profilData: {
+      youtubeUrl: 'https://youtu.be/-oT4ZYK2ZjI?si=-pEBAAicepgcMVPj',
+      sejarah: `Andalusia Islamic Center hadir karena kepedulian akan masalah besar bangsa dan ummat Islam Indonesia yang didominasi oleh kemiskinan, keterbelakangan Pendidikan serta rendahnya moralitas baik di tingkat birokrasi maupun swasta. Besar harapan kami dengan segala kekurangan, Andalusia Islamic Center dapat menjadi Oase Spiritual, Intelektual dan Pemberdayaan finansial ummat yang berlandaskan nilai-nilai luhur spiritual Islam.\n\nSejak pendiriannya tahun 2006 oleh Prof. Dr. Syafii Antonio, M.Ec. Andalusia Islamic Center telah berkiprah dalam bidang sosial, dakwah dan pemberdayaan ekonomi yang meliputi:`,
+      visi: 'Menjadi Oase Spiritual dan Intelektual Islam yang memberikan pencerahan, kesejukan dan pemberdayaan serta wawasan Rahmatan Lil Alamin.',
+      misi: [
+        'Menyelenggarakan pelatihan dan konseling keumatan.',
+        'Mengembangkan ekonomi kerakyatan berbasis syariah.',
+        'Membina para muallaf agar istiqomah.'
+      ]
+  },
+  heroImagesCache: [],
+  heroImagesDeleted: [],
+  bookingImagesDeleted: []
 };
 
 export const INITIAL_GALLERY: GalleryItem[] = [

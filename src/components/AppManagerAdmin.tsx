@@ -5,12 +5,7 @@ import { getSupabaseClient } from '../lib/supabase';
 import { useMasjidStore } from '../lib/store';
 import { RoleManagerAdmin } from './admin/RoleManagerAdmin';
 
-interface Sponsor {
-  id: string;
-  name: string;
-  imageUrl: string;
-  link: string;
-}
+import { Sponsor, ProfilMasjidData } from '../types';
 
 export const AppManagerAdmin: React.FC = () => {
   const { state, updateAdminSettings } = useMasjidStore();
@@ -60,19 +55,11 @@ export const AppManagerAdmin: React.FC = () => {
 
   // Sponsor State
   const [sponsors, setSponsors] = useState<Sponsor[]>(() => {
-    try {
-      const saved = localStorage.getItem('tazkia_sponsors');
-      if (saved) return JSON.parse(saved);
-    } catch(e) {}
-    return [{ id: '1', name: 'Tazkia Mart', imageUrl: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=200&q=80', link: '#' }];
+    return state.adminSettings.sponsors || [{ id: '1', name: 'Tazkia Mart', imageUrl: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=200&q=80', link: '#' }];
   });
 
-  const [profilData, setProfilData] = useState(() => {
-    try {
-      const saved = localStorage.getItem('tazkia_profil_data');
-      if (saved) return JSON.parse(saved);
-    } catch(e) {}
-    return {
+  const [profilData, setProfilData] = useState<ProfilMasjidData>(() => {
+    return state.adminSettings.profilData || {
       youtubeUrl: 'https://youtu.be/-oT4ZYK2ZjI?si=-pEBAAicepgcMVPj',
       sejarah: `Andalusia Islamic Center hadir karena kepedulian akan masalah besar bangsa dan ummat Islam Indonesia yang didominasi oleh kemiskinan, keterbelakangan Pendidikan serta rendahnya moralitas baik di tingkat birokrasi maupun swasta. Besar harapan kami dengan segala kekurangan, Andalusia Islamic Center dapat menjadi Oase Spiritual, Intelektual dan Pemberdayaan finansial ummat yang berlandaskan nilai-nilai luhur spiritual Islam.\n\nSejak pendiriannya tahun 2006 oleh Prof. Dr. Syafii Antonio, M.Ec. Andalusia Islamic Center telah berkiprah dalam bidang sosial, dakwah dan pemberdayaan ekonomi yang meliputi:`,
       visi: 'Menjadi Oase Spiritual dan Intelektual Islam yang memberikan pencerahan, kesejukan dan pemberdayaan serta wawasan Rahmatan Lil Alamin.',
@@ -85,11 +72,11 @@ export const AppManagerAdmin: React.FC = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem('tazkia_sponsors', JSON.stringify(sponsors));
+    updateAdminSettings({ sponsors });
   }, [sponsors]);
 
   useEffect(() => {
-    localStorage.setItem('tazkia_profil_data', JSON.stringify(profilData));
+    updateAdminSettings({ profilData });
   }, [profilData]);
 
   useEffect(() => {
@@ -98,11 +85,7 @@ export const AppManagerAdmin: React.FC = () => {
 
   const fetchHeroImages = async () => {
     let supabaseImages: any[] = [];
-    let deletedList: string[] = [];
-    try {
-      const savedDeleted = localStorage.getItem('tazkia_hero_deleted');
-      if (savedDeleted) deletedList = JSON.parse(savedDeleted);
-    } catch(e) {}
+    let deletedList: string[] = state.adminSettings.heroImagesDeleted || [];
 
     try {
       const supabase = getSupabaseClient();
@@ -135,25 +118,20 @@ export const AppManagerAdmin: React.FC = () => {
 
     if (supabaseImages.length > 0) {
       setHeroImages(supabaseImages);
-      localStorage.setItem('tazkia_hero_images', JSON.stringify(supabaseImages));
       // Sync to global state so HeroSection carousel always reflects current images
-      updateAdminSettings({ masjidHeroCarouselUrls: supabaseImages.map(img => img.url) });
+      updateAdminSettings({ masjidHeroCarouselUrls: supabaseImages.map(img => img.url), heroImagesCache: supabaseImages });
     } else {
       const defaultImages = [
         { name: 'default-masjid-1.jpg', url: '/hero-1.jpg' },
         { name: 'default-masjid-2.jpg', url: '/hero-2.jpg' }
       ];
       
-      const initialized = localStorage.getItem('tazkia_hero_images_init_v4');
-      if (!initialized) {
+      const cached = state.adminSettings.heroImagesCache;
+      if (!cached || cached.length === 0) {
         setHeroImages(defaultImages);
-        localStorage.setItem('tazkia_hero_images', JSON.stringify(defaultImages));
-        localStorage.setItem('tazkia_hero_images_init_v4', 'true');
+        updateAdminSettings({ heroImagesCache: defaultImages });
       } else {
-        const saved = localStorage.getItem('tazkia_hero_images');
-        if (saved) {
-          setHeroImages(JSON.parse(saved));
-        }
+        setHeroImages(cached);
       }
     }
   };
@@ -198,14 +176,11 @@ export const AppManagerAdmin: React.FC = () => {
     if (!window.confirm("Hapus gambar ini?")) return;
     
     // Add to local blocklist so it never comes back even if Supabase delete fails
-    try {
-      const savedDeleted = localStorage.getItem('tazkia_hero_deleted');
-      const deletedList = savedDeleted ? JSON.parse(savedDeleted) : [];
-      if (!deletedList.includes(fileName)) {
-        deletedList.push(fileName);
-        localStorage.setItem('tazkia_hero_deleted', JSON.stringify(deletedList));
-      }
-    } catch(e) {}
+    const deletedList = state.adminSettings.heroImagesDeleted || [];
+    if (!deletedList.includes(fileName)) {
+      const newList = [...deletedList, fileName];
+      updateAdminSettings({ heroImagesDeleted: newList });
+    }
 
     if (fileUrl && !fileUrl.startsWith('data:')) {
       await deleteMediaFromSupabase(fileUrl);
@@ -213,7 +188,7 @@ export const AppManagerAdmin: React.FC = () => {
     
     const updated = heroImages.filter(img => img.name !== fileName);
     setHeroImages(updated);
-    localStorage.setItem('tazkia_hero_images', JSON.stringify(updated));
+    updateAdminSettings({ heroImagesCache: updated });
 
     // Also remove from global store if it was a system-configured image
     if (fileUrl) {

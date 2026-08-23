@@ -4,7 +4,7 @@ import { uploadMedia, deleteMediaFromSupabase } from '../lib/mediaUpload';
 import { useMasjidStore } from '../lib/store';
 
 export const SewaGedungAdmin: React.FC = () => {
-  const { state, updateGedungBookingStatus, updateKamarBookingStatus } = useMasjidStore();
+  const { state, updateGedungBookingStatus, updateKamarBookingStatus, updateAdminSettings } = useMasjidStore();
   const gedungBookings = state.gedungBookings || [];
   const kamarBookings = state.kamarBookings || [];
   const [activeTab, setActiveTab] = useState<'assets' | 'bookings' | 'kamar'>('bookings');
@@ -34,7 +34,7 @@ export const SewaGedungAdmin: React.FC = () => {
       if (supabase) {
         const { data, error } = await supabase.storage.from('tazkia-media').list('booking');
         if (!error && data) {
-          const deletedImages = JSON.parse(localStorage.getItem('tazkia_booking_images_deleted') || '[]');
+          const deletedImages = state.adminSettings.bookingImagesDeleted || [];
           const imageFiles = data.filter(file => file.name.match(/\.(jpg|jpeg|png|webp|avif|mp4|webm|ogg)$/i) && file.name !== '.emptyFolderPlaceholder' && !deletedImages.includes(file.name));
           const newImages = imageFiles.map(file => ({
             name: file.name,
@@ -53,11 +53,8 @@ export const SewaGedungAdmin: React.FC = () => {
           }
         }
       } else {
-        const savedImages = localStorage.getItem('tazkia_booking_images');
-        if (savedImages) setImages(JSON.parse(savedImages));
-
-        const savedPdf = localStorage.getItem('tazkia_booking_pdf');
-        if (savedPdf) setPdf(JSON.parse(savedPdf));
+        const savedPdf = state.adminSettings.bookingPdfDraft;
+        if (savedPdf) setPdf({ name: 'draft.pdf', url: savedPdf });
       }
     } catch (err) {
       console.error('Error fetching assets', err);
@@ -163,7 +160,7 @@ export const SewaGedungAdmin: React.FC = () => {
     if (isPdf) {
       const newPdf = { name: file.name, url: result.url };
       setPdf(newPdf);
-      localStorage.setItem('tazkia_booking_pdf', JSON.stringify(newPdf));
+      updateAdminSettings({ bookingPdfDraft: result.url });
     } else {
       // Just re-fetch from supabase to get the correct list
       await fetchAssets();
@@ -192,16 +189,18 @@ export const SewaGedungAdmin: React.FC = () => {
       }
     }
 
+    const deletedImages = state.adminSettings.bookingImagesDeleted || [];
+    const newDeletedImages = [...deletedImages, fileName];
+
     if (pdf && pdf.name === fileName) {
       setPdf(null);
-      localStorage.removeItem('tazkia_booking_pdf');
-      localStorage.setItem('tazkia_booking_images_deleted', JSON.stringify([...(JSON.parse(localStorage.getItem('tazkia_booking_images_deleted') || '[]')), fileName]));
+      updateAdminSettings({ bookingPdfDraft: '', bookingImagesDeleted: newDeletedImages });
     } else {
       // Hapus dari state images lokal
       const newImages = images.filter(img => img.name !== fileName);
       setImages(newImages);
-      // Simpan override ke localStorage untuk fallback jika fetch gagal / supabase tidak bisa hapus
-      localStorage.setItem('tazkia_booking_images_deleted', JSON.stringify([...(JSON.parse(localStorage.getItem('tazkia_booking_images_deleted') || '[]')), fileName]));
+      // Simpan override ke store untuk fallback jika fetch gagal / supabase tidak bisa hapus
+      updateAdminSettings({ bookingImagesDeleted: newDeletedImages });
       await fetchAssets();
     }
     

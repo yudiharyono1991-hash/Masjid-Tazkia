@@ -55,21 +55,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const featuredPrograms = state.programs?.filter(p => p.featured) || [];
   
   // Priority 1: Global state carousel URLs
-  // Priority 2: localStorage cache
+  // Priority 2: Global state heroImagesCache
   // Priority 3: Featured programs
   // Priority 4: Default placeholder slides
   const stateCarouselUrls = state.adminSettings?.masjidHeroCarouselUrls || [];
-  const localStorageImages: {name: string, url: string}[] = React.useMemo(() => {
-    try {
-      const saved = localStorage.getItem('tazkia_hero_images');
-      if (saved) return JSON.parse(saved);
-    } catch(e) {}
-    return [];
-  }, []);
+  const cachedImages = state.adminSettings?.heroImagesCache || [];
   
   const customHeroUrls = stateCarouselUrls.length > 0 
     ? stateCarouselUrls 
-    : localStorageImages.filter(img => !img.url.startsWith('/hero-')).map(img => img.url);
+    : cachedImages.filter(img => !img.url.startsWith('/hero-')).map(img => img.url);
   
   const slides = customHeroUrls.length > 0 
     ? customHeroUrls.map((url, idx) => {

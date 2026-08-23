@@ -53,12 +53,14 @@ export const BookingGedung: React.FC<BookingGedungProps> = ({ isDark = false }) 
       try {
         const { data, error } = await supabase.storage.from('tazkia-media').list('booking');
         if (error) {
+          const cachedPdf = state.adminSettings?.bookingPdfDraft;
+          if (cachedPdf) setPdfUrl(cachedPdf);
           setImages(DEFAULT_BALLROOM_IMAGES);
           return;
         }
         
         if (data && data.length > 0) {
-          const deletedImages = JSON.parse(localStorage.getItem('tazkia_booking_images_deleted') || '[]');
+          const deletedImages = state.adminSettings?.bookingImagesDeleted || [];
           const imageFiles = data.filter(file => file.name.match(/\.(jpg|jpeg|png|webp|avif)$/i) && !deletedImages.includes(file.name));
           if (imageFiles.length > 0) {
             const urls = imageFiles.map(file => supabase.storage.from('tazkia-media').getPublicUrl(`booking/${file.name}`).data.publicUrl);
@@ -70,9 +72,14 @@ export const BookingGedung: React.FC<BookingGedungProps> = ({ isDark = false }) 
           const pdfFile = data.find(file => file.name.match(/\.pdf$/i) && !deletedImages.includes(file.name));
           if (pdfFile) {
             setPdfUrl(supabase.storage.from('tazkia-media').getPublicUrl(`booking/${pdfFile.name}`).data.publicUrl);
+          } else {
+            const cachedPdf = state.adminSettings?.bookingPdfDraft;
+            if (cachedPdf) setPdfUrl(cachedPdf);
           }
         } else {
           setImages(DEFAULT_BALLROOM_IMAGES);
+          const cachedPdf = state.adminSettings?.bookingPdfDraft;
+          if (cachedPdf) setPdfUrl(cachedPdf);
         }
       } catch (err) {
         console.error('Failed to load booking assets', err);

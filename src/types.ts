@@ -263,6 +263,20 @@ export interface HeroSlideConfig {
   description?: string;
 }
 
+export interface Sponsor {
+  id: string;
+  name: string;
+  imageUrl: string;
+  link: string;
+}
+
+export interface ProfilMasjidData {
+  youtubeUrl: string;
+  sejarah: string;
+  visi: string;
+  misi: string[];
+}
+
 export interface AppAdminSettings {
   showAiAssistant: boolean;
   showTvSignageOption: boolean;
@@ -322,6 +336,15 @@ export interface AppAdminSettings {
   masjidHeroCarouselUrls?: string[];
   qrisCodeImageUrl?: string;
   masjidHeroSlidesConfig?: HeroSlideConfig[];
+  
+  // Refactored LocalStorage State
+  sponsors?: Sponsor[];
+  profilData?: ProfilMasjidData;
+  heroImagesCache?: {name: string, url: string}[];
+  heroImagesDeleted?: string[];
+  bookingImagesDeleted?: string[];
+  bookingPdfDrafts?: Record<string, string>; // mapping bookingId to pdf URL if needed, but the original logic just stored a single draft `tazkia_booking_pdf`. Let's just use a string for the current draft.
+  bookingPdfDraft?: string;
 
   // Promo Text Settings
   heroPromoTitle?: string;
