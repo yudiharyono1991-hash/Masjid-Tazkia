@@ -106,6 +106,7 @@ export interface AppState {
   calendarNotes: JamaahCalendarNote[];
   appRoles: AppRole[];
   kamarBookings: KamarBooking[];
+  onlinePrayerData: any | null;
 }
 
 const defaultState: AppState = {
@@ -158,7 +159,8 @@ const defaultState: AppState = {
   unreadDonationsCount: 0,
   feedbacks: [],
   calendarNotes: [],
-  kamarBookings: []
+  kamarBookings: [],
+  onlinePrayerData: null
 };
 
 export function getStoredState(): AppState {
@@ -205,7 +207,8 @@ export function getStoredState(): AppState {
         unreadDonationsCount: parsed.unreadDonationsCount || 0,
         feedbacks: parsed.feedbacks || [],
         calendarNotes: parsed.calendarNotes || [],
-        kamarBookings: parsed.kamarBookings || []
+        kamarBookings: parsed.kamarBookings || [],
+        onlinePrayerData: parsed.onlinePrayerData || null
       };
     }
   } catch (e) {
@@ -1821,6 +1824,22 @@ export function useMasjidStore() {
   };
 
   return {
+    fetchOnlinePrayerTimes: async () => {
+      try {
+        const today = new Date();
+        const d = String(today.getDate()).padStart(2, '0');
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const y = today.getFullYear();
+        const dateStr = `${d}-${m}-${y}`;
+        const response = await fetch(`https://api.aladhan.com/v1/timings/${dateStr}?latitude=-6.5815&longitude=106.8710&method=20`);
+        const json = await response.json();
+        if (json.code === 200 && json.data) {
+          setState(prev => ({ ...prev, onlinePrayerData: json.data }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch online prayer times', err);
+      }
+    },
     state,
     tutupBuku,
     hitungPenyusutanAset,

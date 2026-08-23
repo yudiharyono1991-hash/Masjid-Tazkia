@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin } from 'lucide-react';
+import { useMasjidStore } from '../lib/store';
 import { CITIES_DATA, CityPrayerTime } from '../lib/islamicUtils';
 
 // Accurate Hijri date converter
@@ -40,7 +41,21 @@ function toHijri(date: Date): { day: number; month: number; year: number; monthN
 }
 
 export const PrayerTimesCard: React.FC = () => {
-  const city: CityPrayerTime = CITIES_DATA[0]; // Sentul / Bogor (Masjid Tazkia)
+  const { state, fetchOnlinePrayerTimes } = useMasjidStore();
+  const city: CityPrayerTime = CITIES_DATA[0];
+
+  useEffect(() => {
+    if (!state.onlinePrayerData && fetchOnlinePrayerTimes) fetchOnlinePrayerTimes();
+  }, [fetchOnlinePrayerTimes, state.onlinePrayerData]);
+
+  const prayerTimesSrc = state.onlinePrayerData ? {
+    fajr: state.onlinePrayerData.timings.Fajr,
+    sunrise: state.onlinePrayerData.timings.Sunrise,
+    dhuhr: state.onlinePrayerData.timings.Dhuhr,
+    asr: state.onlinePrayerData.timings.Asr,
+    maghrib: state.onlinePrayerData.timings.Maghrib,
+    isha: state.onlinePrayerData.timings.Isha
+  } : city; // Sentul / Bogor (Masjid Tazkia)
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -50,11 +65,11 @@ export const PrayerTimesCard: React.FC = () => {
   }, []);
 
   const prayers = [
-    { key: 'SUBUH',   time: city.fajr },
-    { key: 'DZUHUR',  time: city.dhuhr },
-    { key: 'ASHAR',   time: city.asr },
-    { key: 'MAGHRIB', time: city.maghrib },
-    { key: 'ISYA',    time: city.isha }
+    { key: 'SUBUH',   time: prayerTimesSrc.fajr },
+    { key: 'DZUHUR',  time: prayerTimesSrc.dhuhr },
+    { key: 'ASHAR',   time: prayerTimesSrc.asr },
+    { key: 'MAGHRIB', time: prayerTimesSrc.maghrib },
+    { key: 'ISYA',    time: prayerTimesSrc.isha }
   ];
 
   // Next upcoming prayer detection using Indonesia (WIB) time
@@ -90,8 +105,14 @@ export const PrayerTimesCard: React.FC = () => {
   });
 
   // Accurate Hijri date
-  const hijri = toHijri(currentTime);
-  const hijriStr = `${hijri.day} ${hijri.monthName} ${hijri.year} H`;
+  let hijriStr = '';
+  if (state.onlinePrayerData && state.onlinePrayerData.date && state.onlinePrayerData.date.hijri) {
+    const h = state.onlinePrayerData.date.hijri;
+    hijriStr = `${h.day} ${h.month.en} ${h.year} H`;
+  } else {
+    const hijri = toHijri(currentTime);
+    hijriStr = `${hijri.day} ${hijri.monthName} ${hijri.year} H`;
+  }
 
   return (
     <section className="w-full bg-white flex justify-center px-4 py-5">

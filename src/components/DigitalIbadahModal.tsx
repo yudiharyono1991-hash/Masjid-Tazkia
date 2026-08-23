@@ -40,7 +40,7 @@ export const DigitalIbadahModal: React.FC<DigitalIbadahModalProps> = ({
   onClose,
   initialTab = 'quran'
 }) => {
-  const { state } = useMasjidStore();
+  const { state, fetchOnlinePrayerTimes } = useMasjidStore();
   const [activeSubTab, setActiveSubTab] = useState<'quran' | 'salat' | 'kiblat' | 'doa'>(initialTab);
 
   // Quran State
@@ -55,6 +55,28 @@ export const DigitalIbadahModal: React.FC<DigitalIbadahModalProps> = ({
 
   // Prayer Time State
   const [selectedCity, setSelectedCity] = useState<CityPrayerTime>(CITIES_DATA[0]);
+
+  useEffect(() => {
+    if (isOpen && fetchOnlinePrayerTimes && !state.onlinePrayerData) {
+      fetchOnlinePrayerTimes();
+    }
+  }, [isOpen, fetchOnlinePrayerTimes, state.onlinePrayerData]);
+
+  const prayerTimesSrc = state.onlinePrayerData ? {
+    fajr: state.onlinePrayerData.timings.Fajr,
+    sunrise: state.onlinePrayerData.timings.Sunrise,
+    dhuhr: state.onlinePrayerData.timings.Dhuhr,
+    asr: state.onlinePrayerData.timings.Asr,
+    maghrib: state.onlinePrayerData.timings.Maghrib,
+    isha: state.onlinePrayerData.timings.Isha
+  } : selectedCity;
+
+  let displayHijriDate = getHijriDate(new Date(), state.adminSettings?.hijriOffsetDays);
+  if (state.onlinePrayerData && state.onlinePrayerData.date && state.onlinePrayerData.date.hijri) {
+    const h = state.onlinePrayerData.date.hijri;
+    displayHijriDate = `${h.day} ${h.month.en} ${h.year} H`;
+  }
+
   const [alarmEnabled, setAlarmEnabled] = useState<boolean>(true);
 
   // Qibla Compass State
@@ -175,11 +197,11 @@ export const DigitalIbadahModal: React.FC<DigitalIbadahModalProps> = ({
       const currentTimeString = `${currentHours}:${currentMinutes}`;
       
       const prayerTimes = [
-        selectedCity.fajr,
-        selectedCity.dhuhr,
-        selectedCity.asr,
-        selectedCity.maghrib,
-        selectedCity.isha
+        prayerTimesSrc.fajr,
+        prayerTimesSrc.dhuhr,
+        prayerTimesSrc.asr,
+        prayerTimesSrc.maghrib,
+        prayerTimesSrc.isha
       ];
 
       // If the current time matches any prayer time exactly and seconds are close to 0, play adzan
@@ -392,7 +414,7 @@ export const DigitalIbadahModal: React.FC<DigitalIbadahModalProps> = ({
                     <span className="text-[10px] font-mono text-blue-400 uppercase tracking-widest font-bold">
                       Kalender Hijriah
                     </span>
-                    <p className="text-sm font-bold text-white font-serif">{getHijriDate(new Date(), state.adminSettings?.hijriOffsetDays)}</p>
+                    <p className="text-sm font-bold text-white font-serif">{displayHijriDate}</p>
                   </div>
                 </div>
               </div>
@@ -400,12 +422,12 @@ export const DigitalIbadahModal: React.FC<DigitalIbadahModalProps> = ({
               {/* Prayer Grid Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 {[
-                  { name: 'Subuh', time: selectedCity.fajr, icon: '🌅' },
-                  { name: 'Terbit', time: selectedCity.sunrise, icon: '☀️' },
-                  { name: 'Dzuhur', time: selectedCity.dhuhr, icon: '🌤️' },
-                  { name: 'Ashar', time: selectedCity.asr, icon: '🌇' },
-                  { name: 'Maghrib', time: selectedCity.maghrib, icon: '🌆' },
-                  { name: 'Isya', time: selectedCity.isha, icon: '🌙' }
+                  { name: 'Subuh', time: prayerTimesSrc.fajr, icon: '🌅' },
+                  { name: 'Terbit', time: prayerTimesSrc.sunrise, icon: '☀️' },
+                  { name: 'Dzuhur', time: prayerTimesSrc.dhuhr, icon: '🌤️' },
+                  { name: 'Ashar', time: prayerTimesSrc.asr, icon: '🌇' },
+                  { name: 'Maghrib', time: prayerTimesSrc.maghrib, icon: '🌆' },
+                  { name: 'Isya', time: prayerTimesSrc.isha, icon: '🌙' }
                 ].map((item, idx) => (
                   <div
                     key={idx}

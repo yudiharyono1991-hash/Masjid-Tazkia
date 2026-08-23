@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useMasjidStore } from '../lib/store';
 import { CITIES_DATA, CityPrayerTime, SURAHS_LIST } from '../lib/islamicUtils';
 import { Announcement, PetugasJadwal, AppAdminSettings } from '../types';
 import { Tv, X, Volume2, VolumeX, Play, Pause, Calendar, MapPin, Sparkles, Home, Maximize } from 'lucide-react';
@@ -24,7 +25,21 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
   adminSettings
 }) => {
   const [time, setTime] = useState<Date>(new Date());
+  const { state, fetchOnlinePrayerTimes } = useMasjidStore();
   const [selectedCity] = useState<CityPrayerTime>(CITIES_DATA[0]);
+
+  useEffect(() => {
+    if (!state.onlinePrayerData && fetchOnlinePrayerTimes) fetchOnlinePrayerTimes();
+  }, [fetchOnlinePrayerTimes, state.onlinePrayerData]);
+
+  const prayerTimesSrc = state.onlinePrayerData ? {
+    fajr: state.onlinePrayerData.timings.Fajr,
+    sunrise: state.onlinePrayerData.timings.Sunrise,
+    dhuhr: state.onlinePrayerData.timings.Dhuhr,
+    asr: state.onlinePrayerData.timings.Asr,
+    maghrib: state.onlinePrayerData.timings.Maghrib,
+    isha: state.onlinePrayerData.timings.Isha
+  } : selectedCity;
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
   const [logoUrl, setLogoUrl] = useState<string>('');
   const [selectedQari, setSelectedQari] = useState<string>(QARI_LIST[0].baseUrl);
@@ -97,12 +112,12 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     };
     const currentMinutes = time.getHours() * 60 + time.getMinutes();
     
-    const fajr = parseTime(selectedCity.fajr);
-    const sunrise = parseTime(selectedCity.sunrise);
-    const dhuhr = parseTime(selectedCity.dhuhr);
-    const asr = parseTime(selectedCity.asr);
-    const maghrib = parseTime(selectedCity.maghrib);
-    const isha = parseTime(selectedCity.isha);
+    const fajr = parseTime(prayerTimesSrc.fajr);
+    const sunrise = parseTime(prayerTimesSrc.sunrise);
+    const dhuhr = parseTime(prayerTimesSrc.dhuhr);
+    const asr = parseTime(prayerTimesSrc.asr);
+    const maghrib = parseTime(prayerTimesSrc.maghrib);
+    const isha = parseTime(prayerTimesSrc.isha);
 
     if (currentMinutes >= isha || currentMinutes < fajr) return 0; // Subuh
     if (currentMinutes >= fajr && currentMinutes < sunrise) return 1; // Terbit
@@ -135,11 +150,11 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
     const iftarDur = adminSettings?.iftarNotificationDurationMinutes || 10;
 
     const prayers = [
-      { name: 'SUBUH', time: parseTime(selectedCity.fajr) },
-      { name: time.getDay() === 5 ? (jumatMode ? 'JUMAT' : 'DZUHUR') : 'DZUHUR', time: parseTime(selectedCity.dhuhr) },
-      { name: 'ASHAR', time: parseTime(selectedCity.asr) },
-      { name: 'MAGHRIB', time: parseTime(selectedCity.maghrib) },
-      { name: 'ISYA', time: parseTime(selectedCity.isha) }
+      { name: 'SUBUH', time: parseTime(prayerTimesSrc.fajr) },
+      { name: time.getDay() === 5 ? (jumatMode ? 'JUMAT' : 'DZUHUR') : 'DZUHUR', time: parseTime(prayerTimesSrc.dhuhr) },
+      { name: 'ASHAR', time: parseTime(prayerTimesSrc.asr) },
+      { name: 'MAGHRIB', time: parseTime(prayerTimesSrc.maghrib) },
+      { name: 'ISYA', time: parseTime(prayerTimesSrc.isha) }
     ];
 
     // Check Eid first because it has priority if enabled
@@ -664,12 +679,12 @@ export const TvDisplayMode: React.FC<TvDisplayModeProps> = ({
       <div className="space-y-4">
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
           {[
-            { name: 'SUBUH', time: selectedCity.fajr },
-            { name: 'TERBIT', time: selectedCity.sunrise },
-            { name: 'DZUHUR', time: selectedCity.dhuhr },
-            { name: 'ASHAR', time: selectedCity.asr },
-            { name: 'MAGHRIB', time: selectedCity.maghrib },
-            { name: 'ISYA', time: selectedCity.isha }
+            { name: 'SUBUH', time: prayerTimesSrc.fajr },
+            { name: 'TERBIT', time: prayerTimesSrc.sunrise },
+            { name: 'DZUHUR', time: prayerTimesSrc.dhuhr },
+            { name: 'ASHAR', time: prayerTimesSrc.asr },
+            { name: 'MAGHRIB', time: prayerTimesSrc.maghrib },
+            { name: 'ISYA', time: prayerTimesSrc.isha }
           ].map((item, idx) => {
             const isActive = idx === activePrayerIdx;
             return (
