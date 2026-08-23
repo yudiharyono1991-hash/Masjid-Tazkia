@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Upload, Image as ImageIcon, QrCode, Store, Trash2, Plus, Link as LinkIcon, Download, Shield, Bot, Save, CheckCircle2, XCircle } from 'lucide-react';
+import { Settings, Upload, Image as ImageIcon, QrCode, Store, Trash2, Plus, Link as LinkIcon, Download, Shield, Bot, Save, CheckCircle2, XCircle, Database } from 'lucide-react';
 import { uploadMedia, deleteMediaFromSupabase } from '../lib/mediaUpload';
 import { getSupabaseClient } from '../lib/supabase';
 import { useMasjidStore } from '../lib/store';
 import { RoleManagerAdmin } from './admin/RoleManagerAdmin';
+import { FinancialTransaction, ERPGeneralJournal, ERPJournalEntry } from '../types';
 
 import { Sponsor, ProfilMasjidData } from '../types';
 
 export const AppManagerAdmin: React.FC = () => {
   const { state, updateAdminSettings } = useMasjidStore();
-  const [activeSubTab, setActiveSubTab] = useState<'hero' | 'qr' | 'sponsor' | 'profil' | 'role' | 'ai'>('hero');
+  const [activeSubTab, setActiveSubTab] = useState<'hero' | 'qr' | 'sponsor' | 'profil' | 'role' | 'maintenance'>('hero');
   const [heroImages, setHeroImages] = useState<{name: string, url: string}[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -220,8 +221,8 @@ export const AppManagerAdmin: React.FC = () => {
           { id: 'qr', label: 'Cetak QR Aplikasi', icon: QrCode },
           { id: 'sponsor', label: 'Sponsor & Mitra', icon: Store },
           { id: 'profil', label: 'Profil & Sejarah Masjid', icon: Settings },
-          { id: 'role', label: 'Manajemen Peran & Izin', icon: Shield }
-
+          { id: 'role', label: 'Manajemen Peran & Izin', icon: Shield },
+          { id: 'maintenance', label: 'Maintenance Database', icon: Database }
         ].map(sub => {
           const SubIcon = sub.icon;
           return (
@@ -668,6 +669,137 @@ export const AppManagerAdmin: React.FC = () => {
           <RoleManagerAdmin />
         )}
 
+        {/* MAINTENANCE TAB */}
+        {activeSubTab === 'maintenance' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold font-serif mb-2">Maintenance & Sinkronisasi Database</h3>
+                <p className="text-sm text-blue-300">Gunakan fitur ini untuk mensinkronkan data lama yang tidak terhubung dengan fitur baru.</p>
+              </div>
+            </div>
+            
+            <div className="bg-blue-900 border border-blue-800 p-6 rounded-2xl">
+              <h4 className="text-sm font-bold text-emerald-400 mb-2">Sinkronisasi Histori Donasi Lama ke Buku Besar</h4>
+              <p className="text-xs text-blue-300 mb-4">
+                Jika ada donasi lama yang sudah "Berhasil" namun tidak muncul di Jurnal Umum, Buku Besar, atau Laporan Keuangan, tekan tombol ini untuk membuat jurnalnya secara retroaktif.
+              </p>
+              <button 
+                onClick={() => {
+                  if (window.confirm("Yakin ingin mensinkronkan donasi lama ke Buku Besar?")) {
+                    const storeModule = useMasjidStore.getState();
+                    const prev = storeModule.state;
+                    
+                    let newFinancials = [...prev.financials];
+                    let newErpJournals = [...(prev.erpJournals || [])];
+                    let newErpJournalEntries = [...(prev.erpJournalEntries || [])];
+                    let syncedCount = 0;
+
+                    prev.donations.forEach(donation => {
+                      if (donation.status === 'berhasil') {
+                        // Check if a financial transaction exists for this donation
+                        const hasFinancial = newFinancials.some(f => 
+                          f.description.includes(donation.transactionRef || donation.id) || 
+                          f.title.includes(donation.programTitle) && f.amount === donation.amount && f.date === donation.createdAt.split('T')[0]
+                        );
+                        
+                        // Check if an ERP journal exists for this donation
+                        const hasErp = newErpJournals.some(j => 
+                          j.reference === donation.transactionRef || j.reference === donation.id ||
+                          j.description.includes(donation.donorName) && j.description.includes(donation.programTitle)
+                        );
+
+                        if (!hasFinancial || !hasErp) {
+                          syncedCount++;
+                          const categoryUpper = donation.category.toUpperCase();
+
+                          if (!hasFinancial) {
+                            const newFinancial: FinancialTransaction = {
+                              id: `FIN-${Math.floor(200 + Math.random() * 800)}`,
+                              type: 'masuk',
+                              title: `Donasi ${categoryUpper} - ${donation.programTitle}`,
+                              category: categoryUpper,
+                              amount: donation.amount,
+                              date: donation.createdAt.split('T')[0],
+                              description: `Penerimaan donasi dari ${donation.donorName} via ${donation.paymentMethod} (Ref: ${donation.transactionRef}) - Tersinkronisasi`
+                            };
+                            newFinancials.push(newFinancial);
+                          }
+
+                          if (!hasErp) {
+                            let debitAccountId = 'coa-1102'; 
+                            let creditAccountId = 'coa-4100'; 
+                            
+                            if (categoryUpper.includes('ZAKAT')) {
+                              debitAccountId = 'coa-1103'; 
+                              creditAccountId = 'coa-4102'; 
+                            } else if (categoryUpper.includes('INFAQ') || categoryUpper.includes('SEDEKAH') || categoryUpper.includes('SHADAQAH')) {
+                              debitAccountId = 'coa-1104'; 
+                              creditAccountId = 'coa-4104'; 
+                            } else if (categoryUpper.includes('WAKAF')) {
+                              debitAccountId = 'coa-1105'; 
+                              creditAccountId = 'coa-4105'; 
+                            }
+
+                            const journalId = `JRN-SYNC-${Math.floor(Date.now() / 1000)}-${Math.floor(Math.random() * 1000)}`;
+                            const newErpJournal: ERPGeneralJournal = {
+                              id: journalId,
+                              journalNo: `JV-SYNC-${donation.createdAt.split('T')[0].replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`,
+                              date: donation.createdAt.split('T')[0],
+                              description: `Penerimaan ${categoryUpper} - ${donation.programTitle} (${donation.donorName}) [SYNC]`,
+                              reference: donation.transactionRef || donation.id,
+                              status: 'Posted',
+                              createdBy: 'System Maintenance',
+                              createdAt: new Date().toISOString()
+                            };
+
+                            const debitEntry: ERPJournalEntry = {
+                              id: `JE-D-SYNC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                              journalId,
+                              accountId: debitAccountId,
+                              debit: donation.amount,
+                              credit: 0,
+                              description: `Penerimaan ke Kas/Bank`
+                            };
+
+                            const creditEntry: ERPJournalEntry = {
+                              id: `JE-C-SYNC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                              journalId,
+                              accountId: creditAccountId,
+                              debit: 0,
+                              credit: donation.amount,
+                              description: `Pendapatan ${categoryUpper}`
+                            };
+
+                            newErpJournals.push(newErpJournal);
+                            newErpJournalEntries.push(debitEntry, creditEntry);
+                          }
+                        }
+                      }
+                    });
+
+                    if (syncedCount > 0) {
+                      useMasjidStore.setState({
+                        state: {
+                          ...prev,
+                          financials: newFinancials,
+                          erpJournals: newErpJournals,
+                          erpJournalEntries: newErpJournalEntries
+                        }
+                      });
+                      alert(`Berhasil mensinkronkan ${syncedCount} transaksi donasi lama ke Buku Besar.`);
+                    } else {
+                      alert("Tidak ada transaksi donasi lama yang perlu disinkronisasi. Semua sudah masuk Buku Besar.");
+                    }
+                  }
+                }}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors"
+              >
+                Jalankan Sinkronisasi
+              </button>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
